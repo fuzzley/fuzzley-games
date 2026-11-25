@@ -4,7 +4,10 @@ import { IconComponent, type IconName } from "@fz/ui/icon";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import type { Mock } from "vitest";
-import { FastForwardComponent } from "./fast_forward.component";
+import {
+  FastForwardComponent,
+  fastForwardWords,
+} from "./fast_forward.component";
 
 /** What a spec gets back from rendering the button. */
 interface Rendered {
@@ -32,7 +35,7 @@ async function renderFastForward({ fast = false } = {}): Promise<Rendered> {
   const { debugElement } = await render(
     `<button type="button">Board</button>
     <button
-      appFastForward
+      fzFastForward
       type="button"
       [fast]="fast"
       (fastForward)="pressed()"
@@ -73,7 +76,7 @@ describe("FastForwardComponent", () => {
     expect(fastForward()).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("is never dimmed, as it can be pressed at any time", async () => {
+  it("is never dimmed, as it can be pressed whenever it shows", async () => {
     await renderFastForward();
 
     expect(fastForward()).not.toHaveAttribute("aria-disabled");
@@ -110,5 +113,14 @@ describe("FastForwardComponent", () => {
     await user.click(fastForward());
 
     expect(board).toHaveFocus();
+  });
+});
+
+describe("fastForwardWords", () => {
+  it("says fast-forward on or off", () => {
+    expect([fastForwardWords(true), fastForwardWords(false)]).toEqual([
+      "Fast-forward on.",
+      "Fast-forward off.",
+    ]);
   });
 });

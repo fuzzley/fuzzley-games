@@ -1,4 +1,4 @@
-import { OFFLINE, heldLoad } from "./loads";
+import { OFFLINE, heldLoad } from "./held_load";
 
 /** A component, as far as a load sees one: a class. */
 class Shown {
@@ -37,10 +37,9 @@ describe("heldLoad", () => {
     const second = held.load();
 
     held.fail();
+    const [failed, waiting] = [await settledOf(first), await settledOf(second)];
 
-    expect([await settledOf(first), await settledOf(second)]).toEqual([
-      OFFLINE,
-      "waiting",
-    ]);
+    expect(failed).toBe(OFFLINE);
+    expect(waiting).toBe("waiting");
   });
 });

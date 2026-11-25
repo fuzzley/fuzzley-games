@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from "@angular/core";
+import { FastForwardComponent } from "@fz/brick-wall/app/fast_forward";
 import { count, formatPoints } from "@fz/core/format";
 import type { RunStage } from "@fz/core/run";
 import {
@@ -17,7 +18,6 @@ import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { CrewComponent } from "./crew.component";
 import { DropComponent } from "./drop.component";
-import { FastForwardComponent } from "./fast_forward.component";
 import { showsEveryFigure } from "./figures";
 
 /** Names an action the overflow menu offers. */

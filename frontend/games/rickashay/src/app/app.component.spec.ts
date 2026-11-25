@@ -6,10 +6,10 @@ import { installCompressionStreams } from "@fz/game-ui/testing";
 import { collectErrors, provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { paintRoles } from "@fz/style/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
+import { type HeldLoad, OFFLINE, heldLoad } from "@fz/ui/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import type { Pictures } from "../scene/pictures";
-import { type HeldLoad, OFFLINE, heldLoad } from "../testing/loads";
 import { PALETTES } from "../testing/roles";
 import {
   type SpecRound,

@@ -1,11 +1,13 @@
-// What the benchmarks in the sim project share: how long one may take, and
-// what they read of the times they take: the times sorted, a quantile of
-// them, and how they read at the median and the 99th percentile.
+// What a wall game's slow specs share: how long a test may take, and what
+// its benchmarks read of the times they take: the times sorted, a quantile
+// of them, and how they read at the median and the 99th percentile.
 
 /**
- * How long, in milliseconds, a benchmark may take: the root runs four
- * workspaces' tests at once, and lint, typecheck and the builds may run
- * beside them.
+ * How long, in milliseconds, a `sim` test that can run past half a second
+ * alone, or a `pure` search no batch can split, may take: the root runs four
+ * workspaces' tests at once, where 2 s alone has passed Vitest's 5 s,
+ * `yarn test:coverage` slows `pure` two or three times over, and lint,
+ * typecheck and the builds may run beside them.
  */
 export const SIM_TIMEOUT_MS = 60_000;
 

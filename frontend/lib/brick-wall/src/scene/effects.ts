@@ -238,18 +238,7 @@ export class EffectsPainter implements Painter<PaintContext<unknown>> {
       lastStarted.streaks = stillShowing(lastStarted.streaks, now, ms);
     }
     if (lastStarted.rings !== null) {
-      const rings = this.rings.all;
-      const count = rings.length;
-      for (let at = 0; at < count; at++) {
-        const ring = rings[at];
-        if (!ring?.image.visible) continue;
-        const done = shareDone(ring.at, now, RING_MS);
-        this.placeOn(ring, metrics);
-        ring.image
-          .setScale(scale * ringScale(done))
-          .setAlpha(fadeAlpha(done))
-          .setVisible(done < 1);
-      }
+      this.spreadAll(this.rings.all, RING_MS, 1, now, metrics, scale);
       lastStarted.rings = stillShowing(lastStarted.rings, now, RING_MS);
     }
     this.flashLineOn(context);

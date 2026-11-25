@@ -15,9 +15,12 @@ import { paintRoles } from "@fz/style/testing";
 import { recordOf } from "@fz/core/records";
 import { AnnouncerService } from "@fz/ui/announcer";
 import {
+  type HeldLoad,
   MemoryStorage,
+  OFFLINE,
   figure,
   figureValue,
+  heldLoad,
   provideMemoryStorage,
   setPageVisibility,
 } from "@fz/ui/testing";
@@ -36,7 +39,6 @@ import {
   scriptedRounds,
 } from "../testing/play";
 import { filesCertifying } from "../testing/certificates";
-import { type HeldLoad, OFFLINE, heldLoad } from "../testing/loads";
 import { PALETTES } from "../testing/roles";
 import { AppComponent, HELP_FAILED_WORDS } from "./app.component";
 import {

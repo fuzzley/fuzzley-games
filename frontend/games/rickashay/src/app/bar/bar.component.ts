@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from "@angular/core";
+import { FastForwardComponent } from "@fz/brick-wall/app/fast_forward";
 import type { Nudge } from "@fz/brick-wall/view/aiming";
 import { count, formatPoints } from "@fz/core/format";
 import type { RunStage } from "@fz/core/run";
@@ -16,7 +17,6 @@ import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
-import { FastForwardComponent } from "./fast_forward.component";
 import { showsEveryFigure } from "./figures";
 import { figuresPairedBesideRelease, homeBesideRelease } from "./release_room";
 import { SkipComponent } from "./skip.component";

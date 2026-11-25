@@ -6,11 +6,16 @@ import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
 import { collectErrors } from "@fz/phaser/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
-import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+import {
+  type HeldLoad,
+  MemoryStorage,
+  OFFLINE,
+  heldLoad,
+  provideMemoryStorage,
+} from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { filesCertifying } from "../../testing/certificates";
-import { type HeldLoad, OFFLINE, heldLoad } from "../../testing/loads";
 import { provideSpecPlay } from "../../testing/play";
 import {
   BrickFuzzPopReports,

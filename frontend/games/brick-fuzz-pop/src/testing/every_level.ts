@@ -1,5 +1,6 @@
 import { parOf } from "@fz/brick-wall/rules/par";
 import * as holders from "@fz/brick-wall/testing/holders";
+import { SIM_TIMEOUT_MS } from "@fz/brick-wall/testing/timing";
 import { isFiniteNumber, isListOf } from "@fz/core/json";
 import type { BrickKindId } from "../rules/catalog/bricks";
 import type { CertifiedShot, Line } from "../rules/levels/certificate";
@@ -13,7 +14,6 @@ import { PARS } from "../rules/run/stars";
 import { CASUAL_FLOORS } from "./casual";
 import { CERTIFY_API } from "./certify_api";
 import { linePlayOf } from "./solver";
-import { SIM_TIMEOUT_MS } from "./timing";
 
 export { FLOOR_SEEDS } from "@fz/brick-wall/testing/holders";
 

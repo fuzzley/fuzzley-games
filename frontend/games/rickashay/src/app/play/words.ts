@@ -142,11 +142,3 @@ export class RunWords implements RoundWords<
     return describeTakenUp(run, level);
   }
 }
-
-/**
- * Returns what is said as F switches fast-forward on or off, which the bar's
- * button says for a press by being pressed or not.
- */
-export function fastForwardWords(on: boolean): string {
-  return on ? "Fast-forward on." : "Fast-forward off.";
-}

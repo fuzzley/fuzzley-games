@@ -18,7 +18,7 @@ import {
   type SpecRound,
   scriptedRounds,
 } from "../../testing/spec_play";
-import { RunWords, fastForwardWords } from "./words";
+import { RunWords } from "./words";
 
 // The words themselves are the rules' `describe`'s, whose spec holds them:
 // this one holds which the game says at each moment, and what of the run
@@ -184,15 +184,6 @@ describe("RunWords, holding a flight's news", () => {
     expect(said).toEqual([
       `Rickashay! ${describeRound(round.outcome, aimed)}`,
       null,
-    ]);
-  });
-});
-
-describe("fastForwardWords", () => {
-  it("says fast-forward on or off", () => {
-    expect([fastForwardWords(true), fastForwardWords(false)]).toEqual([
-      "Fast-forward on.",
-      "Fast-forward off.",
     ]);
   });
 });

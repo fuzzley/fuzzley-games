@@ -31,6 +31,18 @@ export default defineConfig(
   // Everything the library defines carries fz, so it never collides with a
   // game's own `app-` components.
   angular({ files: ["src/**/*.ts"], prefix: "fz" }),
+  // Fast-forward fills a button of a game's bar, which takes it by an
+  // attribute (`button[fzFastForward]`), as @fz/game-ui's Pause and Sound
+  // do, so its selector is named as a directive's.
+  {
+    files: ["src/app/fast_forward/fast_forward.component.ts"],
+    rules: {
+      "@angular-eslint/component-selector": [
+        "error",
+        { type: "attribute", prefix: "fz", style: "camelCase" },
+      ],
+    },
+  },
   templates({ files: ["src/**/*.html"] }),
   tests({
     files: [

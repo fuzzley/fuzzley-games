@@ -1,6 +1,6 @@
+import { SIM_TIMEOUT_MS, described } from "@fz/brick-wall/testing/timing";
 import { createRandom } from "@fz/core/random";
 import { randomFlight } from "../../../testing/random_flights";
-import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
 import { fly } from "../flight";
 
 /** How many seeded flights are timed, each flown once a round. */

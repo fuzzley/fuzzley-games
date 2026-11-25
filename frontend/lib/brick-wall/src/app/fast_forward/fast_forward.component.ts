@@ -2,15 +2,15 @@ import { Component, input, output } from "@angular/core";
 import { IconComponent } from "@fz/ui/icon";
 
 /**
- * Makes a button among the bar's actions its Fast-forward, a switch: round,
- * and pressed, in the accent, while fast-forward is on, which a press turns
- * on or off at any time, aiming or with a flight in the air.
+ * Makes a button among a wall game's bar's actions its Fast-forward, a
+ * switch: round, and pressed, in the accent, while fast-forward is on, which
+ * a press turns on or off whenever the bar shows it.
  *
  * A press with a mouse or a finger leaves the focus where it was, on the
  * board, so the keys go on steering.
  */
 @Component({
-  selector: "button[appFastForward]",
+  selector: "button[fzFastForward]",
   imports: [IconComponent],
   host: {
     class: "fz-button fz-button-secondary fz-button-circle",
@@ -28,4 +28,12 @@ export class FastForwardComponent {
 
   /** Emits as the player presses the button, to switch fast-forward on or off. */
   readonly fastForward = output();
+}
+
+/**
+ * Returns what a wall game says as F switches fast-forward on or off, which
+ * the bar's button says for a press by being pressed or not.
+ */
+export function fastForwardWords(on: boolean): string {
+  return on ? "Fast-forward on." : "Fast-forward off.";
 }

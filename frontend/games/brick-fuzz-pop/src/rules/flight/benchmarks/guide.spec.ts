@@ -5,7 +5,7 @@ import {
   described,
   quantile,
   sortedTimes,
-} from "../../../testing/timing";
+} from "@fz/brick-wall/testing/timing";
 import { LEVELS, levelStart, parseLevel } from "../../levels/levels";
 import type { RoundStart } from "../../round/round";
 import type { Charge } from "../../shot";

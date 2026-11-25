@@ -1,12 +1,12 @@
 import { described, quantile, sortedTimes } from "./timing";
 
 describe("sortedTimes", () => {
-  it("sorts times from the least, leaving those handed as they were", () => {
-    const times = [3, 1, 2];
+  it("sorts times from the least, as numbers rather than as text, leaving those handed as they were", () => {
+    const times = [10, 9, 100];
 
     expect([sortedTimes(times), times]).toEqual([
-      [1, 2, 3],
-      [3, 1, 2],
+      [9, 10, 100],
+      [10, 9, 100],
     ]);
   });
 });

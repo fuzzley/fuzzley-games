@@ -1,10 +1,10 @@
+import { SIM_TIMEOUT_MS, described } from "@fz/brick-wall/testing/timing";
 import { createRandom } from "@fz/core/random";
 import {
   castByScan,
   randomField,
   randomShot,
 } from "../../../testing/cast_reference";
-import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
 import { cast, castField, createContacts } from "../cast";
 
 /** How many seeded shots are timed, each cast once a round. */

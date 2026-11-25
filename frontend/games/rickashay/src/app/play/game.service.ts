@@ -8,6 +8,7 @@ import {
   untracked,
 } from "@angular/core";
 import { CertificateLine } from "@fz/brick-wall/app/certificate_line";
+import { fastForwardWords } from "@fz/brick-wall/app/fast_forward";
 import { waitingRows } from "@fz/brick-wall/app/panels";
 import { RunRecords } from "@fz/brick-wall/app/records";
 import {
@@ -65,7 +66,7 @@ import { GAME_LEVELS, GAME_MARKS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
 import { PlayedRounds } from "./played_rounds";
 import { KEPT_GAME } from "./saved_game.service";
-import { RunWords, fastForwardWords } from "./words";
+import { RunWords } from "./words";
 
 /** The speeds a reported round is flown to its moment at: a field unit a millisecond throughout, at which a frame's time is the distance it plays. */
 const UNIT_A_MS: Speeds = [1000, 1000, 1000, 1000];

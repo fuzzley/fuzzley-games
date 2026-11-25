@@ -7,6 +7,7 @@ import {
   signal,
 } from "@angular/core";
 import { CertificateLine } from "@fz/brick-wall/app/certificate_line";
+import { fastForwardWords } from "@fz/brick-wall/app/fast_forward";
 import { waitingRows } from "@fz/brick-wall/app/panels";
 import { RunRecords } from "@fz/brick-wall/app/records";
 import {
@@ -64,7 +65,7 @@ import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
 import { KEPT_GAME } from "./saved_game.service";
-import { ROUND_WORDS, fastForwardWords } from "./words";
+import { ROUND_WORDS } from "./words";
 
 /**
  * The pace a reported round is flown to its moment at, a field unit a

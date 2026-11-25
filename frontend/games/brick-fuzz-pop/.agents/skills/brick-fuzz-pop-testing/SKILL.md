@@ -172,7 +172,7 @@ does, and certified again.
 ## Slow Specs and the Benchmarks
 
 - **A test in `sim` that can run past half a second alone takes
-  `SIM_TIMEOUT_MS`** (`src/testing/timing.ts`) as its describe's `timeout`,
+  `SIM_TIMEOUT_MS`** (`@fz/brick-wall/testing/timing`) as its describe's `timeout`,
   since `yarn test` runs `sim` beside every workspace's specs.
 - **A long check in `pure` is split into seeded batches,** each well inside
   Vitest's 5 s, as the random walls of `src/rules/flight/flight.spec.ts`
@@ -262,7 +262,7 @@ Phaser game. A new case uses what the spec already has:
   own files, a dynamic import, with `vi.waitFor()`.
 - **Hold a load to see what shows meanwhile,** or once a chunk can't be
   fetched. A spec hands `LOAD_HELP` or `LOAD_DEBUG_MENU` a held load
-  (`heldLoad()`, in `src/testing/loads.ts`) and lets it `arrive()` or
+  (`heldLoad()`, from `@fz/ui/testing`) and lets it `arrive()` or
   `fail()` with `OFFLINE`, collecting the error (`collectErrors()`). Till
   then the load's pending task keeps `whenStable()` and `loadsSettled()`
   waiting, so the spec shows the page with `detectChanges()`, and settles

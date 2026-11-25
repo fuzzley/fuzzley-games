@@ -13,6 +13,7 @@ import { parOf } from "@fz/brick-wall/rules/par";
 import type { PlayedCarelessly } from "@fz/brick-wall/testing/careless";
 import * as holders from "@fz/brick-wall/testing/holders";
 import type { Line } from "@fz/brick-wall/testing/solver";
+import { SIM_TIMEOUT_MS } from "@fz/brick-wall/testing/timing";
 import { variantOfSpec } from "@fz/core/testing";
 import { describe, expect, it } from "vitest";
 import type { KindId } from "../rules/catalog/kinds";
@@ -31,7 +32,6 @@ import { CERTIFY_API } from "./certify_api";
 import { CARELESS_FLOORS, type RoundPlay, levelPlayOf } from "./line_play";
 import { ralliesOf, rallyLineHolds, rallyMarkFrom } from "./rally_mark";
 import { LEAST_SWEET_SPOT, sweetSpotOf } from "./sweet_spot";
-import { SIM_TIMEOUT_MS } from "./timing";
 
 export { FLOOR_SEEDS } from "@fz/brick-wall/testing/holders";
 

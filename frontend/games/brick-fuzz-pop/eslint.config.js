@@ -38,14 +38,12 @@ export default defineConfig(
     ],
   }),
   angular({ files: ["src/**/*.ts"], prefix: "app" }),
-  // The bar's Fast-forward and Drop fill a button of the bar's own, which
-  // takes them by an attribute (`button[appFastForward]`), as @fz/game-ui's
-  // Pause and Sound do, so their selectors are named as a directive's.
+  // The bar's Drop fills a button of the bar's own, which takes it by an
+  // attribute (`button[appDrop]`), as @fz/game-ui's Pause and Sound and
+  // @fz/brick-wall's Fast-forward do, so its selector is named as a
+  // directive's.
   {
-    files: [
-      "src/app/bar/fast_forward.component.ts",
-      "src/app/bar/drop.component.ts",
-    ],
+    files: ["src/app/bar/drop.component.ts"],
     rules: {
       "@angular-eslint/component-selector": [
         "error",
@@ -64,7 +62,7 @@ export default defineConfig(
       "@angular-eslint/template/elements-content": [
         "error",
         {
-          allowList: ["fzBarPause", "fzBarSound", "appFastForward", "appDrop"],
+          allowList: ["fzBarPause", "fzBarSound", "fzFastForward", "appDrop"],
         },
       ],
     },

@@ -102,7 +102,9 @@ above:
 - **`@fz/ui/testing`:** `setPageVisibility()` hides the page or shows it
   again, as switching tabs does, until the test finishes. `figure()`,
   `figureValue()` and `figures()` read a bar's or a card's figures by their
-  terms, and throw when a term is missing.
+  terms, and throw when a term is missing. `heldLoad()` holds a load
+  `onDemand()` takes until the spec lets it `arrive()`, or `fail()` with
+  `OFFLINE`, as a slow or a lost connection would.
 - **`@fz/game-ui/testing`:** `barChoice()`, `chooseInBar()` and
   `openBarMenu()` drive the bar's choice and overflow menus as a player
   does.
