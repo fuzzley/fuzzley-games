@@ -220,7 +220,7 @@ own answers there. Each of the rest says what it could be instead.
    does, and what spreads two flights a hair apart until they have nothing
    in common.
 6. **The rally is the game's number.** The bricks struck in one flight,
-   counted beside the fuzzball as it flies. It is what the points, the
+   counted under the danger line as it flies. It is what the points, the
    floor bounces, a star, the fuzzball's fur and the sound all follow
    (decisions 7, 20, 21, 24 and 25). A Holedown reviewer counts a shot's
    brick touches as a challenge of their own, in a game that shows no
@@ -493,9 +493,10 @@ nine by eleven.
 
 - **A flight's rally is the bricks it has struck,** each strike one,
   whatever it took off the brick. It starts at nothing with every release.
-- **It is shown where the player is looking:** a number beside the fuzzball
-  as it flies, and again in the bar or the panel ("Cards, the bar and the
-  panels").
+- **It is shown where the player is looking:** a small, faint number
+  under the danger line as it flies, where no brick covers it, so it is
+  read without looking away, and again in the bar or the panel ("Cards,
+  the bar and the panels").
 - **A floor bounce is earned at a rally of 10,** another at 25, another at
   45, then at 70, 100, 135 and on: the first costs ten strikes and each
   further one five more than the last.
@@ -1019,8 +1020,17 @@ fuzzball and commands.
 - **A floor bounce** is a small coiled spring. Three stand in the floor's
   band, at its right end, grey until earned and in the warning color once
   held.
-- **The rally** rides beside the fuzzball in a pill of the warning color,
-  and the guide, the jump line and the danger line are Brick Fuzz Pop's.
+- **The rally** is a small, faint number fixed under the danger line,
+  across the field's middle, in the floor's row. No brick stands there
+  while the fuzzball flies: one the level doesn't need sinks into the
+  floor as it gets there, and one it needs loses the level. Anywhere
+  higher, the wall would cover it: at the middle as a level opens, and
+  low down wherever steel stands or the wall steps toward the line. Its
+  digits are 0.6 of a unit tall, in the field's text at 0.65 of its
+  strength, 0.55 in a dark palette, from the flight's first strike till
+  it lands. It lies under the fuzzball, which passes over it, and clear
+  of the lines. The guide, the jump line and the danger line are Brick
+  Fuzz Pop's.
 - **The guide** is a line of dots along the flight to its third turn, a
   ring at each turn, fading for a unit and a half past the last.
 - **The fuzzball has five looks:** waiting, and to a rally of 9; from 10,
@@ -1030,7 +1040,12 @@ fuzzball and commands.
 - **Small bricks drop detail** under 30 CSS px a unit, as Brick Fuzz Pop's
   do: cracks, rivets and a lock's slot lines.
 - **Contrast** is held as Brick Fuzz Pop's `contrast.spec.ts` holds it, the
-  springs, the rally's pill and the guide's rings added.
+  springs and the guide's rings added, and the rally's number, at its
+  strength over the field, 4.5:1 against the field, the bar for all text,
+  as on a small phone on its side its digits stand about 17 CSS pixels
+  tall. What flies over
+  the number, the fuzzball and what bursts from the wall, keeps less
+  against it in places, and is told by the field round its strokes.
 
 ### Flourishes
 
@@ -1103,9 +1118,9 @@ Pop's do, and take no pointer:
   rally, large; the floor bounces in hand, three springs; a bar that fills
   toward the next and the rally it comes at; and the flight's turns.
 
-Where the panels don't show, nothing is lost: the rally rides beside the
-fuzzball, the springs are in the floor's band, the lintel counts the rows
-and How to play has the kinds.
+Where the panels don't show, nothing is lost: the rally shows under the
+danger line, the springs are in the floor's band, the lintel counts the
+rows and How to play has the kinds.
 
 ### The debug menu and what it keeps
 

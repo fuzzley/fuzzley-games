@@ -18,11 +18,10 @@ describe("ART_ROLES", () => {
     expect(new Set(colors).size).toBe(colors.length);
   });
 
-  it("holds Classic felt's roles as its stylesheet sets them, but a page of Soft pastel's and the text on the warning color of Casino night's", () => {
+  it("holds Classic felt's roles as its stylesheet sets them, but a page of Soft pastel's", () => {
     const stylesheet: PaletteRoles = {
       ...PALETTES.rolesIn("classic", FIELD_ROLES),
       page: PALETTES.role("pastel", FIELD_ROLES.page),
-      onWarning: PALETTES.role("casino", FIELD_ROLES.onWarning),
     };
 
     expect(

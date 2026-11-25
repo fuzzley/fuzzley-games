@@ -62,7 +62,7 @@ import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
 import type { PaintContext, Painter } from "./painters/painter";
-import { PillPainter } from "./painters/pill_painter";
+import { RallyPainter } from "./painters/rally_painter";
 import { PICTURE_FRAMES, type Pictures, atlasWithPictures } from "./pictures";
 import { SpringsPainter } from "./painters/springs_painter";
 import spritemap from "./sounds/sounds.json";
@@ -129,9 +129,9 @@ export interface RickashaySceneOptions {
  * through its `Steering`, hands the shell each frame's time and aim, then
  * pulls the round to draw, plays the sounds of what it reached since the
  * last frame, and its flourishes where motion is welcome, and draws the
- * field, its springs, the wall, the guide, the flourishes, the fuzzball
- * and the rally's pill beside it as they stand; a key the steering
- * doesn't take becomes a command.
+ * field, the rally faint on it, its springs, the wall, the guide, the
+ * flourishes and the fuzzball as they stand; a key the steering doesn't
+ * take becomes a command.
  */
 export class RickashayScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -139,6 +139,8 @@ export class RickashayScene extends Scene {
 
   /** Draws the field, its band, its lintel, its frame and its lines. */
   field!: FieldPainter<KindId>;
+  /** Draws the rally, small and faint, under the danger line. */
+  rally!: RallyPainter;
   /** Draws the floor bounces' springs in the band. */
   springs!: SpringsPainter;
   /** Draws the wall. */
@@ -151,8 +153,6 @@ export class RickashayScene extends Scene {
   sounds!: SpritePlayer<SoundName>;
   /** Draws the fuzzball. */
   balls!: BallPainter;
-  /** Draws the rally in its pill beside the fuzzball. */
-  pill!: PillPainter;
   /** Turns the player's keys, mouse and fingers into the shot being aimed, which the bar's nudges and Release reach too. */
   steering!: Steering;
   /** Frames the camera on the field, and shakes it. */
@@ -231,21 +231,21 @@ export class RickashayScene extends Scene {
     this.handPictures();
     const layers = this.layers();
     this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
+    this.rally = new RallyPainter(this, layers.rally);
     this.springs = new SpringsPainter(this, layers.springs);
     this.wall = new WallPainter(this, layers.wall, WALL_ART, WALL_RULES);
     this.guide = new GuidePainter(this, layers.guide, GUIDE_ART, this.field);
     this.effects = new EffectsPainter(this, layers.bursts);
     this.balls = new BallPainter(this, layers.balls);
-    this.pill = new PillPainter(this, layers.pill);
     this.fieldCamera = new FieldCamera(this.cameras.main);
     this.painters = [
       this.field,
+      this.rally,
       this.springs,
       this.wall,
       this.guide,
       this.effects,
       this.balls,
-      this.pill,
       this.fieldCamera,
     ];
     this.effects.layout(this.metrics);

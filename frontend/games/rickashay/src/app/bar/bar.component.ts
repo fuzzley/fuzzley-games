@@ -32,7 +32,7 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
  * (`showsEveryFigure()`), the figures are the level, the shots against par,
  * the rows left, the level's best rally against its rally mark and the
  * score; otherwise the shots and the score alone, as the Ready card, the
- * lintel and the rally beside the fuzzball give the rest.
+ * lintel and the rally on the field give the rest.
  *
  * Every action is round at every size, its name heard and shown under the
  * pointer. Where the bar has room, Pause, the two Nudges, Release where the

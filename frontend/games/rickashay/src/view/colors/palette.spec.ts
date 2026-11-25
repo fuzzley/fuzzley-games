@@ -17,7 +17,6 @@ const ROLES: PaletteRoles = {
   accent: "#00aa00",
   danger: "#ff0000",
   warning: "#ffa500",
-  onWarning: "#202000",
 };
 
 describe("wallPalette", () => {
@@ -35,12 +34,18 @@ describe("wallPalette", () => {
     });
   });
 
-  it("carries the rally in a pill of the warning color, its number in the text the palette sets on that color", () => {
-    expect(wallPalette(ROLES, "light").pill).toEqual({
-      fill: 0xffa500,
-      text: 0x202000,
-    });
-  });
+  it.each([
+    ["light", 0.65],
+    ["dark", 0.55],
+  ] as const)(
+    "draws the rally's number in the field's text, at a %s palette's strength, %f",
+    (mode, alpha) => {
+      expect(wallPalette(ROLES, mode).rally).toEqual({
+        color: 0x101010,
+        alpha,
+      });
+    },
+  );
 
   it("rings the guide's turns in the guide's color, the field's text", () => {
     expect(wallPalette(ROLES, "light").guideRing).toBe(0x101010);
@@ -75,7 +80,7 @@ describe("wallPalette", () => {
 });
 
 describe("FIELD_ROLES", () => {
-  it("reads every wall game's colors by the library's roles, and the rally's number by the text on the warning color", () => {
-    expect(FIELD_ROLES).toEqual({ ...WALL_ROLES, onWarning: "on-warning" });
+  it("reads the field's colors by the library's roles", () => {
+    expect(FIELD_ROLES).toEqual(WALL_ROLES);
   });
 });

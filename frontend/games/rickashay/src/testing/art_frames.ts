@@ -4,10 +4,9 @@ import { type PaletteRoles, wallPalette } from "../view/colors/palette";
 /**
  * The roles the art's specs draw in, each a color no other role takes:
  * Classic felt's, but for its page, which is its field's white, so a page
- * of its own, Soft pastel's, lets a spec tell the two apart, and for the
- * text on its warning color, white too, so Casino night's. They are written
- * out, which its spec holds to the stylesheet, so a spec that imports them
- * compiles no stylesheet.
+ * of its own, Soft pastel's, lets a spec tell the two apart. They are
+ * written out, which its spec holds to the stylesheet, so a spec that
+ * imports them compiles no stylesheet.
  */
 export const ART_ROLES: PaletteRoles = {
   field: "#ffffff",
@@ -18,7 +17,6 @@ export const ART_ROLES: PaletteRoles = {
   accent: "#2f7d4f",
   danger: "#c62828",
   warning: "#a84b06",
-  onWarning: "#241204",
 };
 
 /** The palette the art's specs draw in, a light one. */

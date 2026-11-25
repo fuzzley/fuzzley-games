@@ -56,7 +56,7 @@ import { FRAMES, FURS } from "../view/art/frames";
 import { eyesAt } from "../view/art/fuzzball_art";
 import { lockTint } from "../view/art/lock_tint";
 import { EFFECT_FRAMES } from "../view/art/effect_frames";
-import { PILL_FRAMES, digitAcross, pillPlace } from "../view/art/pill_art";
+import { RALLY_FRAMES, RALLY_PLACE, digitAcross } from "../view/art/rally_art";
 import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
 import { type Cue, type Flourish, QUIET } from "../view/effects/effects";
@@ -885,36 +885,42 @@ describe("RickashayScene", () => {
     });
   });
 
-  describe("the rally's pill", () => {
+  describe("the rally", () => {
+    /** Returns where each digit of a rally of some digits stands on the canvas, about the rally's middle, on whole pixels. */
+    function digitsAt(
+      length: 1 | 2 | 3 | 4,
+      metrics: FieldMetrics = metricsAt(),
+    ): { x: number; y: number }[] {
+      return Array.from({ length }, (_, at) => {
+        const { x, y } = toCanvas(
+          metrics,
+          RALLY_PLACE.x + digitAcross(length, at),
+          RALLY_PLACE.y,
+        );
+        return { x: Math.round(x), y: Math.round(y) };
+      });
+    }
+
     it("hides while the fuzzball has struck nothing", async () => {
       const { scene } = await startBoard();
 
-      expect(shownOf([scene.pill.pill, ...scene.pill.digits])).toEqual([]);
+      expect(shownOf(scene.rally.digits)).toEqual([]);
     });
 
-    it("writes the rally beside the fuzzball in a pill as wide as its digits, where the view places it", async () => {
+    it("writes the rally under the danger line, where the view places it, a digit's room apart, on whole pixels", async () => {
       const { scene, shell, run } = await startBoard();
-      const ball = ballAt(3, { y: 4, dx: 1, dy: 1, rally: 15 });
 
-      shell.show({ ball });
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 15 }) });
       run.advance(16);
 
-      const metrics = metricsAt();
-      const middle = pillPlace(ball, shell.fieldShape.depth, { x: 0, y: 0 });
-      const at = (across: number): { x: number; y: number } =>
-        placeInBillionths(toCanvas(metrics, middle.x + across, middle.y));
-      expect(
-        shownOf([scene.pill.pill, ...scene.pill.digits]).map(
-          ({ frame, ...place }) => ({ frame, ...placeInBillionths(place) }),
-        ),
-      ).toEqual([
-        { frame: PILL_FRAMES.pill(2), ...at(0) },
-        { frame: PILL_FRAMES.digit(1), ...at(digitAcross(2, 0)) },
-        { frame: PILL_FRAMES.digit(5), ...at(digitAcross(2, 1)) },
+      const [tens, ones] = digitsAt(2);
+      expect(shownOf(scene.rally.digits)).toEqual([
+        { frame: RALLY_FRAMES.digit(1), ...tens },
+        { frame: RALLY_FRAMES.digit(5), ...ones },
       ]);
     });
 
-    it("writes a rally that takes more digits in a wider pill as it climbs", async () => {
+    it("writes a rally that takes more digits about the same middle as it climbs", async () => {
       const { scene, shell, run } = await startBoard((each) => {
         each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 99 }) });
       });
@@ -922,28 +928,25 @@ describe("RickashayScene", () => {
       shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 100 }) });
       run.advance(16);
 
-      expect(
-        shownOf([scene.pill.pill, ...scene.pill.digits]).map(
-          (one) => one.frame,
-        ),
-      ).toEqual([
-        PILL_FRAMES.pill(3),
-        PILL_FRAMES.digit(1),
-        PILL_FRAMES.digit(0),
-        PILL_FRAMES.digit(0),
+      const [hundreds, tens, ones] = digitsAt(3);
+      expect(shownOf(scene.rally.digits)).toEqual([
+        { frame: RALLY_FRAMES.digit(1), ...hundreds },
+        { frame: RALLY_FRAMES.digit(0), ...tens },
+        { frame: RALLY_FRAMES.digit(0), ...ones },
       ]);
     });
 
-    it("follows the fuzzball as it flies", async () => {
+    it("stays where it stands as the fuzzball flies on and strikes again", async () => {
       const { scene, shell, run } = await startBoard((each) => {
         each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 3 }) });
       });
-      const before = scene.pill.pill.x;
 
-      shell.show({ ball: ballAt(4, { y: 5, dx: 1, dy: 1, rally: 3 }) });
+      shell.show({ ball: ballAt(7, { y: 8, dx: -1, dy: 1, rally: 4 }) });
       run.advance(16);
 
-      expect(scene.pill.pill.x - before).toBe(metricsAt().unit);
+      expect(shownOf(scene.rally.digits)).toEqual([
+        { frame: RALLY_FRAMES.digit(4), ...digitsAt(1)[0] },
+      ]);
     });
 
     it("hides as the fuzzball lands and waits", async () => {
@@ -954,15 +957,80 @@ describe("RickashayScene", () => {
       shell.show({ ball: ballAt(5) });
       run.advance(16);
 
-      expect(shownOf([scene.pill.pill, ...scene.pill.digits])).toEqual([]);
+      expect(shownOf(scene.rally.digits)).toEqual([]);
     });
 
-    it("draws over the fuzzball, so the fuzzball never covers its number", async () => {
-      const { scene } = await startBoard();
+    it("moves with the field as the canvas changes size in flight, its shape kept till the round ends", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 7 }) });
+      });
 
-      expect(layerPlaceOf(scene, scene.pill.pill)).toBeGreaterThan(
-        layerPlaceOf(scene, scene.balls.body),
+      run.game.scale.resize(600, 500);
+      run.advance(16);
+
+      const metrics = fieldMetrics(
+        viewport(600, 500, 1, INSETS),
+        shell.fieldShape,
       );
+      expect(shownOf(scene.rally.digits)).toEqual([
+        { frame: RALLY_FRAMES.digit(7), ...digitsAt(1, metrics)[0] },
+      ]);
+    });
+
+    it("shows at the palette's strength, again as the palette changes", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 21 }) });
+      });
+      const strengths = (): number[] =>
+        scene.rally.digits
+          .filter((digit) => digit.visible)
+          .map((digit) => digit.alpha);
+      const light = strengths();
+
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect({ light, dark: strengths() }).toEqual({
+        light: [LIGHT.rally.alpha, LIGHT.rally.alpha],
+        dark: [DARK.rally.alpha, DARK.rally.alpha],
+      });
+    });
+
+    it("scales its digits up from the atlas where the field's unit is past the most it bakes at", async () => {
+      const canvas = { width: 1600, height: 2400 };
+      const { scene, shell, run } = await startBoard(undefined, canvas);
+      const metrics = metricsAt(canvas.width, canvas.height);
+
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 2 }) });
+      run.advance(16);
+
+      expect({
+        past: metrics.unit > bakedScaleOf(metrics).unit,
+        scale: scene.rally.digits[0]?.scale,
+      }).toEqual({
+        past: true,
+        scale: metrics.unit / bakedScaleOf(metrics).unit,
+      });
+    });
+
+    it("draws over the field and under the springs, the wall, the guide and the fuzzball, so all that plays passes over it", async () => {
+      const { scene } = await startBoard();
+      const rally = layerPlaceOf(scene, firstOf(scene.rally.digits));
+
+      expect({
+        overField: rally > layerPlaceOf(scene, scene.field.ground),
+        underSprings:
+          rally < layerPlaceOf(scene, firstOf(scene.springs.springs)),
+        underWall: rally < layerPlaceOf(scene, scene.wall.image),
+        underGuide: rally < layerPlaceOf(scene, firstOf(scene.guide.dots)),
+        underFuzzball: rally < layerPlaceOf(scene, scene.balls.body),
+      }).toEqual({
+        overField: true,
+        underSprings: true,
+        underWall: true,
+        underGuide: true,
+        underFuzzball: true,
+      });
     });
   });
 

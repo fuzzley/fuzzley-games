@@ -62,7 +62,7 @@ export interface BallView {
   /** Which way it flies, which its eyes look: its speeds across and up, none while it waits or drops home. */
   readonly dx: number;
   readonly dy: number;
-  /** Its flight's rally so far, the number beside it. */
+  /** Its flight's rally so far, the number shown faint under the danger line. */
   readonly rally: number;
   /** How far its fur has lifted. */
   readonly fur: Fur;

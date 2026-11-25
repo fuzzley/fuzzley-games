@@ -22,7 +22,7 @@ import { RAMP_ART } from "./kinds/ramp";
 import { SPRING_ART } from "./kinds/spring";
 import { STEEL_ART } from "./kinds/steel";
 import { TOUGH_ART } from "./kinds/tough";
-import { pillFrames } from "./pill_art";
+import { rallyFrames } from "./rally_art";
 
 /** Each kind of brick's art, by its id, so a kind cataloged without art fails to compile. */
 const BRICK_ART = {
@@ -60,8 +60,8 @@ export function atlasFrames(
  * Returns every frame the field's atlas holds, drawn in a palette at a
  * scale, which the scene's `WallAtlas` bakes: the bricks' and the
  * fuzzball's, then the field's own dots and warning frame, the floor
- * bounces' springs, the rally's pill and its digits, the guide's dot, ring
- * and band round a brick it strikes, and the flourishes'.
+ * bounces' springs, the rally's digits, the guide's dot, ring and band
+ * round a brick it strikes, and the flourishes'.
  */
 export function wallAtlasFrames(
   palette: WallPalette,
@@ -71,7 +71,7 @@ export function wallAtlasFrames(
     ...atlasFrames(palette, scale),
     ...fieldFrames(palette, scale),
     ...springFrames(palette, scale),
-    ...pillFrames(palette, scale),
+    ...rallyFrames(palette, scale),
     ...guideFrames(palette, scale),
     ...effectFrames(palette, scale),
   ];

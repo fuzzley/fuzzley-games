@@ -15,7 +15,6 @@ const MADE = wallPalette(
     accent: "#00aa00",
     danger: "#ff0000",
     warning: "#ffa500",
-    onWarning: "#202000",
   },
   "light",
 );

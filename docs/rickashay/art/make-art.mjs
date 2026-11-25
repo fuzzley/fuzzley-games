@@ -81,7 +81,8 @@ export const kit = await borrow();
  * Brick Fuzz Pop's dark palette, with the roles the game draws in that it
  * lacks, at the values of the site's `midnight` palette (`@fz/style`'s
  * `_palettes.scss`): `fieldMuted`, which an unlit floor bounce is drawn in,
- * and `onWarning`, the text on the warning color, such as the rally's number.
+ * and `onWarning`, the text on the warning color, such as the mocks' badge
+ * for a hot shot.
  */
 export const DARK = {
   ...kit.DARK,
@@ -1954,8 +1955,19 @@ function wideScene(pal, symbols) {
   const size = sizeOf(look);
   const waiting = Math.max(0, level.bricks.length - (look.depth - state.base));
   const last = /** @type {Point} */ (trace[trace.length - 1]);
+  // The rally, small and faint, under the danger line, which runs a cell
+  // over the floor, where no brick stands in flight: the field's text at
+  // the game's strength, 0.55 in a dark palette and 0.65 in a light one,
+  // its digits 0.6 of a cell tall, halfway between the floor and the line.
+  const [mx, my] = spot(look, C / 2, 0.2);
   const field = [
     fieldBack(pal, look, waiting),
+    kit.text(mx, my, `${shot.rally}`, {
+      size: 0.85 * look.cell,
+      weight: 500,
+      fill: kit.mix(pal.field, pal.text, pal === DARK ? 0.55 : 0.65),
+      anchor: "middle",
+    }),
     drawBricks(pal, symbols, look, state, tints, {
       turns: shot.bounces,
       propped: shot.propped,
@@ -1966,17 +1978,6 @@ function wideScene(pal, symbols) {
     bandBounces(pal, look, held),
     fieldFrame(pal, look),
   ];
-  // The rally rides beside the fuzzball.
-  const [bx, by] = spot(look, last[0], last[1]);
-  field.push(
-    kit.rect(bx + 22, by - 40, 58, 30, { rx: 15, fill: pal.warning }),
-    kit.text(bx + 51, by - 19, `${shot.rally}`, {
-      size: 19,
-      weight: 800,
-      fill: pal.onWarning,
-      anchor: "middle",
-    }),
-  );
 
   const panelWidth = 300;
   const gap = 12;
@@ -2156,7 +2157,7 @@ function fieldSheet(symbols) {
       kit.text(
         wideLeft,
         162,
-        "Its path so far, its rally beside it, the floor bounces it holds, and the panels a wide room has space for.",
+        "Its path so far, its rally faint under the danger line, the floor bounces it holds, and the panels a wide room has space for.",
         { size: 14.5, fill: "#93a4bd" },
       ),
       at(MARGIN, top, phone.svg),

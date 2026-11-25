@@ -13,10 +13,11 @@
  * field 11 deep, the next shot, a hot one the second round's jump earned,
  * aimed by the keys at 111.75 degrees and let fly, and the page held 64
  * frames into its flight, the fuzzball climbing through the wall's top
- * course with a rally of 6 on its pill, the shards of the bricks it broke
- * about it. The page runs on a clock of steady frames from before its own
- * scripts, and its `Math.random` from a seed, so the flight stands at the
- * same moment, and its shards in the same places, every time it is held.
+ * course with a rally of 6 faint under the danger line, the shards of the
+ * bricks it broke about it. The page runs on a clock of steady frames
+ * from before its own scripts, and its `Math.random` from a seed, so the
+ * flight stands at the same moment, and its shards in the same places,
+ * every time it is held.
  * The palette is Midnight blue, dark as the other arcade games' are in the
  * catalog.
  */
