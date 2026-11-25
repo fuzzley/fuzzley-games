@@ -19,6 +19,7 @@ const PICTURES: HelpPictures = {
     hatch: pictureOf("hatch"),
     spring: pictureOf("spring"),
     gem: pictureOf("gem"),
+    portal: pictureOf("portal"),
   },
 };
 

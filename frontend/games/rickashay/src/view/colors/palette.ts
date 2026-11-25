@@ -1,8 +1,8 @@
 // Rickashay's palette: the colors every wall game's field is drawn in, from
 // `@fz/brick-wall/view/palette`, and its own, after the design's art: the
 // floor bounces' springs, the rally's pill, the rings at the guide's turns,
-// the streak a fuzzball's dash home leaves and a hatch's chevrons. The hot
-// shot is the library's `hotShot` and `spark`.
+// the streak a fuzzball's dash home leaves, a hatch's chevrons and a portal's
+// eye. The hot shot is the library's `hotShot` and `spark`.
 
 import {
   type PaletteRoles as WallRoles,
@@ -30,8 +30,8 @@ export const FIELD_ROLES: Readonly<Record<keyof PaletteRoles, PaletteRole>> = {
 
 /**
  * Describes the field's colors, as the numbers Phaser takes: those every
- * wall game draws in, and Rickashay's springs, pill, guide's rings, streak
- * and hatch's chevrons.
+ * wall game draws in, and Rickashay's springs, pill, guide's rings, streak,
+ * hatch's chevrons and portal's eye.
  */
 export interface WallPalette extends WallColors {
   /**
@@ -57,6 +57,8 @@ export interface WallPalette extends WallColors {
    * bar's steel.
    */
   readonly chevrons: number;
+  /** A portal's eye, inside its ring: the page's color, as the design's art draws it. */
+  readonly portalEye: number;
 }
 
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
@@ -70,5 +72,6 @@ export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
     guideRing: colors.guide,
     streak: { plain: colors.fuzzball, hot: colors.hotShot },
     chevrons: colorNumber(roles.fieldMuted),
+    portalEye: colorNumber(roles.page),
   };
 }

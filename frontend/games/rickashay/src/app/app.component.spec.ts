@@ -473,6 +473,7 @@ describe("AppComponent", () => {
         hatch: pictureOf("hatch"),
         spring: pictureOf("spring"),
         gem: pictureOf("gem"),
+        portal: pictureOf("portal"),
       };
       game.onPictures(() => ({
         bricks,

@@ -4,6 +4,7 @@ import { PORTAL_MARKS } from "../../rules/levels/legend";
 import { PALETTES } from "../../testing/roles";
 import { tileCommands } from "../art/kinds/brick";
 import { gemFacets } from "../art/kinds/gem";
+import { portalInks } from "../art/kinds/portal";
 import { brickColor } from "./brick_colors";
 import { FIELD_ROLES, wallPalette } from "./palette";
 
@@ -37,7 +38,9 @@ function stripOf(ink: number): number {
 // they keep 3:1 against.
 // The floor bounces' springs, lit and unlit, keep 3:1 against the floor's
 // band they stand in, and the rally's number, text, 4.5:1 against its
-// pill.
+// pill. Each pair of portals' arms keep 3:1 against its eye, and its
+// badge, in the arms' color, against the disc it is cut out on, in the
+// marks' color.
 describe("the field's contrast", () => {
   holdContrast(({ id, mode }) => {
     const palette = wallPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -79,6 +82,17 @@ describe("the field's contrast", () => {
         ["lit springs", palette.springs.on],
         ["unlit springs", palette.springs.off],
       ]),
+      ...PORTAL_MARKS.flatMap((mark, pair) => {
+        const { middle, glyph, disc } = portalInks(pair, palette);
+        return [
+          ...against(`eye of portals marked ${mark}`, middle, [
+            [`arms of portals marked ${mark}`, glyph],
+          ]),
+          ...against(`badge's disc of portals marked ${mark}`, disc, [
+            [`badge of portals marked ${mark}`, glyph],
+          ]),
+        ];
+      }),
       ...against(
         "rally's pill",
         palette.pill.fill,

@@ -24,6 +24,7 @@ import {
   HATCH_HOLDS,
   INKS,
   PIPS,
+  PORTAL_MARKS,
   RAMP_CORNERS,
 } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
@@ -87,9 +88,9 @@ function outlineOf({ x, y, width, height }: Area): readonly Point[] {
 
 /**
  * Returns how far a command reaches past a convex outline, at most: a
- * polygon's furthest point, a circle's middle and its radius, a line's
- * furthest end and half its width, and else the furthest corner of what
- * it covers.
+ * polygon's furthest point, a circle's middle and its radius, a ring's
+ * middle and its radius and half its width, a line's furthest end and half
+ * its width, and else the furthest corner of what it covers.
  */
 function reachPast(command: DrawCommand, outline: readonly Point[]): number {
   const past = (points: readonly Point[], by = 0): number =>
@@ -99,6 +100,8 @@ function reachPast(command: DrawCommand, outline: readonly Point[]): number {
       return past(command.points);
     case "circle":
       return past([command], command.radius);
+    case "ring":
+      return past([command], command.radius + command.width / 2);
     case "line":
       return past([command.from, command.to], command.width / 2);
     default:
@@ -278,7 +281,7 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil and 8 gems, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems and 2 portals, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
@@ -289,6 +292,7 @@ describe("atlasFrames", () => {
       FRAMES.hatchOpen,
       FRAMES.spring,
       ...INKS.map(FRAMES.gem),
+      ...PORTAL_MARKS.map(FRAMES.portal),
       ...FURS.map(FRAMES.fuzzball),
       FRAMES.hotShot,
       FRAMES.eyes,

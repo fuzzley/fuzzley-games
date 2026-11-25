@@ -1,5 +1,7 @@
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { isOneOf } from "@fz/core/records";
 import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
+import { WALL_LEGEND } from "../../rules/levels/legend";
 import { LEVELS, parseLevel } from "../../rules/levels/levels";
 import { levelStart } from "../../rules/run/run";
 import { describeKind } from "../../rules/run/describe";
@@ -46,6 +48,7 @@ describe("HELP_KIND_IDS", () => {
       "hatch",
       "spring",
       "gem",
+      "portal",
     ]);
   });
 });
@@ -84,6 +87,12 @@ describe("holdsListedKinds", () => {
     expect(holdsListedKinds(FIRST_WALL)).toBe(true);
   });
 
+  it("holds a wall of portals to the kinds listed, so In this wall names them", () => {
+    const wall = wallFrom(["@.&......", "&.......@"], WALL_LEGEND);
+
+    expect(holdsListedKinds(wall)).toBe(true);
+  });
+
   it("finds a wall holding a kind not listed", () => {
     const unlisted = KIND_IDS.find((kind) => !isOneOf(kind, HELP_KIND_IDS))!;
     const brick = { kind: unlisted, hits: 0, full: 0, plates: 0, tint: 0 };
@@ -107,6 +116,7 @@ describe("kindPictures", () => {
       hatch: pictureOf("hatch"),
       spring: pictureOf("spring"),
       gem: pictureOf("gem"),
+      portal: pictureOf("portal"),
     });
 
     expect(HELP_KIND_IDS.map((kind) => pictures?.[kind])).toEqual(

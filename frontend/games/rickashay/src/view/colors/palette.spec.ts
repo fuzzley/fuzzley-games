@@ -54,6 +54,10 @@ describe("wallPalette", () => {
       hot: 0xff0000,
     });
   });
+
+  it("draws a portal's eye in the page's color", () => {
+    expect(wallPalette(ROLES, "dark").portalEye).toBe(0xeeeeee);
+  });
 });
 
 describe("FIELD_ROLES", () => {
