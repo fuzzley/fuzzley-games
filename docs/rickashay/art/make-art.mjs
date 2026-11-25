@@ -77,6 +77,24 @@ async function borrow() {
 /** Brick Fuzz Pop's palettes, primitives and fuzzball. */
 export const kit = await borrow();
 
+/**
+ * Brick Fuzz Pop's dark palette, with the roles the game draws in that it
+ * lacks, at the values of the site's `midnight` palette (`@fz/style`'s
+ * `_palettes.scss`): `fieldMuted`, which an unlit floor bounce is drawn in,
+ * and `onWarning`, the text on the warning color, such as the rally's number.
+ */
+export const DARK = {
+  ...kit.DARK,
+  fieldMuted: "#93a4bd",
+  onWarning: "#241a02",
+};
+/** Brick Fuzz Pop's light palette, with the same roles as {@link DARK}, at the values of the site's `classic` palette. */
+export const LIGHT = {
+  ...kit.LIGHT,
+  fieldMuted: "#5d6672",
+  onWarning: "#ffffff",
+};
+
 const WHITE = "#ffffff";
 const BLACK = "#000000";
 
@@ -384,7 +402,7 @@ export function spring(pal) {
  */
 export function floorBounce(pal, lit) {
   const paint = {
-    stroke: lit ? pal.warning : kit.mix(pal.field, pal.text, 0.28),
+    stroke: lit ? pal.warning : pal.fieldMuted,
     sw: 9,
     join: "miter",
   };
@@ -1297,7 +1315,7 @@ function bricksSheet() {
   /** @type {string[]} */
   const out = [];
   let y = top;
-  const panels = [kit.DARK, kit.LIGHT].map((pal) => {
+  const panels = [DARK, LIGHT].map((pal) => {
     const panel = bricksPanel(pal);
     const placed = at(
       MARGIN,
@@ -1710,7 +1728,7 @@ function slopesPanel(pal, symbols) {
  * @returns {{ width: number, height: number, body: string }}
  */
 function flightSheet(symbols) {
-  const pal = kit.DARK;
+  const pal = DARK;
   const widths = [520, 500, 580];
   const height = 520;
   const top = 116;
@@ -1955,7 +1973,7 @@ function wideScene(pal, symbols) {
     kit.text(bx + 51, by - 19, `${shot.rally}`, {
       size: 19,
       weight: 800,
-      fill: pal.page,
+      fill: pal.onWarning,
       anchor: "middle",
     }),
   );
@@ -2104,7 +2122,7 @@ function wideScene(pal, symbols) {
  * @returns {{ width: number, height: number, body: string }}
  */
 function fieldSheet(symbols) {
-  const pal = kit.DARK;
+  const pal = DARK;
   const phone = phoneScene(pal, symbols);
   const wide = wideScene(pal, symbols);
   const top = 182;

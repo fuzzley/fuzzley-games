@@ -38,16 +38,12 @@ export interface WallPalette extends WallColors {
    * A floor bounce's spring in the floor's band: grey, in the field's
    * muted text, until it is earned, and lit in the warning color while it
    * is held.
-   *
-   * The design's art greys it with less of the field's text, which keeps
-   * under 3:1 against the band.
    */
   readonly springs: { readonly off: number; readonly on: number };
   /**
    * The pill the rally rides in beside the fuzzball, in the warning color,
    * and its number, in the text the palette sets on that color, which
-   * `@fz/style` holds to 4.5:1 against it, where the design's art takes the
-   * page's color.
+   * `@fz/style` holds to 4.5:1 against it.
    */
   readonly pill: { readonly fill: number; readonly text: number };
   /** The ring at each of the guide's turns, in the guide's color. */

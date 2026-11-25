@@ -41,7 +41,9 @@ Everything made for the design is in this folder, `docs/rickashay/`:
   turns; and [`field.svg`](art/field.svg), the field in play on a phone and
   in a wide window. `art/make-art.mjs` draws them all again. It borrows its
   palettes, its fuzzball and its drawing commands from Brick Fuzz Pop's
-  `art/make-art.mjs`, so the two games' art can't drift apart.
+  `art/make-art.mjs`, so the two games' art can't drift apart, and gives the
+  palettes the two roles the game draws in that they lack, at the site's
+  values.
 - **[`levels/`](levels/),** the thirty-six draft levels, a JSON file a set,
   and `levels/build.mjs`, which stacks each wall from its courses and writes
   the four files. "Appendix: the draft levels" shows the courses.
@@ -985,8 +987,9 @@ shot is a product of what it hit and how many.
 
 Flat art in the site's palettes, drawn in code as Brick Fuzz Pop's is and
 baked into one atlas. The sheets in [`art/`](art/) are the design, and
-`art/make-art.mjs` draws them with Brick Fuzz Pop's own palettes, fuzzball
-and commands.
+`art/make-art.mjs` draws them with Brick Fuzz Pop's own palettes, given the
+two roles the game draws in that they lack at the site's values, and its
+fuzzball and commands.
 
 - **A brick is Brick Fuzz Pop's chunky tile with its corners cut:** an
   eight-sided tile in its tint, a lighter strip along its top and a darker
@@ -1020,9 +1023,10 @@ and commands.
   and the guide, the jump line and the danger line are Brick Fuzz Pop's.
 - **The guide** is a line of dots along the flight to its third turn, a
   ring at each turn, fading for a unit and a half past the last.
-- **The fuzzball has five looks:** waiting, and to a rally of 9; from 10;
-  from 25; from 45, its fur on end with sparks about it; and the hot shot,
-  red-hot under a crown of flame ("Fuzzley flavor").
+- **The fuzzball has five looks:** waiting, and to a rally of 9; from 10,
+  its fur half way up; from 25, its fur on end; from 45, with sparks about
+  it too; and the hot shot, red-hot under a crown of flame ("Fuzzley
+  flavor").
 - **Small bricks drop detail** under 30 CSS px a unit, as Brick Fuzz Pop's
   do: cracks, rivets and a lock's slot lines.
 - **Contrast** is held as Brick Fuzz Pop's `contrast.spec.ts` holds it, the
@@ -1069,7 +1073,7 @@ are dialogs (`<fz-dialog>`).
   wall is built around, its par and its rally mark for this screen, and, in
   a level that brings a new kind, that kind's picture and sentence.
 - **Paused;** **Cleared,** with its three stars each named ("Cleared",
-  "Within 9 rounds", "A rally of 24"), the level's best rally, how the
+  "Within 9 shots", "A rally of 24"), the level's best rally, how the
   points added up, and Next level; **the result** over a lost level or a
   finished run, and **Ended,** the card it leaves in the board once it is
   closed.
@@ -1094,10 +1098,10 @@ Pop's do, and take no pointer:
 - **Coming next,** on the left: the level's number and name; the rows
   waiting over the ceiling, drawn small; how many are left; and the jump
   in a sentence.
-- **This flight,** on the right: the rally, large; the floor bounces in
-  hand, three springs; a bar that fills toward the next and the rally it
-  comes at; the flight's turns; and under them **In this wall,** each kind
-  the level has, with its picture, its name and a few words.
+- **In this wall,** on the right: each kind the level has, with its
+  picture, its name and a few words; and under them **This shot:** the
+  rally, large; the floor bounces in hand, three springs; a bar that fills
+  toward the next and the rally it comes at; and the flight's turns.
 
 Where the panels don't show, nothing is lost: the rally rides beside the
 fuzzball, the springs are in the floor's band, the lintel counts the rows
@@ -1136,11 +1140,10 @@ since nothing here is timed either:
   row 8, 2 hits." It is the rules' own cast, so it is as true as the dots.
 - **The announcer says** each level begun, with its par and its rally
   mark; the aim as the keys change it; each floor bounce earned ("Rally
-  10: a floor bounce"); each round's end ("A rally of 14. Broke 6. The
-  wall came down 1 row: 5 rows from the floor."); each jump; the danger
-  line; the "Rickashay!" call; a level cleared, with its stars; a pause,
-  going on and the end. R reads the wall's three lowest rows, from the
-  floor.
+  10: a floor bounce."); each round's end ("A rally of 14. Broke 6. 5 rows
+  to the floor."); each jump; the danger line; the "Rickashay!" call; a
+  level cleared, with its stars; a pause, going on and the end. R reads the
+  wall's three lowest rows, from the floor.
 - **Color is never the only signal:** kinds by shape, hits by pips, bolts
   by slots, holds by dots, the floor bounces by springs lit and unlit and
   by a count.
@@ -1155,10 +1158,10 @@ The fuzzball is the game's one actor, as in Brick Fuzz Pop, and what its
 fur shows is what this game counts:
 
 1. **Its fur is the rally.** It waits as the site's fuzzball. At a rally of
-   10 its strands lift, at 25 they stand out, and at 45 they stand on end
-   with sparks between them, each step at the moment a floor bounce is
-   earned. Brick Fuzz Pop's fur is its charge, set before the flight; this
-   one's is earned in it. Its eyes look the way it flies.
+   10 its strands lift half way, at 25 they stand on end, and at 45 sparks
+   stand about them, each step at the moment a floor bounce is earned.
+   Brick Fuzz Pop's fur is its charge, set before the flight; this one's is
+   earned in it. Its eyes look the way it flies.
 2. **The hot shot is the fuzzball itself,** red-hot under a crown of
    flame, as there.
 3. **It yawns.** A bored fuzzball's flight ends with a yawn and a drop

@@ -15,6 +15,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import {
+  DARK,
   KINDS,
   SCREENS,
   Symbols,
@@ -36,7 +37,7 @@ import { LEVELS, SETS } from "../sketch/levels.mjs";
 import { K, LEGEND, makeState } from "../sketch/sim.mjs";
 
 const here = import.meta.dirname;
-const pal = kit.DARK;
+const pal = DARK;
 const symbols = new Symbols();
 
 /** @typedef {[number, number]} Point */
@@ -307,7 +308,7 @@ function card(level, number, seen) {
     kit.text(x + 44, 125, "A jump: a hot shot", {
       size: 13.5,
       weight: 700,
-      fill: pal.page,
+      fill: pal.onWarning,
     }),
   );
 
