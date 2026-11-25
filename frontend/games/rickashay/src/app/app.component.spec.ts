@@ -135,7 +135,7 @@ describe("AppComponent", () => {
     expect(
       within(screen.getByRole("banner")).getByRole("heading", {
         level: 1,
-        name: "Rickashay",
+        name: "Rickaashay",
       }),
     ).toBeInTheDocument();
   });
@@ -331,7 +331,7 @@ describe("AppComponent", () => {
   describe("a bug report", () => {
     installCompressionStreams();
 
-    it("opens from the settings, filed as Rickashay's", async () => {
+    it("opens from the settings, filed as Rickaashay's", async () => {
       await renderApp();
       await userEvent.click(barButton("Settings"));
 
@@ -345,7 +345,7 @@ describe("AppComponent", () => {
       const link = within(report).getByRole("link", { name: /^Open GitHub/ });
       expect(
         new URL(link.getAttribute("href") ?? "").searchParams.get("title"),
-      ).toBe("[Rickashay] ");
+      ).toBe("[Rickaashay] ");
     });
 
     it("offers no reported state to load where the debug menu isn't offered", async () => {

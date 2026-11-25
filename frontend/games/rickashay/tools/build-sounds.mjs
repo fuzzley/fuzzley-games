@@ -70,7 +70,7 @@ Writes the game's sounds into one sprite and its map, in ${SPRITE_PATH}/.
 
   -h, --help      Show this message`;
 
-/** How far sharp the "Rickashay!" call's second voice is, as a ratio: 7 cents. */
+/** How far sharp the "Rickaashay!" call's second voice is, as a ratio: 7 cents. */
 const SHIMMER = 2 ** (7 / 1200);
 
 /**
@@ -505,7 +505,7 @@ export const RECIPES = [
       1,
     ),
   },
-  // The "Rickashay!" call: the key's five notes stacked in fifths, C4, G4,
+  // The "Rickaashay!" call: the key's five notes stacked in fifths, C4, G4,
   // D5, A5 and E6, strummed upward under a rush of air, each doubled a
   // little sharp so the chord shimmers: louder and fuller than a floor
   // bounce's chord, and the loudest at its peak.

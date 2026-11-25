@@ -86,7 +86,7 @@ describe("run", () => {
       out: [
         expect.stringMatching(
           new RegExp(
-            `^Usage: yarn capture:screenshots[^]*of Rickashay[^]*\\(default: http://localhost:${port}/\\)`,
+            `^Usage: yarn capture:screenshots[^]*of Rickaashay[^]*\\(default: http://localhost:${port}/\\)`,
           ),
         ) as unknown,
       ],

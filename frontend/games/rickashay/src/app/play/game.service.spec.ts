@@ -336,7 +336,7 @@ describe("GameService", () => {
       game.tick(60_000, STILL);
 
       expect(said()).toMatch(
-        /^Rickashay! Rally 10: a floor bounce\. A rally of 11\./,
+        /^Rickaashay! Rally 10: a floor bounce\. A rally of 11\./,
       );
     });
 
@@ -351,7 +351,7 @@ describe("GameService", () => {
         () => game.phase() === "aiming",
       );
 
-      expect(said()).not.toMatch(/floor bounce|Rickashay/);
+      expect(said()).not.toMatch(/floor bounce|Rickaashay/);
     });
 
     it("says the call as a flight reaches the level's rally mark", () => {
@@ -364,7 +364,7 @@ describe("GameService", () => {
         () => game.call() !== null,
       );
 
-      expect(said()).toBe("Rickashay!");
+      expect(said()).toBe("Rickaashay!");
     });
   });
 

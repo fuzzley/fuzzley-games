@@ -14,7 +14,7 @@ export const GAME_LEVELS = new InjectionToken<readonly LevelEntry[]>(
   { providedIn: "root", factory: () => LEVELS },
 );
 
-/** Each level's par and rally mark on each depth, which the run's par, the stars, the records and the "Rickashay!" call read: the game's, but in specs. */
+/** Each level's par and rally mark on each depth, which the run's par, the stars, the records and the "Rickaashay!" call read: the game's, but in specs. */
 export const GAME_MARKS = new InjectionToken<Marks>("GAME_MARKS", {
   providedIn: "root",
   factory: () => LEVEL_MARKS,

@@ -144,7 +144,7 @@ describe("BarComponent", () => {
       await renderBar();
 
       expect(
-        screen.getByRole("heading", { level: 1, name: "Rickashay" }),
+        screen.getByRole("heading", { level: 1, name: "Rickaashay" }),
       ).toBeInTheDocument();
     });
 

@@ -171,7 +171,7 @@ describe("BoardComponent", () => {
     it("names itself for the level on it", async () => {
       const { board } = await renderBoard();
 
-      expect(board).toHaveAccessibleName("Rickashay, level 1: First bounce");
+      expect(board).toHaveAccessibleName("Rickaashay, level 1: First bounce");
     });
 
     it("lists the keys needed to play, which describe it", async () => {
@@ -446,7 +446,7 @@ describe("BoardComponent", () => {
 
       playToCall(rendered);
 
-      const call = screen.getByText("Rickashay!");
+      const call = screen.getByText("Rickaashay!");
       expect([call.closest("[aria-hidden]"), call]).toEqual([
         expect.toHaveAttribute("aria-hidden", "true") as unknown,
         expect.toHaveClass("moving") as unknown,
@@ -459,7 +459,7 @@ describe("BoardComponent", () => {
 
       playToCall(rendered);
 
-      expect(screen.getByText("Rickashay!")).not.toHaveClass("moving");
+      expect(screen.getByText("Rickaashay!")).not.toHaveClass("moving");
     });
 
     it("goes once it has shown for its time", async () => {
@@ -469,7 +469,7 @@ describe("BoardComponent", () => {
       playFor(rendered.game, CALL_MS, STILL);
       rendered.detectChanges();
 
-      expect(screen.queryByText("Rickashay!")).toBeNull();
+      expect(screen.queryByText("Rickaashay!")).toBeNull();
     });
 
     it("isn't made by a flight short of the rally mark", async () => {
@@ -483,7 +483,7 @@ describe("BoardComponent", () => {
       );
       detectChanges();
 
-      expect(screen.queryByText("Rickashay!")).toBeNull();
+      expect(screen.queryByText("Rickaashay!")).toBeNull();
     });
   });
 

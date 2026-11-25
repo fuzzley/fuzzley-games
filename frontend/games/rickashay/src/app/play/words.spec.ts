@@ -170,7 +170,7 @@ describe("RunWords, holding a flight's news", () => {
 
     const said = [words.takeHeld(), words.takeHeld()];
 
-    expect(said).toEqual(["Rally 10: a floor bounce. Rickashay!", null]);
+    expect(said).toEqual(["Rally 10: a floor bounce. Rickaashay!", null]);
   });
 
   it("says what it holds before a round's end the same frame brings, and lets go of it", () => {
@@ -182,7 +182,7 @@ describe("RunWords, holding a flight's news", () => {
     const said = [words.round(round, aimed), words.takeHeld()];
 
     expect(said).toEqual([
-      `Rickashay! ${describeRound(round.outcome, aimed)}`,
+      `Rickaashay! ${describeRound(round.outcome, aimed)}`,
       null,
     ]);
   });

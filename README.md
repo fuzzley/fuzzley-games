@@ -6,7 +6,7 @@ the [Solitaire Collection](frontend/games/solitaire/), plus
 [Snake](frontend/games/snake/), [Brick Breaker](frontend/games/brick-breaker/),
 [Asteroid Breaker](frontend/games/asteroid-breaker/),
 [Brick Fuzz Pop](frontend/games/brick-fuzz-pop/) and
-[Rickashay](frontend/games/rickashay/).
+[Rickaashay](frontend/games/rickashay/).
 
 Play at https://fuzzley.games.
 
@@ -21,7 +21,7 @@ on Google Cloud Run. The games are built here too, the Solitaire Collection in
 Sudoku in `frontend/games/sudoku/`, Snake in `frontend/games/snake/`, Brick
 Breaker in `frontend/games/brick-breaker/`, Asteroid Breaker in
 `frontend/games/asteroid-breaker/`, Brick Fuzz Pop in
-`frontend/games/brick-fuzz-pop/` and Rickashay in
+`frontend/games/brick-fuzz-pop/` and Rickaashay in
 `frontend/games/rickashay/`, and served as static pages under
 `/play/<slug>/`.
 
@@ -55,7 +55,7 @@ yarn workspace snake dev            # work on Snake alone, on http://localhost:9
 yarn workspace brick-breaker dev    # work on Brick Breaker alone, on http://localhost:9004
 yarn workspace asteroid-breaker dev # work on Asteroid Breaker alone, on http://localhost:9005
 yarn workspace brick-fuzz-pop dev   # work on Brick Fuzz Pop alone, on http://localhost:9006
-yarn workspace rickashay dev        # work on Rickashay alone, on http://localhost:9007
+yarn workspace rickashay dev        # work on Rickaashay alone, on http://localhost:9007
 ```
 
 No dev server opens a browser by itself. Add `--open` to any of them
@@ -70,7 +70,7 @@ http://localhost:4200/play/sudoku/, Snake at
 http://localhost:4200/play/snake/, Brick Breaker at
 http://localhost:4200/play/brick-breaker/, Asteroid Breaker at
 http://localhost:4200/play/asteroid-breaker/, Brick Fuzz Pop at
-http://localhost:4200/play/brick-fuzz-pop/ and Rickashay at
+http://localhost:4200/play/brick-fuzz-pop/ and Rickaashay at
 http://localhost:4200/play/rickashay/.
 
 The portal application code lives in `frontend/site/src/app/` (bootstrapped

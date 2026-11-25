@@ -35,7 +35,7 @@ From these games, as they should read:
   bounces around breaking bricks until it lands on the floor. After each shot,
   the wall moves down 1 row. Break every brick that can be broken to clear the
   level. If one of them reaches the floor, you lose the level."
-- Rickashay: "Aim the fuzzball and let it go. It bounces off the walls and the
+- Rickaashay: "Aim the fuzzball and let it go. It bounces off the walls and the
   bricks until it lands on the floor, and each brick it hits takes a hit. After
   each shot, the wall moves down 1 row. Break every brick that can be broken to
   clear the level. If one of them reaches the floor, you lose the level. The
@@ -49,7 +49,7 @@ From these games, as they should read:
   count for a best time."
 - Snake, a detail section: "**Pausing.** The game pauses when you switch tabs or
   open a menu. Press Space or P to resume."
-- Rickashay, a detail section: "**Banking.** To reach a gap you can't hit
+- Rickaashay, a detail section: "**Banking.** To reach a gap you can't hit
   straight, bounce off a side wall. Picture the gap mirrored on the far side of
   the wall, and aim at that, the way pool players do."
 - An aside, where a joke belongs: "A fuzzball that goes too long without hitting

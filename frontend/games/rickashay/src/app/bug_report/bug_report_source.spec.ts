@@ -68,7 +68,7 @@ describe("RickashayReports", () => {
     const source = reports();
 
     expect({ title: source.title, tag: source.tag }).toEqual({
-      title: "Rickashay",
+      title: "Rickaashay",
       tag: "rk1",
     });
   });
@@ -76,7 +76,7 @@ describe("RickashayReports", () => {
   it("names the level in play", () => {
     const source = reports();
 
-    expect(source.game()).toBe("Rickashay · Level 1: First bounce");
+    expect(source.game()).toBe("Rickaashay · Level 1: First bounce");
   });
 
   it("lists the settings as the player set them", () => {

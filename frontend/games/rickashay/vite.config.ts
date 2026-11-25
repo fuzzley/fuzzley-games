@@ -3,12 +3,12 @@ import { gameConfig } from "@fz/dev/vite";
 import { defineConfig, mergeConfig } from "vite";
 
 export default defineConfig(
-  mergeConfig(gameConfig({ port: 9007, name: "Rickashay" }), {
+  mergeConfig(gameConfig({ port: 9007, name: "Rickaashay" }), {
     // The sound lab, at sound-lab/ on the dev server alone.
     plugins: [
       soundLab({
         entry: "tools/sound-lab.ts",
-        title: "Sound lab: Rickashay",
+        title: "Sound lab: Rickaashay",
       }),
     ],
   }),

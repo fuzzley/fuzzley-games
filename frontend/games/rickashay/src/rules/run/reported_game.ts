@@ -203,7 +203,7 @@ export function readReportedGame(
 ): ReadGame {
   if (value === null) {
     throw new Error(
-      "The report has no game state. It was filed before Rickashay put the game state in reports.",
+      "The report has no game state. It was filed before Rickaashay put the game state in reports.",
     );
   }
   return readReport(value, levels, {
@@ -230,7 +230,7 @@ export function replayReported(
   const dropped = record.shots.findIndex((shot) => shot.dropped !== null);
   if (dropped !== -1) {
     throw new Error(
-      `Shot ${String(dropped + 1)} of the game state was dropped. Rickashay has no Drop.`,
+      `Shot ${String(dropped + 1)} of the game state was dropped. Rickaashay has no Drop.`,
     );
   }
   const rounds = replayRecord(record, game, {

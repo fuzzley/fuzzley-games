@@ -475,7 +475,7 @@ async function checkBoth(devtools, url) {
  * @type {LayoutScript}
  */
 const LAYOUT_SCRIPT = {
-  game: "Rickashay",
+  game: "Rickaashay",
   root: ROOT,
   check: checkBoth,
   holds: `at each shape and turn, as a level waits for its first shot and over a run taken up, with Release with a button off and on: ${PHASER_CHECKED_AT}`,

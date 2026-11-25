@@ -52,7 +52,7 @@ const BOARD_KEYS: readonly string[] = [
  * scene, which it loads once the canvas asks; beside the field, where the
  * room spares them, the panels: Coming next, the rows waiting and the
  * jump, and In this wall, each kind of brick the wall holds, with This
- * shot under them; the "Rickashay!" call over the field as a flight
+ * shot under them; the "Rickaashay!" call over the field as a flight
  * reaches the level's rally mark, hidden from assistive technology, since
  * the announcer says it, and moving across the field only where motion is
  * welcome; and the card over the field (`<app-board-card>`), which holds
@@ -81,10 +81,10 @@ export class BoardComponent {
   /** The keys needed to play, which describe the board. */
   protected readonly keys = BOARD_KEYS;
 
-  /** Names the board for the level on it, as "Rickashay, level 12: Trapdoor". */
+  /** Names the board for the level on it, as "Rickaashay, level 12: Trapdoor". */
   protected readonly label = computed(() => {
     const { number, data } = this.game.level();
-    return `Rickashay, level ${String(number)}: ${data.name}`;
+    return `Rickaashay, level ${String(number)}: ${data.name}`;
   });
 
   /** Whether the screen is compact, where the field keeps a smaller margin. */

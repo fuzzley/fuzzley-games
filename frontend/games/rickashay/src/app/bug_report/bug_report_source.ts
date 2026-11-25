@@ -49,7 +49,7 @@ export class RickashayReports extends WallReports<DrivenGame, ReplayedGame> {
     const marks = inject(GAME_MARKS);
     const play = inject(PLAY_ROUND);
     super({
-      title: "Rickashay",
+      title: "Rickaashay",
       tag: REPORT_TAG,
       driver: inject(GameService),
       menu: inject(DebugService),

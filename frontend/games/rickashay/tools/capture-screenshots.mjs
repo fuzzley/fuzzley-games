@@ -346,7 +346,7 @@ async function capture(page, url, run) {
  */
 function scriptLoading(load) {
   return {
-    game: "Rickashay",
+    game: "Rickaashay",
     root: ROOT,
     port: PORT,
     capture: async (devtools, { url, force }, printer) => {

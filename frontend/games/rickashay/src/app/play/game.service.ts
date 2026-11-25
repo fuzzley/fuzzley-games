@@ -283,7 +283,7 @@ export class GameService extends RoundDriver<
   }));
 
   /**
-   * The "Rickashay!" call showing over the field, numbered from 1 so each
+   * The "Rickaashay!" call showing over the field, numbered from 1 so each
    * shows afresh, for `CALL_MS` from the frame its flight reached the
    * level's rally mark; or null for none.
    */

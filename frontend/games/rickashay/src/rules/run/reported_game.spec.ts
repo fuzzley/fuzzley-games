@@ -256,7 +256,7 @@ describe("readReportedGame", () => {
 
   it("refuses a report filed before the game kept its state, which holds none", () => {
     expect(() => read(null)).toThrow(
-      "The report has no game state. It was filed before Rickashay put the game state in reports.",
+      "The report has no game state. It was filed before Rickaashay put the game state in reports.",
     );
   });
 
@@ -342,7 +342,7 @@ describe("replayReported", () => {
     const record = { ...reported.record, shots: [[148], [216, 3]] };
 
     expect(() => replayReported(read({ ...reported, record }), PLAY)).toThrow(
-      "Shot 2 of the game state was dropped. Rickashay has no Drop.",
+      "Shot 2 of the game state was dropped. Rickaashay has no Drop.",
     );
   });
 

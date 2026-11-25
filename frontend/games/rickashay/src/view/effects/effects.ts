@@ -279,7 +279,7 @@ function turnSoundOf(kind: KindId): SoundName | null {
  * Returns what a strike calls for: its note, raised with the rally as
  * `rallyCentsOf()` says, and a brick broken's burst or a brick that holds'
  * swell; a gem's own sound, and a spring brick's as it breaks; a ring at
- * each of `RALLY_MARKS`; the "Rickashay!" call at the level's rally mark;
+ * each of `RALLY_MARKS`; the "Rickaashay!" call at the level's rally mark;
  * and the dash's streak from the flight's last strike.
  */
 function strikeEffects(
@@ -323,7 +323,7 @@ export function beatEffectsOf(beat: Beat): EventEffects {
   return BEAT_EFFECTS[beat];
 }
 
-/** Returns whether a moment's effects call "Rickashay!", as a flight reaches the level's rally mark. */
+/** Returns whether a moment's effects call "Rickaashay!", as a flight reaches the level's rally mark. */
 export function callsOut(effects: EventEffects): boolean {
   return effects.sounds.some(({ sound }) => sound === "call");
 }

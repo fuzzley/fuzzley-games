@@ -405,7 +405,7 @@ describe("inspectField, of the bar's title", () => {
     lay(UPRIGHT);
     document.body.insertAdjacentHTML(
       "afterbegin",
-      '<fz-game-bar><h1 class="title">Rickashay</h1></fz-game-bar>',
+      '<fz-game-bar><h1 class="title">Rickaashay</h1></fz-game-bar>',
     );
     const title = document.querySelector<HTMLElement>(".title");
     if (!title) throw new Error("No title.");
@@ -652,7 +652,7 @@ describe("checkLayout", () => {
       code: 0,
       out: [
         expect.stringMatching(
-          /^Usage: yarn check:layout[^]*Checks Rickashay's layout/,
+          /^Usage: yarn check:layout[^]*Checks Rickaashay's layout/,
         ) as unknown,
       ],
       err: [],

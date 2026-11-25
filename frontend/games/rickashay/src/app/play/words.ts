@@ -64,7 +64,7 @@ export class RunWords implements RoundWords<
 
   /**
    * Holds what a frame's flight came to, in order: "Rally 10: a floor
-   * bounce." for each floor bounce earned, and "Rickashay!" as it reached
+   * bounce." for each floor bounce earned, and "Rickaashay!" as it reached
    * the level's rally mark.
    */
   hold(news: readonly FlightNews[]): void {

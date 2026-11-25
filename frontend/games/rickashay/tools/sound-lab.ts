@@ -51,7 +51,7 @@ const PLAYS: Readonly<Record<SoundName, string>> = {
   danger: "A brick standing over the danger line.",
   chime: "A level cleared.",
   lost: "A level lost.",
-  call: 'The "Rickashay!" call, as a flight reaches the level\'s rally mark.',
+  call: 'The "Rickaashay!" call, as a flight reaches the level\'s rally mark.',
 };
 
 /** How far apart the rally's notes are played in "The rally's notes", in seconds. */
@@ -358,7 +358,7 @@ const SCENES: readonly LabScene<SoundName>[] = [
   },
   {
     name: "The call",
-    what: `A flight reaching its level's rally mark, ${String(LEVEL_RALLY_MARK)} here: the "Rickashay!" call's chord over the ${String(LEVEL_RALLY_MARK)}th strike, and the flight flies on.`,
+    what: `A flight reaching its level's rally mark, ${String(LEVEL_RALLY_MARK)} here: the "Rickaashay!" call's chord over the ${String(LEVEL_RALLY_MARK)}th strike, and the flight flies on.`,
     cues: flight(0, [
       heard(0, "release"),
       ...strikes(CALLED),
@@ -451,7 +451,7 @@ const sounds: readonly LabSound<SoundName>[] = SOUNDS.map((name) => ({
 }));
 
 mountSoundLab({
-  game: "Rickashay",
+  game: "Rickaashay",
   sprite: {
     url: spriteUrl,
     spritemap,

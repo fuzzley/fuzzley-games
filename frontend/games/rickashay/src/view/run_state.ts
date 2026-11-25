@@ -27,7 +27,7 @@ export interface FlightSoFar {
 /**
  * Describes something a level's rounds came to that the announcer says: a
  * floor bounce earned, as its flight reaches it ("Rally 10: a floor
- * bounce"), the "Rickashay!" call, as a flight reaches the level's rally
+ * bounce"), the "Rickaashay!" call, as a flight reaches the level's rally
  * mark, which the shell also shows over the field, and a round's end, as
  * its wall comes to rest.
  */

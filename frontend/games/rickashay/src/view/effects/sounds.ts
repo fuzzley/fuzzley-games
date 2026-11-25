@@ -53,7 +53,7 @@ export const SOUNDS = [
   "chime",
   // A level lost.
   "lost",
-  // The "Rickashay!" call's own chord.
+  // The "Rickaashay!" call's own chord.
   "call",
 ] as const satisfies readonly string[];
 

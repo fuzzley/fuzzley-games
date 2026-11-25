@@ -143,7 +143,7 @@ export function describeParAndMark(par: number, mark: number): string {
 }
 
 /** What the announcer says as a flight reaches the level's rally mark, the call the shell shows over the field too. */
-export const CALL_WORDS = "Rickashay!";
+export const CALL_WORDS = "Rickaashay!";
 
 /**
  * Returns a star's name on the Cleared card, by its par and the rally mark

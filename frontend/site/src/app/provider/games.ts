@@ -344,7 +344,7 @@ export const GAMES: readonly Game[] = [
   },
   {
     slug: "rickashay",
-    name: "Rickashay",
+    name: "Rickaashay",
     category: "arcade",
     blurb: "Aim the fuzzball. The more bricks a shot hits, the more you score.",
     players: SOLO,

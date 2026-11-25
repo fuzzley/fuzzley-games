@@ -1,7 +1,7 @@
 {
   "name": "rickashay",
   "version": "0.0.1",
-  "description": "Rickashay, drawn with Phaser: bounce the fuzzball off the walls and bricks to keep one shot flying.",
+  "description": "Rickaashay, drawn with Phaser: bounce the fuzzball off the walls and bricks to keep one shot flying.",
   "private": true,
   "type": "module",
   "scripts": {

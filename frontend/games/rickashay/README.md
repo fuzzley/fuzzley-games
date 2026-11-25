@@ -1,9 +1,9 @@
-# Rickashay
+# Rickaashay
 
 Aim the fuzzball, and it bounces off every wall and brick. The more bricks a
 shot hits, the more you score.
 
-Rickashay is still being built. It is an [Angular](https://angular.dev/) app
+Rickaashay is still being built. It is an [Angular](https://angular.dev/) app
 on the Fuzzley Games shared libraries (`frontend/lib/`), among them
 `@fz/brick-wall`, which it shares with Brick Fuzz Pop, its field drawn by
 [Phaser](https://phaser.io/) through `@fz/phaser`, built with
@@ -11,7 +11,7 @@ on the Fuzzley Games shared libraries (`frontend/lib/`), among them
 
 ## Development
 
-Rickashay is a Yarn workspace of the Fuzzley Games frontend. Run these from
+Rickaashay is a Yarn workspace of the Fuzzley Games frontend. Run these from
 `frontend/`:
 
 ```sh
