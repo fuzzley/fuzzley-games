@@ -85,6 +85,16 @@ function wedgeIn(cell: Area): readonly Point[] {
   ];
 }
 
+/** Returns how far in from a floorward left ramp's outline in a cell its bright edge lies, at the least: no way in where it has none. */
+function rimOf(frame: ArtFrame, cell: Area): number {
+  return Math.min(
+    Infinity,
+    ...edgesIn(frame).flatMap(({ points }) =>
+      points.map((point) => -pastOutline(point, wedgeIn(cell))),
+    ),
+  );
+}
+
 /** Returns how far a point lies in from a floorward left ramp's long face in a cell, toward its right angle. */
 function inFromFace(point: Point, cell: Area): number {
   const { x, y } = tileBody(cell);
@@ -191,16 +201,18 @@ describe("RAMP_ART's frames", () => {
   );
 
   it("lays its bright edge along its long face, 0.42 white over the steel, 0.1 of its cell deep inside a rim of steel 2 pixels wide", () => {
-    const [edge] = edgesIn(lowLeft);
-    const rim = Math.min(
-      ...(edge?.points ?? []).map(
-        (point) => -pastOutline(point, wedgeIn(cell)),
-      ),
-    );
+    expect([
+      billionths(rimOf(lowLeft, cell)),
+      billionths(edgeDepth(lowLeft, cell)),
+    ]).toEqual([2, 8.2]);
+  });
 
-    expect([billionths(rim), billionths(edgeDepth(lowLeft, cell))]).toEqual([
-      2, 8.2,
-    ]);
+  it("widens the rim to 0.03 of a unit, in whole pixels, where that is more than a CSS pixel: 4 at 128 pixels a unit", () => {
+    const scale = { unit: 128, pixelRatio: 2 };
+
+    expect(
+      billionths(rimOf(rampAt("floorward-left", scale), cellOf(scale))),
+    ).toBe(4);
   });
 
   it("cuts three rivets out in the marks' color along its short sides", () => {

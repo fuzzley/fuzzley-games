@@ -461,7 +461,13 @@ describe("AppComponent", () => {
       const { game, settle } = await renderApp();
       const picture = "data:image/png;base64,AAAA";
       game.onPictures(() => ({
-        bricks: { brick: picture, tough: picture, steel: picture },
+        bricks: {
+          brick: picture,
+          tough: picture,
+          steel: picture,
+          ramp: picture,
+          gem: picture,
+        },
         springs: { off: picture, on: picture },
       }));
 
@@ -472,7 +478,7 @@ describe("AppComponent", () => {
         within(screen.getByRole("dialog", { name: "How to play" }))
           .getAllByRole("presentation")
           .map((img) => img.getAttribute("src")),
-      ).toEqual([picture, picture, picture]);
+      ).toEqual([picture, picture, picture, picture, picture]);
     });
 
     describe("on a slow connection", () => {

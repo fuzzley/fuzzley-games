@@ -36,7 +36,7 @@ describe("HELP_KIND_IDS", () => {
   });
 
   it("lists the kinds in the catalog's order", () => {
-    expect(HELP_KIND_IDS).toEqual(["brick", "tough", "steel"]);
+    expect(HELP_KIND_IDS).toEqual(["brick", "tough", "steel", "ramp", "gem"]);
   });
 });
 
@@ -85,6 +85,8 @@ describe("kindPictures", () => {
       brick: pictureOf("brick"),
       tough: pictureOf("tough"),
       steel: pictureOf("steel"),
+      ramp: pictureOf("ramp"),
+      gem: pictureOf("gem"),
     });
 
     expect(HELP_KIND_IDS.map((kind) => pictures?.[kind])).toEqual(

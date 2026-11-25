@@ -15,6 +15,8 @@ const PICTURES: HelpPictures = {
     brick: pictureOf("brick"),
     tough: pictureOf("tough"),
     steel: pictureOf("steel"),
+    ramp: pictureOf("ramp"),
+    gem: pictureOf("gem"),
   },
 };
 
