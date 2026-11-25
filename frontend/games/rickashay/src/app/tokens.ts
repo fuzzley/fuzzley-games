@@ -44,6 +44,22 @@ export const PLAY_ROUND = new InjectionToken<RoundPlayer>("PLAY_ROUND", {
 });
 
 /**
+ * Loads the debug menu, its chunk fetched as the settings drawer is first
+ * drawn where the menu is offered: but in specs, which load it slowly or
+ * fail to.
+ */
+export const LOAD_DEBUG_MENU = new InjectionToken<ComponentLoad>(
+  "LOAD_DEBUG_MENU",
+  {
+    providedIn: "root",
+    factory: () => () =>
+      import("./debug/debug_menu.component").then(
+        (chunk) => chunk.DebugMenuComponent,
+      ),
+  },
+);
+
+/**
  * Loads How to play, its chunk fetched as it first opens: but in specs,
  * which load it slowly or fail to.
  */

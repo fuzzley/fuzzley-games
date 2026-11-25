@@ -22,6 +22,7 @@ import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { onDemand } from "@fz/ui/on_demand";
 import { MOST_STARS, starCount } from "../rules/run/stars";
 import { BarComponent } from "./bar/bar.component";
+import { DebugService } from "./debug/debug.service";
 import { BoardComponent } from "./board/board.component";
 import type { HelpPictures } from "./help/help.component";
 import { GameService } from "./play/game.service";
@@ -103,6 +104,7 @@ export class AppComponent {
     read: ViewContainerRef,
   });
   private readonly announcer = inject(AnnouncerService);
+  private readonly debug = inject(DebugService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
   protected readonly levels = inject(GAME_LEVELS);
@@ -154,7 +156,8 @@ export class AppComponent {
 
   /**
    * How far each level has been played, as the Levels dialog shows it: its
-   * stars and its best rally from the stats, once it is cleared.
+   * stars and its best rally from the stats, once it is cleared, every
+   * level open while the debug menu opens them.
    */
   protected readonly marks = computed(() =>
     levelMarksOf(
@@ -162,6 +165,7 @@ export class AppComponent {
       this.progress.cleared(),
       this.stats.stats().levels,
       ({ stars, rally }) => ({ stars: starCount(stars), best: rally }),
+      this.debug.everyLevelOpen(),
     ),
   );
 

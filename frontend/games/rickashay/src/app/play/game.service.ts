@@ -44,7 +44,11 @@ import {
   type FlightPace,
   type Speeds,
 } from "../../view/play/pace";
-import { type PlayOptions, RoundPlay } from "../../view/play/round_play";
+import {
+  type PlayOptions,
+  type PlayRules,
+  RoundPlay,
+} from "../../view/play/round_play";
 import type { FlightSoFar, RoundView } from "../../view/run_state";
 import type { FieldCommand } from "../../view/steering/controls";
 import { DebugService } from "../debug/debug.service";
@@ -53,6 +57,7 @@ import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, GAME_MARKS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
+import { CertificateLine, type Line } from "./line";
 import { PlayedRounds } from "./played_rounds";
 import { KEPT_GAME } from "./saved_game.service";
 import { RunWords, fastForwardWords } from "./words";
@@ -82,13 +87,31 @@ interface GuideCast {
 type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
 
 /**
+ * Returns the rules' numbers a level's play shows a shot by: the hatches'
+ * holds, read afresh each time, since the play outlives every tuning, as
+ * the shot in play or next flies on them, the game's own for a line's shot
+ * and else as the debug menu tunes them; and a hot shot's floor bounces,
+ * which the menu leaves be.
+ */
+function playRulesOf(debug: DebugService, line: CertificateLine): PlayRules {
+  return {
+    get hatchHolds() {
+      return (line.playing() ? FLIGHT_RULES : debug.rules()).hatchHolds;
+    },
+    hotBounces: FLIGHT_RULES.hotBounces,
+  };
+}
+
+/**
  * Returns what the run's driver is handed of Rickashay: its levels, the
  * run's rules by the levels' marks, the opening of each level, its play of
- * the rounds, its records and words, and the depth the debug menu sets. It
- * must be called in an injection context.
+ * the rounds, showing each shot's hatches as the rules it flies on hold
+ * them, a line's among them, its records and words, and the depth the
+ * debug menu sets. It must be called in an injection context.
  */
 function rickashayDriving(
   words: RunWords,
+  line: CertificateLine,
 ): RoundDriving<LevelTally, LevelEntry, RoundStart, Round, PlayedRounds> {
   const levels = inject(GAME_LEVELS);
   const marks = inject(GAME_MARKS);
@@ -98,7 +121,8 @@ function rickashayDriving(
     levels,
     rules,
     openingOf: (run) => openingOf(run, levelOf(run, levels)),
-    playOf: (start) => new PlayedRounds(new RoundPlay(start, FLIGHT_RULES)),
+    playOf: (start) =>
+      new PlayedRounds(new RoundPlay(start, playRulesOf(debug, line))),
     records: new RunRecords({
       stats: inject(StatsService),
       progress: inject(ProgressService),
@@ -119,7 +143,9 @@ function rickashayDriving(
  * settings ask for; each flight called out at the level's rally mark; the
  * best rally against it; Skip, which lands a flight at once; G and R, which
  * read the guide and the wall's lowest rows; fast-forward and the rest of
- * the settings; and the field's palette.
+ * the settings; the field's palette; and a certificate's or a rally line
+ * the debug menu plays. It plays on the numbers the debug menu tunes, at
+ * the depth it sets.
  *
  * The round's view changes every frame, so no signal holds it; the scene
  * reads it through {@link view}.
@@ -142,6 +168,7 @@ export class GameService extends RoundDriver<
   private readonly stats = inject(StatsService);
   private readonly playRounds = inject(PLAY_ROUND);
   private readonly marks = inject(GAME_MARKS);
+  private readonly debug = inject(DebugService);
   private readonly roles = this.theme.roles(FIELD_ROLES);
   private readonly settings = this.settingsService.settings;
 
@@ -151,6 +178,8 @@ export class GameService extends RoundDriver<
   private guideCast: GuideCast | null = null;
   /** Whether the flight in the air is landing as the page is hidden, unseen and unheard. */
   private unseen = false;
+  /** The certificate's or rally line the level in play plays, if any. */
+  private readonly line: CertificateLine;
   /** How the next frame plays the round, written again each frame. */
   private readonly frame: FrameOptions = {
     pace: FLIGHT_PACE,
@@ -226,11 +255,12 @@ export class GameService extends RoundDriver<
   );
 
   /**
-   * The rules' numbers the guide is cast on and the scene draws by, with the
-   * turn the guide follows a shot to as the settings ask.
+   * The rules' numbers the guide is cast on and the scene draws by, as the
+   * debug menu tunes them, with the turn the guide follows a shot to as the
+   * settings ask.
    */
   readonly fieldRules = computed((): FlightRules => ({
-    ...FLIGHT_RULES,
+    ...this.debug.rules(),
     guideTurns: this.settings().guideTurns,
   }));
 
@@ -258,22 +288,34 @@ export class GameService extends RoundDriver<
       inject(GAME_MARKS),
       FLIGHT_RULES,
     );
-    super(rickashayDriving(words));
+    const line = new CertificateLine();
+    super(rickashayDriving(words, line));
     words.follow(this.run);
     this.runWords = words;
+    this.line = line;
   }
 
   /**
    * Moves the game on by the time a frame took, aimed as the player aims:
    * says the aim as the keys move it, releases a shot let fly, on the
-   * rules' own numbers, and plays the round on, taking what it came to
-   * into the run, and saying what its flight came to that the round's end
-   * didn't say.
+   * numbers the debug menu tunes, or the next of a line while one plays,
+   * and plays the round on, taking what it came to into the run, and
+   * saying what its flight came to that the round's end didn't say.
    */
   tick(deltaMs: number, aim: Readonly<AimFrame>): void {
     this.aimedAt = aim.aim;
     if (aim.keyed) this.announcer.say(describeAim(aim.aim));
-    if (aim.release) this.release({ aim: aim.aim }, FLIGHT_RULES);
+    const shot = this.line.next(this.run(), this.start());
+    if (shot === undefined) {
+      if (aim.release) this.release({ aim: aim.aim }, this.debug.rules());
+    } else if (
+      // A line's shot is made only as a round waits for it, so a frame of
+      // its flight makes none.
+      this.phase() === "aiming" &&
+      this.release({ aim: shot }, FLIGHT_RULES) !== null
+    ) {
+      this.line.flew();
+    }
     this.playFrame(deltaMs);
     const heard = this.runWords.takeHeld();
     if (heard !== null) this.announcer.say(heard);
@@ -336,6 +378,34 @@ export class GameService extends RoundDriver<
   /** Turns the sound on or off, and keeps it in the settings. */
   toggleSound(): void {
     this.settingsService.update({ sound: !this.settings().sound });
+  }
+
+  /**
+   * Plays a line of shots, a certificate's or a rally line: starts a run at
+   * a level, by its number, asking first if one is in progress, kept off
+   * the record, and lets the line's shots fly, one as each round is aimed,
+   * on the rules' own numbers whatever the debug menu has retuned. The line
+   * is the one `lineOn` gives for the field's depth; with none, nothing is
+   * asked and no run begins. The line stops should the field take another
+   * depth, and as the next level or another run begins. Resolves to
+   * whether one began.
+   */
+  async playLine(
+    level: number,
+    lineOn: (depth: number) => Line | null,
+  ): Promise<boolean> {
+    if (lineOn(this.roomDepth) === null) return false;
+    if (!(await this.mayLoseRun())) return false;
+    // Again, as the room may have changed while the player was asked.
+    const depth = this.roomDepth;
+    const shots = lineOn(depth);
+    if (shots === null) return false;
+    // The line first, so the level's play shows its first shot's hatches.
+    const run = this.create(level);
+    this.line.start(shots, depth, run);
+    this.begin(run, undefined, { certified: true });
+    this.sayLevel();
+    return true;
   }
 
   /**
@@ -441,9 +511,10 @@ export class GameService extends RoundDriver<
     this.announcer.say(describeGuide(this.aimedAt, guide.events, this.start()));
   }
 
-  /** Returns how the next frame plays the round, as the settings, the player and the run say. */
+  /** Returns how the next frame plays the round, as the settings, the debug menu's pace, the player and the run say. */
   private frameOptions(paused: boolean): Readonly<PlayOptions> {
     const { frame } = this;
+    frame.pace = this.debug.pace();
     frame.speed = this.settings().flightSpeed;
     frame.fast = this.fast();
     frame.motion = this.viewport.allowsMotion();

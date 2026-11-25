@@ -6,3 +6,9 @@
 fz-choice-list + .setting-check {
   margin-top: var(--fz-space-3);
 }
+
+// Where the debug menu goes, while it loads.
+.menu-loading {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+}

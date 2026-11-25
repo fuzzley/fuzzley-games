@@ -1,4 +1,10 @@
 <fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <!--
+    The live region the announcer speaks through while the drawer is open,
+    as that the debug menu couldn't be loaded: a modal hides the page's own
+    from a screen reader.
+  -->
+  <fz-announcer />
   <div class="setting">
     <span class="setting-label" id="aiming-label">Aiming</span>
     <fz-choice-list
@@ -92,13 +98,11 @@
   </div>
 
   <!--
-    A bug report's game state, pasted to load, where the game offers its
-    debug menu: in a development build, and on the site at ?debug.
+    The debug menu, where it is offered: a chunk of its own, which a page
+    that offers no menu never loads.
   -->
-  <fz-bug-report-loader (loaded)="closed.emit()">
-    <p class="setting-desc">
-      Loading a game state also sets the field's depth. Use the build named in
-      the report.
-    </p>
-  </fz-bug-report-loader>
+  @if (menuLoading()) {
+    <p class="menu-loading">Loading the debug menu…</p>
+  }
+  <ng-container #menuHost />
 </fz-settings-drawer>

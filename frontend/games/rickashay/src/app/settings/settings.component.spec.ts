@@ -1,17 +1,30 @@
 import { TestBed } from "@angular/core/testing";
+import type { CertificateFiles } from "@fz/brick-wall/app/certificates";
+import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
+import { collectErrors } from "@fz/phaser/testing";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { filesHolding } from "../../testing/lines";
+import { type HeldLoad, OFFLINE, heldLoad } from "../../testing/loads";
 import { provideSpecPlay } from "../../testing/spec_play";
 import {
   REPORT_TAG,
   RickashayReports,
   provideBugReports,
 } from "../bug_report/bug_report_source";
-import { SettingsComponent } from "./settings.component";
+import {
+  CERTIFICATE_FILES,
+  RALLY_LINE_FILES,
+} from "../debug/certificates.service";
+import { DebugMenuComponent } from "../debug/debug_menu.component";
+import { GameService } from "../play/game.service";
+import { LOAD_DEBUG_MENU } from "../tokens";
+import { MENU_FAILED_WORDS, SettingsComponent } from "./settings.component";
 import { type Settings, SettingsService } from "./settings.service";
 
 /** What a spec gets back from rendering the settings. */
@@ -20,19 +33,33 @@ interface RenderedSettings {
   readonly store: SettingsService;
   readonly storage: MemoryStorage;
   readonly closed: ReturnType<typeof vi.fn>;
+  readonly playLine: ReturnType<typeof vi.fn>;
+  /** Opens or shuts the drawer, as the app does, and shows what follows. */
+  readonly setOpen: (open: boolean) => void;
+  /** Waits for the menu's load, and the lines it loads, to settle. */
+  readonly settle: () => Promise<void>;
+}
+
+/** Says whether the drawer offers the debug menu, as a build for players doesn't, and the certificates its menu reads. */
+interface DebugOptions {
+  readonly debugMenu?: boolean;
+  readonly certificates?: CertificateFiles;
+  /** The menu's load, held until the spec lets it arrive or fail; the menu's own chunk, loaded at once, if none. */
+  readonly menu?: HeldLoad;
 }
 
 /**
  * Renders the settings, open, over those kept from the last visit, the
- * defaults for any not given, offering the loader of a reported state only
- * where the debug menu is offered, as a build for players doesn't.
+ * defaults for any not given.
  *
  * The specs keep one setting off its default at a time, so a box bound to
- * another setting shows the other's.
+ * another setting shows the other's. The drawer offers no debug menu, as a
+ * build for players doesn't, unless asked to. A menu offered is waited
+ * for, but one whose load is held.
  */
 async function renderSettings(
   kept: Partial<Settings> = {},
-  debugMenu = false,
+  { debugMenu = false, certificates = {}, menu }: DebugOptions = {},
 ): Promise<RenderedSettings> {
   const storage = new MemoryStorage();
   storage.setItem(
@@ -40,22 +67,44 @@ async function renderSettings(
     JSON.stringify({ version: 1, ...kept }),
   );
   const closed = vi.fn();
-  await render(SettingsComponent, {
+  const playLine = vi.fn();
+  const { fixture } = await render(SettingsComponent, {
     inputs: { open: true },
-    on: { closed },
+    on: { closed, playLine },
     providers: [
       provideMemoryStorage(storage),
       ...provideSpecPlay(),
       ...provideBugReports(),
       { provide: DEBUG_MENU, useValue: debugMenu },
+      { provide: CERTIFICATE_FILES, useValue: certificates },
+      { provide: RALLY_LINE_FILES, useValue: {} },
+      ...(menu ? [{ provide: LOAD_DEBUG_MENU, useValue: menu.load }] : []),
     ],
   });
+  // The menu, loaded where it is offered, then the lines it loads; a held
+  // load would keep the page from settling.
+  if (menu) {
+    fixture.detectChanges();
+  } else {
+    await loadsSettled(fixture);
+  }
   return {
     user: userEvent.setup(),
     store: TestBed.inject(SettingsService),
     storage,
     closed,
+    playLine,
+    setOpen: (open) => {
+      fixture.componentRef.setInput("open", open);
+      fixture.detectChanges();
+    },
+    settle: () => loadsSettled(fixture),
   };
+}
+
+/** Returns the field's depth, as the game lays it out. */
+function fieldDepth(): number {
+  return TestBed.inject(GameService).shape().depth;
 }
 
 /** Returns the radio group a label names. */
@@ -352,32 +401,181 @@ describe("SettingsComponent", () => {
     expect(screen.getByRole("radio", { name: /Midnight blue/ })).toBeVisible();
   });
 
-  describe("a reported state", () => {
-    installCompressionStreams();
-
-    it("isn't offered to load in a build for players", async () => {
-      await renderSettings();
+  describe("the debug menu", () => {
+    it("is offered in the drawer where DEBUG_MENU says so", async () => {
+      await renderSettings({}, { debugMenu: true });
 
       expect(
-        screen.queryByRole("textbox", { name: "Load game state" }),
-      ).not.toBeInTheDocument();
+        within(screen.getByRole("dialog")).getByRole("region", {
+          name: "Debug",
+        }),
+      ).toBeInTheDocument();
     });
 
-    it("asks to close once the state loaded is in play", async () => {
-      const { user, closed } = await renderSettings({}, true);
-      const state = await packState(
-        REPORT_TAG,
-        TestBed.inject(RickashayReports).capture().value,
+    it("isn't offered in a build for players, nor a reported state to load", async () => {
+      await renderSettings();
+
+      expect([
+        screen.queryByRole("region", { name: "Debug" }),
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ]).toEqual([null, null]);
+    });
+
+    it("hands the menu's Play the certificate on", async () => {
+      const { user, playLine } = await renderSettings(
+        {},
+        { debugMenu: true, certificates: filesHolding(fieldDepth) },
       );
 
       await user.click(
-        screen.getByRole("textbox", { name: "Load game state" }),
+        screen.getByRole("button", { name: "Play the certificate" }),
       );
-      await user.paste(state);
-      await user.click(screen.getByRole("button", { name: "Load" }));
 
-      await vi.waitFor(() => {
-        expect(closed).toHaveBeenCalledOnce();
+      expect(playLine).toHaveBeenCalledOnce();
+    });
+
+    describe("a reported state", () => {
+      installCompressionStreams();
+
+      it("asks to close once the menu has put it in play", async () => {
+        const { user, closed } = await renderSettings({}, { debugMenu: true });
+        const state = await packState(
+          REPORT_TAG,
+          TestBed.inject(RickashayReports).capture().value,
+        );
+
+        await user.click(
+          screen.getByRole("textbox", { name: "Load game state" }),
+        );
+        await user.paste(state);
+        await user.click(screen.getByRole("button", { name: "Load" }));
+
+        await vi.waitFor(() => {
+          expect(closed).toHaveBeenCalledOnce();
+        });
+      });
+    });
+
+    describe("on a slow connection", () => {
+      it("says the menu is loading while its chunk is on its way", async () => {
+        await renderSettings(
+          {},
+          { debugMenu: true, menu: heldLoad(DebugMenuComponent) },
+        );
+
+        expect(
+          within(screen.getByRole("dialog")).getByText(
+            "Loading the debug menu…",
+          ),
+        ).toBeVisible();
+      });
+
+      it("shows the menu in its place once it has loaded", async () => {
+        const menu = heldLoad(DebugMenuComponent);
+        const { settle } = await renderSettings({}, { debugMenu: true, menu });
+
+        menu.arrive();
+        await settle();
+
+        expect({
+          loading: screen.queryByText("Loading the debug menu…"),
+          menu: screen.getByRole("region", { name: "Debug" }),
+        }).toEqual({
+          loading: null,
+          menu: expect.toBeInTheDocument() as unknown,
+        });
+      });
+
+      it("says in the drawer's own live region, as the drawer hides the page's, that it couldn't be loaded, as the app's error handler is told why", async () => {
+        const errors = collectErrors();
+        const menu = heldLoad(DebugMenuComponent);
+        const { settle } = await renderSettings({}, { debugMenu: true, menu });
+
+        menu.fail();
+        await settle();
+
+        expect({
+          said: await within(screen.getByRole("dialog")).findByText(
+            MENU_FAILED_WORDS,
+          ),
+          loading: screen.queryByText("Loading the debug menu…"),
+          menu: screen.queryByRole("region", { name: "Debug" }),
+          errors,
+        }).toEqual({
+          said: expect.toHaveAttribute("aria-live", "polite") as unknown,
+          loading: null,
+          menu: null,
+          errors: [OFFLINE],
+        });
+      });
+
+      it("says nothing of a load that failed while the drawer was shut, as the player asked for nothing", async () => {
+        collectErrors();
+        const menu = heldLoad(DebugMenuComponent);
+        const { setOpen, settle } = await renderSettings(
+          {},
+          { debugMenu: true, menu },
+        );
+        setOpen(false);
+
+        menu.fail();
+        await settle();
+
+        expect(TestBed.inject(AnnouncerService).message()).toBe("");
+      });
+
+      it("says nothing is loading as the drawer opens again once the menu is in it", async () => {
+        const menu = heldLoad(DebugMenuComponent);
+        const { setOpen, settle } = await renderSettings(
+          {},
+          { debugMenu: true, menu },
+        );
+        menu.arrive();
+        await settle();
+        setOpen(false);
+
+        setOpen(true);
+
+        expect(
+          screen.queryByText("Loading the debug menu…"),
+        ).not.toBeInTheDocument();
+      });
+
+      it("says so once, however often the drawer opens while it loads", async () => {
+        collectErrors();
+        const menu = heldLoad(DebugMenuComponent);
+        const { setOpen, settle } = await renderSettings(
+          {},
+          { debugMenu: true, menu },
+        );
+        const say = vi.spyOn(TestBed.inject(AnnouncerService), "say");
+
+        setOpen(false);
+        setOpen(true);
+        menu.fail();
+        await settle();
+
+        expect(say.mock.calls).toEqual([[MENU_FAILED_WORDS]]);
+      });
+
+      it("loads it again as the drawer opens again after a load failed", async () => {
+        collectErrors();
+        const menu = heldLoad(DebugMenuComponent);
+        const { setOpen, settle } = await renderSettings(
+          {},
+          { debugMenu: true, menu },
+        );
+        menu.fail();
+        await settle();
+
+        setOpen(false);
+        setOpen(true);
+        menu.arrive();
+        await settle();
+
+        expect(
+          screen.getByRole("region", { name: "Debug" }),
+        ).toBeInTheDocument();
       });
     });
   });

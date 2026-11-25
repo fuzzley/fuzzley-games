@@ -69,6 +69,10 @@
 />
 <!-- How to play, put here as it first opens. -->
 <ng-container #helpHost />
-<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
+<app-settings
+  [open]="settingsOpen()"
+  (closed)="settingsOpen.set(false)"
+  (playLine)="settingsOpen.set(false)"
+/>
 <fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />
 <fz-confirm-dialog />
