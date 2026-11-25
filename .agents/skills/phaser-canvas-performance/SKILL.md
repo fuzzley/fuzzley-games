@@ -56,8 +56,8 @@ and write to it each time.
   and give them back, rather than creating and destroying each (Phaser's
   own `groups-and-containers` skill, found as `phaser-core` says). A
   flourish played a set number at a time takes `@fz/core/turns`'s `Turns`
-  instead, made with its game objects, each taken in turn, as the breakers'
-  and Brick Fuzz Pop's painters do. A tween
+  instead, made with its game objects, each taken in turn, as the breakers',
+  Brick Fuzz Pop's and Rickashay's painters do. A tween
   or a timer that runs again and again is one object too, not a new one each
   time.
 - **A pooled object that hides still costs a frame while it lies in a

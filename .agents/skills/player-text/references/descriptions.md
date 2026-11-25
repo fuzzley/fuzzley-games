@@ -26,6 +26,8 @@ From these games, as they should read:
 - Asteroid Breaker: "Shoot every rock before one hits your ship."
 - Brick Fuzz Pop: "Fire the fuzzball to break the bricks before they reach the
   floor."
+- Rickashay: "Aim the fuzzball. The more bricks a shot hits, the more you
+  score."
 - A solitaire game, as a fact line: "Klondike from 2 decks, on 9 columns."
 - A meta description: "Minesweeper with lives, free in your browser. Hitting a
   mine costs a life instead of ending the game. Easy, Medium, Hard or a board of

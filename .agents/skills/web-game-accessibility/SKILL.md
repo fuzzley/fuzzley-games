@@ -93,12 +93,13 @@ move it with the arrow keys, Home and End.
   from the keyboard keeps it.
 
 A board that moves by itself, as Snake's, Brick Breaker's, Asteroid
-Breaker's and Brick Fuzz Pop's do (`frontend/games/snake/src/app/board/` is
-the smallest), is no grid. It is one focusable element with
-`role="application"`, named for the game, and for the level or wave on it
-where it has them, and described by its keys (`aria-describedby`), so a
-screen reader hands it the arrow keys. The canvas in it is hidden, and the
-panels and cards beside it read as a page is.
+Breaker's, Brick Fuzz Pop's and Rickashay's do
+(`frontend/games/snake/src/app/board/` is the smallest), is no grid. It is
+one focusable element with `role="application"`, named for the game, and
+for the level or wave on it where it has them, and described by its keys
+(`aria-describedby`), so a screen reader hands it the arrow keys. The
+canvas in it is hidden, and the panels and cards beside it read as a page
+is.
 
 - **It waits for the player.** Nothing moves until the player's first move,
   and the run pauses whenever the focus leaves the board, the page is
@@ -109,7 +110,8 @@ panels and cards beside it read as a page is.
   in `frontend/lib/core/src/run.ts`, and the bar's `button[fzBarPause]`.
 - **Its pace is the player's to choose:** a setting offers its speeds, a
   slow one among them. Or nothing in play is timed, as in Brick Fuzz Pop,
-  where a flight can be sped up and only Drop waits on time.
+  where a flight can be sped up and only Drop waits on time, and in
+  Rickashay, where a flight can be sped up or skipped.
 - **The run's turning points are announced, not each move:** the start, a
   pause, going on, and the end with the score; a run taken up after a
   reload says it is paused.

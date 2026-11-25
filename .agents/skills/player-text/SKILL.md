@@ -62,9 +62,9 @@ lines to copy. Start from those.
    still says plainly what it does.
 
 Solitaire, Sudoku and Minesweeper stay calm, in full sentences. Snake, Brick
-Breaker, Asteroid Breaker and Brick Fuzz Pop are shorter and a little louder:
-"Level 3 cleared!", "Ball lost". Brick Fuzz Pop and Asteroid Breaker keep their
-own words: fuzzball, static, boon.
+Breaker, Asteroid Breaker, Brick Fuzz Pop and Rickashay are shorter and a little
+louder: "Level 3 cleared!", "Ball lost". Brick Fuzz Pop, Rickashay and Asteroid
+Breaker keep their own words: fuzzball, static, boon, rally.
 
 ## Kinds and budgets
 

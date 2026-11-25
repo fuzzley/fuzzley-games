@@ -29,7 +29,7 @@ look here first. When you settle a new one, add it.
 | Score                              | points in this game                                                           | Points (as a heading)           |
 | Best                               | the highest score or fastest time                                             | High score, Record              |
 | Lives                              | how many misses are left                                                      |                                 |
-| Level                              | a stage in Brick Breaker and Brick Fuzz Pop                                   | Stage, Round                    |
+| Level                              | a stage in Brick Breaker, Brick Fuzz Pop and Rickashay                        | Stage, Round                    |
 | Wave, Sector                       | a stage and a group of stages in Asteroid Breaker                             |                                 |
 | game                               | one play from start to end                                                    | run                             |
 | shot                               | one launch of the fuzzball                                                    | flight, round                   |
@@ -75,6 +75,9 @@ spell them the same way every time.
   score.
 - **Brick Fuzz Pop:** fuzzball, charge, static, zap, blast, boon, the wall, the
   dashed line, Fast-forward, Drop.
+- **Rickashay:** fuzzball, turn, strike, rally, Best rally, floor bounce, the
+  jump, hot shot, par, rally mark, the wall, the dashed line, the guide,
+  Fast-forward, Skip.
 - **Asteroid Breaker:** ship, rock, comet, dash, shield, spark, stray, crew,
   static, burr.
 - **Snake:** snake, apple.

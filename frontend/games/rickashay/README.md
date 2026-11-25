@@ -5,8 +5,8 @@ shot hits, the more you score.
 
 Rickashay is still being built. It is an [Angular](https://angular.dev/) app
 on the Fuzzley Games shared libraries (`frontend/lib/`), among them
-`@fz/brick-wall`, which it shares with Brick Fuzz Pop, its field to be drawn
-by [Phaser](https://phaser.io/) through `@fz/phaser`, built with
+`@fz/brick-wall`, which it shares with Brick Fuzz Pop, its field drawn by
+[Phaser](https://phaser.io/) through `@fz/phaser`, built with
 [Vite](https://vite.dev/) and tested with [Vitest](https://vitest.dev/).
 
 ## Development
