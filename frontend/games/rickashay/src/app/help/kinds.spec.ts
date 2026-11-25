@@ -49,6 +49,7 @@ describe("HELP_KIND_IDS", () => {
       "spring",
       "gem",
       "portal",
+      "plated",
     ]);
   });
 });
@@ -93,6 +94,12 @@ describe("holdsListedKinds", () => {
     expect(holdsListedKinds(wall)).toBe(true);
   });
 
+  it("holds a wall of plated bricks to the kinds listed, so In this wall names them", () => {
+    const wall = wallFrom(["v.V.U...."], WALL_LEGEND);
+
+    expect(holdsListedKinds(wall)).toBe(true);
+  });
+
   it("finds a wall holding a kind not listed", () => {
     const unlisted = KIND_IDS.find((kind) => !isOneOf(kind, HELP_KIND_IDS))!;
     const brick = { kind: unlisted, hits: 0, full: 0, plates: 0, tint: 0 };
@@ -117,6 +124,7 @@ describe("kindPictures", () => {
       spring: pictureOf("spring"),
       gem: pictureOf("gem"),
       portal: pictureOf("portal"),
+      plated: pictureOf("plated"),
     });
 
     expect(HELP_KIND_IDS.map((kind) => pictures?.[kind])).toEqual(

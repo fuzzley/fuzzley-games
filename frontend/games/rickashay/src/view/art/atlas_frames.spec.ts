@@ -24,6 +24,8 @@ import {
   HATCH_HOLDS,
   INKS,
   PIPS,
+  PLATED_HITS,
+  PLATINGS,
   PORTAL_MARKS,
   RAMP_CORNERS,
 } from "./frames";
@@ -36,6 +38,11 @@ const ATLAS_SIDE = 2048;
 
 /** How far a drawing may stray past its cell and still pass, for a rounding. */
 const SLACK = 1e-9;
+
+/** A plated brick's frames, each plating's for each count of hits left. */
+const PLATED_FRAMES = PLATINGS.flatMap((plating) =>
+  PLATED_HITS.map((hits) => FRAMES.plated(plating, hits)),
+);
 
 /** The frames the atlas holds in the specs' palette, at their scale. */
 const ART_FRAMES = atlasFrames(ART_PALETTE, ART_SCALE);
@@ -281,7 +288,7 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems and 2 portals, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems, 2 portals and 6 plated bricks' plates, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
@@ -293,6 +300,7 @@ describe("atlasFrames", () => {
       FRAMES.spring,
       ...INKS.map(FRAMES.gem),
       ...PORTAL_MARKS.map(FRAMES.portal),
+      ...PLATED_FRAMES,
       ...FURS.map(FRAMES.fuzzball),
       FRAMES.hotShot,
       FRAMES.eyes,
@@ -300,7 +308,7 @@ describe("atlasFrames", () => {
     ]);
   });
 
-  it("leaves out only the cracks and the steel's and the ramps' rivets at 29 CSS pixels a unit, where 31 shows them", () => {
+  it("leaves out only the cracks, the steel's and the ramps' rivets, and the plates' rivets and half their teeth at 29 CSS pixels a unit, where 31 shows them", () => {
     const small = atlasFrames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
 
     const fewer = ART_FRAMES.filter(
@@ -311,6 +319,7 @@ describe("atlasFrames", () => {
       ...CRACKS.map(FRAMES.cracks),
       FRAMES.steel,
       ...RAMP_CORNERS.map(FRAMES.ramp),
+      ...PLATED_FRAMES,
     ]);
   });
 });

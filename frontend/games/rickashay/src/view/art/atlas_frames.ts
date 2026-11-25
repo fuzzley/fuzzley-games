@@ -14,6 +14,7 @@ import { guideFrames } from "./guide_frames";
 import { PLAIN_ART } from "./kinds/brick";
 import { GEM_ART } from "./kinds/gem";
 import { HATCH_ART } from "./kinds/hatch";
+import { PLATED_ART } from "./kinds/plated";
 import { PORTAL_ART } from "./kinds/portal";
 import { RAMP_ART } from "./kinds/ramp";
 import { SPRING_ART } from "./kinds/spring";
@@ -36,6 +37,7 @@ const BRICK_ART: Partial<Readonly<Record<KindId, KindArt>>> = {
   spring: SPRING_ART,
   gem: GEM_ART,
   portal: PORTAL_ART,
+  plated: PLATED_ART,
 };
 
 /** The kinds of brick the art draws, in the catalog's order: those a picture shows. */

@@ -15,6 +15,7 @@ import { describeKind } from "../../rules/run/describe";
 import { BRICK_HELP } from "./kinds/brick";
 import { GEM_HELP } from "./kinds/gem";
 import { HATCH_HELP } from "./kinds/hatch";
+import { PLATED_HELP } from "./kinds/plated";
 import { PORTAL_HELP } from "./kinds/portal";
 import { RAMP_HELP } from "./kinds/ramp";
 import { SPRING_HELP } from "./kinds/spring";
@@ -37,6 +38,7 @@ export const HELP_KINDS = {
   spring: SPRING_HELP,
   gem: GEM_HELP,
   portal: PORTAL_HELP,
+  plated: PLATED_HELP,
 } as const satisfies Partial<Readonly<Record<KindId, KindHelp>>>;
 
 /** The id of a kind of brick the shell lists, such as "steel". */
