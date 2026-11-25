@@ -474,8 +474,8 @@ describe("BarComponent", () => {
   // actions off a phone, or cut the game's name short on a desktop.
   describe("with Release with a button on", () => {
     it.each([
-      ["the wordmark", 1336, 800, "Fuzzley Games"],
-      ["the home button for the wordmark", 1335, 800, ""],
+      ["the wordmark", 1332, 800, "Fuzzley Games"],
+      ["the home button for the wordmark", 1331, 800, ""],
     ] as const)("shows %s %i px wide", async (_, width, height, words) => {
       installFakeViewport(width, height);
 

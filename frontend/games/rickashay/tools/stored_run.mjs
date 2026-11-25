@@ -21,11 +21,13 @@ export const SAVED_GAME_KEY = "rickashay-game";
 /**
  * The run the layout check's second pass takes up: begun on First bounce,
  * on a field 11 deep, and a round played straight up, which leaves its
- * wall on row 4, a row under any a level opens on.
+ * wall on row 4, a row under any a level opens on; its score raised to
+ * five figures, the longest the check holds the bar's figures to beside
+ * the game's name.
  *
  * @type {ScriptRun}
  */
-export const LAYOUT_RUN = { level: 1, depth: 11, shots: [328] };
+export const LAYOUT_RUN = { level: 1, depth: 11, shots: [328], score: 12_345 };
 
 /**
  * A run kept by the rules, and as a page's storage holds it.

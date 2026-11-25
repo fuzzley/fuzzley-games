@@ -6,7 +6,7 @@ import { FLIGHT_RULES } from "../rules/tuning";
 import { MARKS, certificateOf } from "./every_level";
 import { type KeptRun, keptRun } from "./kept_run";
 
-/** First bounce, level 1, on a field 11 deep, a shot let fly straight up: the layout check's run (`LAYOUT_RUN`). */
+/** First bounce, level 1, on a field 11 deep, a shot let fly straight up: the layout check's run (`LAYOUT_RUN`), but for its score. */
 const KEPT: KeptRun = { level: 1, depth: 11, shots: [328] };
 
 describe("keptRun", () => {
@@ -49,6 +49,30 @@ describe("keptRun", () => {
     );
 
     expect(keptRun(LEVELS, MARKS, KEPT).score).toBe(outcome.points);
+  });
+
+  it("raises its score to the one asked for, which a page takes up", () => {
+    const kept = keptRun(LEVELS, MARKS, { ...KEPT, score: 12_345 });
+
+    expect(restoreGame(kept, LEVELS, 2, MARKS)?.run.score).toBe(12_345);
+  });
+
+  it("keeps a score as given that is what its rounds scored", () => {
+    const scored = keptRun(LEVELS, MARKS, KEPT).score;
+
+    expect(keptRun(LEVELS, MARKS, { ...KEPT, score: scored }).score).toBe(
+      scored,
+    );
+  });
+
+  it("throws for a score under what its rounds scored", () => {
+    const scored = keptRun(LEVELS, MARKS, KEPT).score;
+
+    expect(() =>
+      keptRun(LEVELS, MARKS, { ...KEPT, score: scored - 1 }),
+    ).toThrow(
+      `A score of ${String(scored - 1)} is under the ${String(scored)} the rounds scored.`,
+    );
   });
 
   it("throws for no shots, which leave nothing to keep", () => {

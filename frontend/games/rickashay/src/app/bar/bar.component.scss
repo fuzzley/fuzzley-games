@@ -8,10 +8,11 @@
 
 // The level, the shots against par, the rows left, the best rally against
 // its mark and the score, each a card, narrower than the breakers' and
-// padded less, so that all five and the game's name fit beside the ten
-// actions at a desktop's width (from 1200 px), and beside Release, the
-// eleventh, as the home button stands in for the wordmark
-// (`homeBesideRelease()`).
+// padded less, so that all five, at their longest, a five-figure score
+// among them, as check:layout holds them, and the game's name fit beside
+// the ten actions from a desktop's width (1200 px), and the wordmark too
+// from 1280 px; and beside Release, the eleventh, as the home button
+// stands in for the wordmark (`homeBesideRelease()`).
 @include bar-figures(64px, var(--fz-space-2));
 
 .metric {
@@ -32,6 +33,12 @@
 }
 
 @include bar-actions;
+
+// From a desktop's width too, the actions as close as below it, which
+// leaves the figures their room beside the game's name and the wordmark.
+:host {
+  --fz-bar-actions-gap: var(--fz-space-2);
+}
 
 // With Release, an eleventh action, a roomy bar below `desktop` sets its
 // actions as close as a compact bar does, which leaves the game's name

@@ -7,7 +7,7 @@ import { MARKS } from "./every_level";
 import { type KeptRun, keptRun } from "./kept_run";
 import { SCREENSHOT_API } from "./screenshot_api";
 
-/** First bounce, level 1, on a field 11 deep, a shot let fly straight up: the layout check's run (`LAYOUT_RUN`). */
+/** First bounce, level 1, on a field 11 deep, a shot let fly straight up: the layout check's run (`LAYOUT_RUN`), but for its score. */
 const KEPT: KeptRun = { level: 1, depth: 11, shots: [328] };
 
 describe("SCREENSHOT_API", () => {

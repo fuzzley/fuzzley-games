@@ -13,8 +13,8 @@ import {
 import type { BarHome } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 
-/** The room Release takes in a roomy bar: a 44 px button and the 12 px gap before it. */
-const ROOMY_RELEASE_PX = 56;
+/** The room Release takes in a roomy bar: a 44 px button and the 8 px gap before it. */
+const ROOMY_RELEASE_PX = 52;
 
 /** The room Release takes in a compact bar: a 44 px button and the 4 px gap before it. */
 const COMPACT_RELEASE_PX = 48;

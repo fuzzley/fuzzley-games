@@ -30,7 +30,9 @@
  * Beside those pages, it does it all again over a run kept as the game
  * keeps one, a round played, which each page takes up paused: the wall must
  * stand as many rows from the floor as the run kept it at every shape, and
- * through each turn, the field's depth whatever it is.
+ * through each turn, the field's depth whatever it is. The run's score is
+ * five figures long, and on every page the bar must show the game's name
+ * whole wherever it shows it.
  *
  * It does both again with Release with a button on, which adds Release to
  * the bar and steps its link home down. So the bar's controls, which
@@ -100,12 +102,25 @@ const FIELD = {
  * it on. It runs in the page, so it uses nothing from this module, and
  * reads the board's rectangles with `readRect()`, which is sent with it.
  *
+ * First it says the game's name cut short in the bar, wherever the bar
+ * shows it, which beside the run kept's five-figure score it mustn't be.
+ *
  * @param {BoardBox} [field]
  * @returns {string[]}
  */
 export function inspectField(field) {
   /** @type {string[]} */
   const problems = [];
+  const title = document.querySelector("fz-game-bar .title");
+  if (
+    title &&
+    !title.classList.contains("fz-visually-hidden") &&
+    title.scrollWidth > title.clientWidth
+  ) {
+    problems.push(
+      `The bar cuts the game's name short: ${title.clientWidth} of its ${title.scrollWidth} CSS px show.`,
+    );
+  }
   const board = document.querySelector("fz-wall-board");
   if (!field || !board) return problems;
   // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in @fz/brick-wall/rules/field;

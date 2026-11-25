@@ -20,6 +20,11 @@ export interface KeptRun {
   readonly depth: number;
   /** The aim of each round played, by its index, as a certificate keeps one. */
   readonly shots: readonly Aim[];
+  /**
+   * The run's score, at least what its rounds scored, for a page to show a
+   * longer figure than they make, such as a five-figure score; else theirs.
+   */
+  readonly score?: number;
 }
 
 /**
@@ -29,8 +34,8 @@ export interface KeptRun {
  *
  * It throws where the run can't begin, as `createRun()` does, for a shot
  * that isn't one of the 657 aims, as `playRound()` does, for no shots,
- * which leave nothing to keep, and for a shot that clears or loses the
- * level.
+ * which leave nothing to keep, for a shot that clears or loses the level,
+ * and for a score under what the rounds scored.
  */
 export function keptRun(
   levels: readonly LevelEntry[],
@@ -55,6 +60,14 @@ export function keptRun(
     // A round that leaves its level on lands as it is taken in.
     run = takeRound(startLevel(run), outcome, rules);
     start = next;
+  }
+  if (kept.score !== undefined) {
+    if (kept.score < run.score) {
+      throw new Error(
+        `A score of ${String(kept.score)} is under the ${String(run.score)} the rounds scored.`,
+      );
+    }
+    run = { ...run, score: kept.score };
   }
   const saved = saveGame(run, start, levels, { tuned: false }, marks);
   if (!saved) throw new Error("A run with no round played keeps nothing.");

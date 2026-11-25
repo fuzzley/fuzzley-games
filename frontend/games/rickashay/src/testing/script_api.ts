@@ -13,6 +13,8 @@ export interface ScriptRun {
   readonly depth: number;
   /** The aim of each round played, by its index, as a certificate keeps one. */
   readonly shots: readonly number[];
+  /** The run's score, at least what its rounds scored, for a page to show a longer figure than they make; else theirs. */
+  readonly score?: number;
 }
 
 /** Describes a run as storage keeps it, so far as the scripts read it; the rest goes to storage as it is. */

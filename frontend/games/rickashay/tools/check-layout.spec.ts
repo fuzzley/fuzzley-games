@@ -399,6 +399,42 @@ describe("what the page runs before its own scripts", () => {
   });
 });
 
+describe("inspectField, of the bar's title", () => {
+  /** Lays {@link UPRIGHT} out under a bar showing the game's name, its width and the width it shows of it, as Chrome measures them. */
+  function titled(scrollWidth: number, clientWidth: number): HTMLElement {
+    lay(UPRIGHT);
+    document.body.insertAdjacentHTML(
+      "afterbegin",
+      '<fz-game-bar><h1 class="title">Rickashay</h1></fz-game-bar>',
+    );
+    const title = document.querySelector<HTMLElement>(".title");
+    if (!title) throw new Error("No title.");
+    Object.defineProperty(title, "scrollWidth", { value: scrollWidth });
+    Object.defineProperty(title, "clientWidth", { value: clientWidth });
+    return title;
+  }
+
+  it("finds nothing wrong with the game's name shown whole", () => {
+    titled(83, 83);
+
+    expect(inspectField(UPRIGHT.box)).toEqual([]);
+  });
+
+  it("says the game's name cut short", () => {
+    titled(83, 77);
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "The bar cuts the game's name short: 77 of its 83 CSS px show.",
+    ]);
+  });
+
+  it("leaves the game's name be where only a screen reader reads it", () => {
+    titled(83, 1).classList.add("fz-visually-hidden");
+
+    expect(inspectField(UPRIGHT.box)).toEqual([]);
+  });
+});
+
 describe("checkLayout", () => {
   it("prints the usage asked for, naming the game, and exits with 0", async () => {
     const printer = recordingPrinter();

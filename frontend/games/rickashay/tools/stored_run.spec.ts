@@ -26,6 +26,12 @@ describe("storedRun", () => {
 });
 
 describe("LAYOUT_RUN", () => {
+  it("scores five figures, the longest the check holds the bar's figures to beside the game's name", async () => {
+    const { saved } = storedRun(await loadScreenshotApi(), LAYOUT_RUN);
+
+    expect(String(saved.score)).toHaveLength(5);
+  });
+
   // So a page that dropped the run, laying its level out afresh, can't
   // stand the wall where the run kept it by chance.
   it("stands its wall under every row a level opens on, at any depth", async () => {
