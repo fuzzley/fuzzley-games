@@ -9,11 +9,8 @@ import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { filesHolding } from "../../testing/lines";
 import { STILL, provideSpecPlay } from "../../testing/spec_play";
-import {
-  TUNED_NUMBERS,
-  TUNING_SLIDERS,
-  tuningLines,
-} from "../../view/debug/debug_tuning";
+import { TUNED_NUMBERS } from "../../view/debug/debug_tuning";
+import { TUNING_SLIDERS, tuningLines } from "../../view/debug/tuning_menu";
 import {
   REPORT_TAG,
   RickashayReports,

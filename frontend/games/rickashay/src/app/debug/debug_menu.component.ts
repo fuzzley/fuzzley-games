@@ -8,12 +8,12 @@ import {
   type ShownSlider,
   type SliderMove,
 } from "@fz/game-ui/debug_menu";
+import type { TunedNumber } from "../../view/debug/debug_tuning";
 import {
   TUNING_SLIDERS,
-  type TunedNumber,
   formatTuning,
   tuningLines,
-} from "../../view/debug/debug_tuning";
+} from "../../view/debug/tuning_menu";
 import { CertificatesService, RallyLinesService } from "./certificates.service";
 import { DebugService } from "./debug.service";
 
