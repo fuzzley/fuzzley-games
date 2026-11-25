@@ -27,21 +27,19 @@
       [waiting]="rowsWaiting()"
       [jump]="jump"
     />
-    @if (listedWall(); as wall) {
-      <fz-in-this-wall
-        [style]="panels.right"
-        [wall]="wall"
-        [kinds]="kinds"
-        [kindOf]="kindWords"
-        [pictures]="brickPictures()"
-      >
-        <app-this-shot
-          [soFar]="game.soFar()"
-          [rules]="game.fieldRules()"
-          [springs]="springPictures()"
-        />
-      </fz-in-this-wall>
-    }
+    <fz-in-this-wall
+      [style]="panels.right"
+      [wall]="game.start().wall"
+      [kinds]="kinds"
+      [kindOf]="kindWords"
+      [pictures]="brickPictures()"
+    >
+      <app-this-shot
+        [soFar]="game.soFar()"
+        [rules]="game.fieldRules()"
+        [springs]="springPictures()"
+      />
+    </fz-in-this-wall>
   }
 
   <!--

@@ -27,12 +27,7 @@ import type {
 import { brickColor } from "../../view/colors/brick_colors";
 import { CALL_MS } from "../../view/effects/timing";
 import { showsEveryFigure } from "../bar/figures";
-import {
-  HELP_KIND_IDS,
-  holdsListedKinds,
-  kindPictures,
-  kindWords,
-} from "../help/kinds";
+import { HELP_KIND_IDS, kindPictures, kindWords } from "../help/kinds";
 import { ThisShotComponent } from "../panels/this_shot.component";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
@@ -116,16 +111,6 @@ export class BoardComponent {
   protected readonly inkOf = computed(() => {
     const palette = this.game.palette();
     return (brick: Brick): string => cssHex(brickColor(brick, palette));
-  });
-
-  /**
-   * The wall of the round aimed or in play, as In this wall lists its
-   * kinds, or null for one holding a kind the shell doesn't list, which
-   * no level's does.
-   */
-  protected readonly listedWall = computed(() => {
-    const { wall } = this.game.start();
-    return holdsListedKinds(wall) ? wall : null;
   });
 
   /** Every kind of brick the shell lists, in the catalog's order, which In this wall lists those of the wall from. */

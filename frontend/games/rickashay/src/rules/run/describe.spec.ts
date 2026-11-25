@@ -16,7 +16,6 @@ import {
   describeEnd,
   describeGuide,
   describeJump,
-  describeKind,
   describeLevel,
   describeParAndMark,
   describePause,
@@ -442,20 +441,6 @@ describe("describeRows", () => {
   it("says there are no bricks on the screen for a wall still over the ceiling", () => {
     expect(describeRows(startOf(["ooooooooo"], 11))).toBe(
       "No bricks on the screen.",
-    );
-  });
-});
-
-describe("describeKind", () => {
-  it("says what a moss brick does", () => {
-    expect(describeKind("moss")).toBe(
-      "Grows a pip back after each shot it survives.",
-    );
-  });
-
-  it("says a lock's bolts by the rules' numbers", () => {
-    expect(describeKind("lock")).toBe(
-      `Slides a bolt back every ${String(FLIGHT_RULES.boltTurns)} turns of your shot. Once every bolt is back, 1 strike breaks it.`,
     );
   });
 });

@@ -475,6 +475,8 @@ describe("AppComponent", () => {
         gem: pictureOf("gem"),
         portal: pictureOf("portal"),
         plated: pictureOf("plated"),
+        moss: pictureOf("moss"),
+        lock: pictureOf("lock"),
       };
       game.onPictures(() => ({
         bricks,

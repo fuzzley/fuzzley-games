@@ -21,6 +21,8 @@ const PICTURES: HelpPictures = {
     gem: pictureOf("gem"),
     portal: pictureOf("portal"),
     plated: pictureOf("plated"),
+    moss: pictureOf("moss"),
+    lock: pictureOf("lock"),
   },
 };
 

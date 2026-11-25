@@ -15,7 +15,7 @@ import { endTitle, whereLost } from "@fz/brick-wall/rules/end_words";
 import { inDanger, lowestNeededRow } from "@fz/brick-wall/rules/wall";
 import { count, formatPoints, listed } from "@fz/core/format";
 import { WALL_RULES } from "../bricks/wall_rules";
-import { type Brick, type KindId, kindOf } from "../catalog/kinds";
+import { type Brick, kindOf } from "../catalog/kinds";
 import type {
   EarnedBy,
   FlightEvent,
@@ -23,7 +23,7 @@ import type {
   RoundStart,
 } from "../flight/events";
 import type { LevelEntry } from "../levels/levels";
-import { FLIGHT_RULES, type FlightRules } from "../tuning";
+import type { FlightRules } from "../tuning";
 import type { Run } from "./run";
 import { STARS, type Star, type StarFlags } from "./stars";
 
@@ -144,25 +144,6 @@ export function describeParAndMark(par: number, mark: number): string {
 
 /** What the announcer says as a flight reaches the level's rally mark, the call the shell shows over the field too. */
 export const CALL_WORDS = "Rickashay!";
-
-/**
- * What each kind of brick that How to play doesn't list yet does, in a
- * sentence or two, as the Ready card says it of the kind a level brings
- * in, by the rules' own numbers. A kind How to play lists says what it does
- * there, so its line leaves this list as its entry is written.
- */
-const KIND_LINES = {
-  moss: "Grows a pip back after each shot it survives.",
-  lock: `Slides a bolt back every ${String(FLIGHT_RULES.boltTurns)} turns of your shot. Once every bolt is back, 1 strike breaks it.`,
-} as const satisfies Partial<Readonly<Record<KindId, string>>>;
-
-/** Names a kind of brick How to play doesn't list yet, such as "lock". */
-export type DescribedKind = keyof typeof KIND_LINES;
-
-/** Returns what a kind of brick How to play doesn't list yet does, as the Ready card says it of the kind a level brings in: "Grows a pip back after each shot it survives." */
-export function describeKind(kind: DescribedKind): string {
-  return KIND_LINES[kind];
-}
 
 /**
  * Returns a star's name on the Cleared card, by its par and the rally mark

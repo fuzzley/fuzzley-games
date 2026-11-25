@@ -1,19 +1,11 @@
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { isOneOf } from "@fz/core/records";
-import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
-import { WALL_LEGEND } from "../../rules/levels/legend";
+import type { KindId } from "../../rules/catalog/kinds";
 import { LEVELS, parseLevel } from "../../rules/levels/levels";
-import { levelStart } from "../../rules/run/run";
-import { describeKind } from "../../rules/run/describe";
 import { FLIGHT_RULES } from "../../rules/tuning";
-import {
-  HELP_KIND_IDS,
-  holdsListedKinds,
-  kindAbout,
-  kindPictures,
-  kindWords,
-} from "./kinds";
+import { HELP_KIND_IDS, kindAbout, kindPictures, kindWords } from "./kinds";
 import { HATCH_HELP } from "./kinds/hatch";
+import { LOCK_HELP } from "./kinds/lock";
+import { MOSS_HELP } from "./kinds/moss";
 
 /** Each kind of brick a level of the game holds, once each. */
 const KINDS_IN_PLAY = new Set(
@@ -23,9 +15,6 @@ const KINDS_IN_PLAY = new Set(
     ),
   ),
 );
-
-/** The wall of the game's first level, as it opens on a field 11 deep. */
-const FIRST_WALL = levelStart(parseLevel(LEVELS[0]!.data), 11).wall;
 
 /** Returns a picture as a scene hands one over, holding nothing but a kind's id. */
 function pictureOf(kind: KindId): string {
@@ -50,6 +39,8 @@ describe("HELP_KIND_IDS", () => {
       "gem",
       "portal",
       "plated",
+      "moss",
+      "lock",
     ]);
   });
 });
@@ -71,43 +62,25 @@ describe("HATCH_HELP", () => {
   });
 });
 
-describe("kindAbout", () => {
-  it("says what a kind listed does, as the shell lists it", () => {
-    expect(kindAbout("tough")).toBe(kindWords("tough").about);
-  });
-
-  it("says what a kind not listed does, as the rules have it", () => {
-    expect(kindAbout("moss")).toBe(describeKind("moss"));
+describe("MOSS_HELP", () => {
+  it("says the moss brick's line, as a player reads it at the tuning's numbers", () => {
+    expect(MOSS_HELP.about).toBe(
+      "Takes 2 or 3 strikes. Grows 1 pip back after each shot it survives.",
+    );
   });
 });
 
-describe("holdsListedKinds", () => {
-  it("holds a level's wall to the kinds listed", () => {
-    expect(holdsListedKinds(FIRST_WALL)).toBe(true);
+describe("LOCK_HELP", () => {
+  it("says the lock's line, as a player reads it at the tuning's numbers", () => {
+    expect(LOCK_HELP.about).toBe(
+      "Opens after 4 turns of your shot for each bolt. Then takes 1 strike.",
+    );
   });
+});
 
-  it("holds a wall of portals to the kinds listed, so In this wall names them", () => {
-    const wall = wallFrom(["@.&......", "&.......@"], WALL_LEGEND);
-
-    expect(holdsListedKinds(wall)).toBe(true);
-  });
-
-  it("holds a wall of plated bricks to the kinds listed, so In this wall names them", () => {
-    const wall = wallFrom(["v.V.U...."], WALL_LEGEND);
-
-    expect(holdsListedKinds(wall)).toBe(true);
-  });
-
-  it("finds a wall holding a kind not listed", () => {
-    const unlisted = KIND_IDS.find((kind) => !isOneOf(kind, HELP_KIND_IDS))!;
-    const brick = { kind: unlisted, hits: 0, full: 0, plates: 0, tint: 0 };
-
-    expect(
-      holdsListedKinds({
-        ...FIRST_WALL,
-        bricks: [...FIRST_WALL.bricks, { ...brick, twin: null }],
-      }),
-    ).toBe(false);
+describe("kindAbout", () => {
+  it("says what a kind does, as the shell lists it", () => {
+    expect(kindAbout("lock")).toBe(kindWords("lock").about);
   });
 });
 
@@ -123,6 +96,8 @@ describe("kindPictures", () => {
       gem: pictureOf("gem"),
       portal: pictureOf("portal"),
       plated: pictureOf("plated"),
+      moss: pictureOf("moss"),
+      lock: pictureOf("lock"),
     });
 
     expect(HELP_KIND_IDS.map((kind) => pictures?.[kind])).toEqual(

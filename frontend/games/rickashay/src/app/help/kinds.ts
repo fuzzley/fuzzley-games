@@ -3,18 +3,13 @@
 // it into play adds a file and a line here.
 
 import type { KindWords } from "@fz/brick-wall/app/panels";
-import type { Wall as WallOf } from "@fz/brick-wall/rules/wall";
-import { isKeyOf, isOneOf } from "@fz/core/records";
-import {
-  KIND_IDS,
-  type KindId,
-  type Wall,
-  kindOf,
-} from "../../rules/catalog/kinds";
-import { describeKind } from "../../rules/run/describe";
+import { isKeyOf } from "@fz/core/records";
+import { KIND_IDS, type KindId, kindOf } from "../../rules/catalog/kinds";
 import { BRICK_HELP } from "./kinds/brick";
 import { GEM_HELP } from "./kinds/gem";
 import { HATCH_HELP } from "./kinds/hatch";
+import { LOCK_HELP } from "./kinds/lock";
+import { MOSS_HELP } from "./kinds/moss";
 import { PLATED_HELP } from "./kinds/plated";
 import { PORTAL_HELP } from "./kinds/portal";
 import { RAMP_HELP } from "./kinds/ramp";
@@ -39,7 +34,9 @@ export const HELP_KINDS = {
   gem: GEM_HELP,
   portal: PORTAL_HELP,
   plated: PLATED_HELP,
-} as const satisfies Partial<Readonly<Record<KindId, KindHelp>>>;
+  moss: MOSS_HELP,
+  lock: LOCK_HELP,
+} as const satisfies Readonly<Record<KindId, KindHelp>>;
 
 /** The id of a kind of brick the shell lists, such as "steel". */
 export type HelpKindId = keyof typeof HELP_KINDS;
@@ -56,23 +53,11 @@ export function kindWords(id: HelpKindId): KindWords {
 
 /**
  * Returns what a kind of brick does, as the Ready card says it of the kind
- * a level brings in: the shell's line for a kind it lists, so a kind reads
- * the same wherever the shell names it, and the rules' own for any other.
+ * a level brings in: the shell's line for it, so a kind reads the same
+ * wherever the shell names it.
  */
 export function kindAbout(kind: KindId): string {
-  return isKeyOf(kind, HELP_KINDS)
-    ? HELP_KINDS[kind].about
-    : describeKind(kind);
-}
-
-/**
- * Returns whether a wall holds only kinds of brick the shell lists, as
- * every level's does, so In this wall can name each of them.
- */
-export function holdsListedKinds(wall: Wall): wall is WallOf<HelpKindId> {
-  return wall.bricks.every(
-    (brick) => brick === null || isOneOf(brick.kind, HELP_KIND_IDS),
-  );
+  return HELP_KINDS[kind].about;
 }
 
 /** Holds the pictures of the kinds of brick the scene baked, by id, each a URL. */
