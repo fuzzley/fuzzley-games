@@ -92,7 +92,10 @@ without knowing of it, changes its line in the same change, as
   baked as a frame of their own where a scene moves them as the fuzzball
   looks, `combedStrands()` and `sparkCommands()` its fur on end and
   the sparks about it, `fuzzballWearing()` its outline as one with what it
-  wears (`wornSparks()`, `wornFlames()` the hot shot's crown of flame), and
+  wears (`wornSparks()`, `wornFlames()` the hot shot's crown of flame),
+  `flameTongue()` a tongue of that flame on its own, for a fire a game
+  draws, from a `Flame` (its `turn`, its root's distance `from` the point
+  it is drawn about and its tip's `to`, its `width` and its `lean`), and
   `staticSparkCommands()` static's sparks.
 - **`bricks` draws a brick game's brick:** the slab it stands on
   (`slabCommands()`, with its `slabBody()`, `slabFace()` and `slabRadius()`,

@@ -1,5 +1,5 @@
 import type { DrawCommand, Point } from "../shapes";
-import { wornFlames } from "./flames";
+import { flameTongue, wornFlames } from "./flames";
 
 /** The art's tongues of flame: which way each points, how far out its tip is, its width and its lean, on the fuzzball's grid. */
 const ART_FLAMES = [
@@ -98,6 +98,30 @@ describe("wornFlames", () => {
         [...points, ...points.slice(0, 1)].map(({ x, y }) => [x, y, 1.5]),
       ),
       colors: [OUTLINE.color],
+    });
+  });
+});
+
+describe("flameTongue", () => {
+  it("rises from its root, `from` off the point, either side of its middle, to its tip, `to` off it, turned and leaning clockwise", () => {
+    const points = flameTongue({
+      turn: -90,
+      from: 2,
+      to: 12,
+      width: 4,
+      lean: 1,
+    });
+
+    expect({
+      points: points.length,
+      rootLeft: points[0],
+      tip: points[8],
+      rootRight: points.at(-1),
+    }).toEqual({
+      points: 17,
+      rootLeft: nearPoint(-1.4, -2),
+      tip: nearPoint(1, -12),
+      rootRight: nearPoint(1.4, -2),
     });
   });
 });
