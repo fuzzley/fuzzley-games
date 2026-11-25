@@ -3,6 +3,7 @@ import { KIND_IDS } from "../../rules/catalog/kinds";
 import { PORTAL_MARKS } from "../../rules/levels/legend";
 import { PALETTES } from "../../testing/roles";
 import { tileCommands } from "../art/kinds/brick";
+import { gemFacets } from "../art/kinds/gem";
 import { brickColor } from "./brick_colors";
 import { FIELD_ROLES, wallPalette } from "./palette";
 
@@ -29,7 +30,9 @@ function stripOf(ink: number): number {
 // than 3:1 against in Midnight blue, and steel's frame and rivets keep off
 // its strip, which they keep less than 3:1 against in the light palettes.
 // A ramp's bright edge, which keeps less than 3:1 against the light
-// palettes' field, lies inside a rim of the ramp's steel.
+// palettes' field, lies inside a rim of the ramp's steel. A gem's outline
+// is its facets', its upper half lighter and its lower edges darker, so
+// each keeps 3:1 against the field in every ink.
 // The floor bounces' springs, lit and unlit, keep 3:1 against the floor's
 // band they stand in, and the rally's number, text, 4.5:1 against its
 // pill.
@@ -53,6 +56,13 @@ describe("the field's contrast", () => {
         ["guide's rings", palette.guideRing],
         ["fuzzball's streak", palette.streak.plain],
         ["hot shot's streak", palette.streak.hot],
+        ...palette.tints.flatMap((ink, tint): Named[] => {
+          const { light, dark } = gemFacets(ink);
+          return [
+            [`gem's light facet in ink ${String(tint)}`, light],
+            [`gem's dark facet in ink ${String(tint)}`, dark],
+          ];
+        }),
       ]),
       ...kinds.flatMap(([name, color]) =>
         against(name, color, [["marks", palette.mark]]),

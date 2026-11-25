@@ -269,13 +269,14 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel and 4 ramps, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps and 8 gems, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
       ...CRACKS.map(FRAMES.cracks),
       FRAMES.steel,
       ...RAMP_CORNERS.map(FRAMES.ramp),
+      ...INKS.map(FRAMES.gem),
       ...FURS.map(FRAMES.fuzzball),
       FRAMES.hotShot,
       FRAMES.eyes,

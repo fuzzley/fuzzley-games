@@ -12,6 +12,7 @@ import { fieldFrames, springFrames } from "./field_frames";
 import { fuzzballFrames } from "./fuzzball_art";
 import { guideFrames } from "./guide_frames";
 import { PLAIN_ART } from "./kinds/brick";
+import { GEM_ART } from "./kinds/gem";
 import { RAMP_ART } from "./kinds/ramp";
 import { STEEL_ART } from "./kinds/steel";
 import { TOUGH_ART } from "./kinds/tough";
@@ -28,6 +29,7 @@ const BRICK_ART: Partial<Readonly<Record<KindId, KindArt>>> = {
   tough: TOUGH_ART,
   steel: STEEL_ART,
   ramp: RAMP_ART,
+  gem: GEM_ART,
 };
 
 /** The kinds of brick the art draws, in the catalog's order: those a picture shows. */

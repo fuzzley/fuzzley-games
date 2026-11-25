@@ -18,6 +18,7 @@ import {
   billionths,
   pastOutline,
   pointInBillionths,
+  scalesAt,
 } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { cellOf } from "../cells";
@@ -122,15 +123,6 @@ function placesIn(frame: ArtFrame): readonly (readonly Point[])[] {
         throw new Error(`A ramp draws no ${command.kind}`);
     }
   });
-}
-
-/** Returns every scale from 24 CSS pixels a unit to 128 device pixels, at a pixel ratio. */
-function scalesAt(pixelRatio: number): readonly ArtScale[] {
-  const least = Math.ceil(24 * pixelRatio);
-  return Array.from({ length: 128 - least + 1 }, (_, i) => ({
-    unit: least + i,
-    pixelRatio,
-  }));
 }
 
 describe("RAMP_ART's layers", () => {
