@@ -12,6 +12,7 @@
 
 import type { Place } from "@fz/brick-wall/view/field_metrics";
 import {
+  type EyesStyle,
   FUZZBALL_GRID,
   FUZZBALL_LOOK,
   FUZZBALL_STRANDS,
@@ -146,7 +147,7 @@ export function fuzzballGrid(scale: ArtScale): number {
  * body's middle: one at each lift of its fur, the hot shot, and its eyes,
  * open, looking straight out, and half shut as it yawns. Each fuzzball is
  * outlined in the mark as one with its sparks or flames, and the eyes are
- * cut out in the mark.
+ * cut out in the mark, their lids a CSS pixel wide at least.
  */
 export function fuzzballFrames(
   palette: WallPalette,
@@ -163,6 +164,10 @@ export function fuzzballFrames(
     outline,
   );
   const flames = wornFlames(by, palette.spark, outline);
+  const eyes: EyesStyle = {
+    color: palette.mark,
+    leastLine: Math.ceil(scale.pixelRatio),
+  };
   return [
     ...FURS.map((fur) =>
       centered(
@@ -182,10 +187,7 @@ export function fuzzballFrames(
         flames,
       ),
     ),
-    centered(FRAMES.eyes, eyesCommands(by, { color: palette.mark })),
-    centered(
-      FRAMES.yawn,
-      eyesCommands(by, { color: palette.mark }, { face: "sleepy" }),
-    ),
+    centered(FRAMES.eyes, eyesCommands(by, eyes)),
+    centered(FRAMES.yawn, eyesCommands(by, eyes, { face: "sleepy" })),
   ];
 }

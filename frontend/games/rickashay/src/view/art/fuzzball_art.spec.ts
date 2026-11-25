@@ -22,6 +22,7 @@ import {
   billionths,
   distanceToSegment,
   pointInBillionths,
+  scalesAt,
 } from "../../testing/art_frames";
 import { FRAMES, FURS, type Fur } from "./frames";
 import {
@@ -615,6 +616,22 @@ describe("fuzzballFrames", () => {
         off: offBody(frame, points, at, radius),
       }).toEqual({ points: true, off: [] });
     });
+
+    it.each(PIXEL_RATIOS)(
+      "draws each lid a CSS pixel wide at least, at every unit from 24 CSS pixels to 128 device pixels, %s device pixels to one",
+      (pixelRatio) => {
+        const thinner = scalesAt(pixelRatio).flatMap((scale) =>
+          linesIn(
+            frameNamed(fuzzballFrames(ART_PALETTE, scale), FRAMES.yawn),
+            ART_PALETTE.mark,
+          ).some(({ width }) => width < Math.ceil(pixelRatio))
+            ? [scale.unit]
+            : [],
+        );
+
+        expect(thinner).toEqual([]);
+      },
+    );
 
     it("droops each lid toward the outside, its outer end lower than its inner", () => {
       const [left, right] = lids;

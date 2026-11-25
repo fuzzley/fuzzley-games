@@ -66,6 +66,8 @@ export interface EyesStyle {
   readonly color: number;
   /** The glints' color; without it, the eyes have none. */
   readonly glint?: number;
+  /** The fewest device pixels a line of the face, such as a lid, is drawn wide, which a game sets to a CSS pixel's so that a small fuzzball's lines don't fade. */
+  readonly leastLine?: number;
 }
 
 /** How many device pixels across a glint is drawn at the least, at its narrowest, below which it would only turn an eye grey. */
@@ -141,8 +143,9 @@ export function fuzzballWearing(
  * Returns the fuzzball's eyes at a pose about its body's middle, `by`
  * device pixels to a unit of its grid: the mark's own at rest, looking
  * straight out, unless the pose says otherwise (`@fz/style`'s `eyesOf()`),
- * their glints over them where it has them and each, the whole of it, is a
- * device pixel or more across at its narrowest.
+ * each line of the face no narrower than the style's `leastLine`, and their
+ * glints over them where it has them and each, the whole of it, is a device
+ * pixel or more across at its narrowest.
  *
  * A game that moves the eyes' frame as its fuzzball looks bakes them with
  * no look, `{ x: 0, y: 0 }`, and moves the frame by `lookOffset()` of the
@@ -150,13 +153,13 @@ export function fuzzballWearing(
  */
 export function eyesCommands(
   by: number,
-  { color, glint }: EyesStyle,
+  { color, glint, leastLine = 0 }: EyesStyle,
   pose: EyesPose = {},
 ): readonly DrawCommand[] {
   return eyesOf(pose).flatMap((mark) => {
-    if (mark.tone === "eye") return markCommands(mark, by, color);
+    if (mark.tone === "eye") return markCommands(mark, by, color, leastLine);
     if (glint === undefined) return [];
-    const drawn = markCommands(mark, by, glint);
+    const drawn = markCommands(mark, by, glint, leastLine);
     return drawn.every((command) => {
       const { width, height } = extentOf(command);
       return Math.min(width, height) >= LEAST_GLINT;
@@ -166,11 +169,12 @@ export function eyesCommands(
   });
 }
 
-/** Returns the commands of a mark of a face, `by` device pixels to a unit of the grid, in a color: an ellipse whose radii agree as a circle. */
+/** Returns the commands of a mark of a face, `by` device pixels to a unit of the grid, in a color: an ellipse whose radii agree as a circle, and a line no narrower than `leastLine` device pixels. */
 function markCommands(
   mark: EyeMark,
   by: number,
   color: number,
+  leastLine: number,
 ): readonly DrawCommand[] {
   switch (mark.kind) {
     case "ellipse":
@@ -185,7 +189,10 @@ function markCommands(
     case "polygon":
       return [polygon(placed(mark.points, by), { color })];
     case "stroke":
-      return stroke(placed(mark.points, by), { color, width: mark.width * by });
+      return stroke(placed(mark.points, by), {
+        color,
+        width: Math.max(mark.width * by, leastLine),
+      });
   }
 }
 

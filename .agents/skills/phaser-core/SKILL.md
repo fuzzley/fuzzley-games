@@ -88,8 +88,9 @@ without knowing of it, changes its line in the same change, as
   `scene`'s `paintCommands()` and `paintTexture()` take one.
 - **`fuzzball` draws `@fz/style`'s fuzzball in `shapes`'s commands:**
   `fuzzballCommands()` its body and fur, `eyesCommands()` its eyes at any
-  face, baked as a frame of their own where a scene moves them as the
-  fuzzball looks, `combedStrands()` and `sparkCommands()` its fur on end and
+  face, a face's lines no thinner than the `leastLine` its style gives,
+  baked as a frame of their own where a scene moves them as the fuzzball
+  looks, `combedStrands()` and `sparkCommands()` its fur on end and
   the sparks about it, `fuzzballWearing()` its outline as one with what it
   wears (`wornSparks()`, `wornFlames()` the hot shot's crown of flame), and
   `staticSparkCommands()` static's sparks.

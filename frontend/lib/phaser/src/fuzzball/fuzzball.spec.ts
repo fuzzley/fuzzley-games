@@ -19,6 +19,7 @@ import {
 } from "../shapes";
 import { combedStrands, sparkCommands, wornSparks } from "./combing";
 import {
+  type EyesStyle,
   FUZZBALL_GRID,
   FUZZBALL_LOOK,
   FUZZBALL_STRANDS,
@@ -308,6 +309,21 @@ describe("eyesCommands", () => {
       dots: drawn.filter(({ kind }) => kind === "circle").length,
       widths: new Set(drawn.map(widthOf)),
     }).toEqual({ lines: 2 * 12, dots: 2 * 13, widths: new Set([3 * width]) });
+  });
+
+  it("draws a line of a face no narrower than the least it is asked for, and as the face says where none is", () => {
+    const [arc] = eyesOf({ face: "happy" });
+    const width = arc?.kind === "stroke" ? arc.width : NaN;
+
+    const widths = (by: number, eyes: EyesStyle): ReadonlySet<number> =>
+      new Set(eyesCommands(by, eyes, { face: "happy" }).map(widthOf));
+
+    // At 0.5 a line would be narrower than 2 pixels, and at 4 wider.
+    expect([
+      widths(0.5, { color: 3, leastLine: 2 }),
+      widths(4, { color: 3, leastLine: 2 }),
+      widths(0.5, { color: 3 }),
+    ]).toEqual([new Set([2]), new Set([4 * width]), new Set([0.5 * width])]);
   });
 
   it("shifts every mark toward a look, as far as `lookOffset()` says", () => {
