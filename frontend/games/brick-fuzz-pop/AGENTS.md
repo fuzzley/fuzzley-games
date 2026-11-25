@@ -12,12 +12,3 @@ field drawn with Phaser in an Angular shell. Every game's, in
 - **Before adding a level, a set, a brick kind or a brick trait, read the
   `brick-fuzz-pop-content` skill.** It has the files each takes, the order
   they land in and the checks that hold each.
-- **Keep the first download to what every page shows.** A piece a page may
-  never show loads with `@fz/ui/on_demand`'s `onDemand()`, not `@defer`,
-  whose runtime costs the main chunk about 6 kB. The shell takes nothing by
-  value from `src/view/art/`, `src/view/steering/steering.ts` or
-  `@fz/brick-wall/view/aiming`, which only the scene's chunk carries: what
-  it needs of them stands in a file apart, as
-  `src/view/colors/brick_colors.ts` and `@fz/brick-wall/view/aim_settings`
-  do. No check weighs a chunk, so an import that breaks this passes them
-  all.

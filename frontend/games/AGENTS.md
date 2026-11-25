@@ -40,6 +40,16 @@ These rules hold for every game under `frontend/games/`. The frontend's, in
   at its path. The failure's message says to certify again, which makes
   the replay pass whatever broke it. Where the change wasn't meant to
   change how a shot plays, the failed replay is the bug.
+- **In a game on `@fz/brick-wall`, keep the first download to what every
+  page shows.** A piece a page may never show loads with
+  `@fz/ui/on_demand`'s `onDemand()`, not `@defer`, whose runtime costs the
+  main chunk about 6 kB. Nothing the shell imports by value, itself or
+  through the view, brings in what draws the game's art, its steering or
+  `@fz/brick-wall/view/aiming`, which only the scene's chunk carries. What
+  it needs of them stands in a file apart that imports none of them by
+  value, as each game's `src/view/colors/brick_colors.ts`, Rickashay's
+  `src/view/art/hatch_tint.ts` and `@fz/brick-wall/view/aim_settings` do.
+  No check weighs a chunk, so an import that breaks this passes them all.
 - **Saved games outlive the code.** What a game stores goes through
   `@fz/ui/storage`: settings and records as a `storedSignal()`, a game
   under way with `keepSaved()`. State a change adds to a game in play joins
