@@ -1,0 +1,8 @@
+@use "../styles" as *;
+@include setting-fields;
+
+// Fast-forward sits under the speeds it hastens, as far from them as their
+// tiles are from one another.
+fz-choice-list + .setting-check {
+  margin-top: var(--fz-space-3);
+}

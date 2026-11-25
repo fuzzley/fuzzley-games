@@ -18,6 +18,7 @@ import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { FastForwardComponent } from "./fast_forward.component";
 import { showsEveryFigure } from "./figures";
+import { homeBesideRelease } from "./release_room";
 import { SkipComponent } from "./skip.component";
 
 /** Names an action the overflow menu offers. */
@@ -63,6 +64,7 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
   host: {
     "[class.rounds-and-score]": "!fitsEveryFigure()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
+    "[class.release-by-button]": "releaseByButton()",
   },
   templateUrl: "./bar.component.html",
   styleUrl: "./bar.component.scss",
@@ -155,6 +157,9 @@ export class BarComponent {
   /** Emitted when the player asks for the settings. */
   readonly openSettings = output();
 
+  /** The link home, a step smaller where Release with a button needs its room. */
+  protected readonly home = homeBesideRelease(this.releaseByButton);
+
   /** Pause's name, which it shows under the pointer, as it doesn't itself: Resume while the run is paused. */
   protected readonly pauseName = computed(() =>
     this.outcome() === "paused" ? "Resume" : "Pause",
@@ -219,7 +224,7 @@ export class BarComponent {
       HELP_MENU_ACTION,
       SETTINGS_MENU_ACTION,
     ];
-    return withHomeLink(actions, this.viewport.barHome());
+    return withHomeLink(actions, this.home());
   });
 
   /** Nudges the aim, as a Nudge asks, while a shot is aimed. */

@@ -1,0 +1,104 @@
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="aiming-label">Aiming</span>
+    <fz-choice-list
+      labelledBy="aiming-label"
+      describedBy="aiming-desc"
+      [options]="aimings"
+      [value]="settings().aiming"
+      (choose)="chooseAiming($event)"
+    />
+    <p class="setting-desc" id="aiming-desc">
+      Changes how you aim with a mouse or a finger. The keys work the same
+      either way.
+    </p>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Release</span>
+    <div class="setting-check">
+      <input
+        #release
+        id="release-by-button"
+        type="checkbox"
+        aria-describedby="release-desc"
+        [checked]="settings().releaseByButton"
+        (change)="setReleaseByButton(release.checked)"
+      />
+      <label for="release-by-button">Release with a button</label>
+      <p class="setting-desc" id="release-desc">
+        Letting go keeps your aim. Shoot with the Release button.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" id="guide-label">Aim guide</span>
+    <fz-choice-list
+      labelledBy="guide-label"
+      describedBy="guide-desc"
+      [options]="guides"
+      [value]="guide()"
+      (choose)="chooseGuide($event)"
+    />
+    <p class="setting-desc" id="guide-desc">
+      Shows where your shot will go, up to the turn you choose.
+    </p>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" id="speed-label">Shot speed</span>
+    <fz-choice-list
+      labelledBy="speed-label"
+      [options]="speeds"
+      [value]="settings().flightSpeed"
+      (choose)="chooseSpeed($event)"
+    />
+    <div class="setting-check">
+      <input
+        #fast
+        id="fast-forward"
+        type="checkbox"
+        aria-describedby="fast-forward-desc"
+        [checked]="settings().fastForward"
+        (change)="setFastForward(fast.checked)"
+      />
+      <label for="fast-forward">Fast-forward</label>
+      <p class="setting-desc" id="fast-forward-desc">{{ fastForward }}</p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Sound</span>
+    <div class="setting-check">
+      <input
+        #sound
+        id="sound"
+        type="checkbox"
+        aria-describedby="sound-desc"
+        [checked]="settings().sound"
+        (change)="setSound(sound.checked)"
+      />
+      <label for="sound">Play sounds</label>
+      <p class="setting-desc" id="sound-desc">
+        Turns all sound on or off. Same as the Sound button.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+
+  <!--
+    A bug report's game state, pasted to load, where the game offers its
+    debug menu: in a development build, and on the site at ?debug.
+  -->
+  <fz-bug-report-loader (loaded)="closed.emit()">
+    <p class="setting-desc">
+      Loading a game state also sets the field's depth. Use the build named in
+      the report.
+    </p>
+  </fz-bug-report-loader>
+</fz-settings-drawer>

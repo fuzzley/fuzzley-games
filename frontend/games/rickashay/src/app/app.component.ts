@@ -14,22 +14,18 @@ import {
 } from "@angular/core";
 import { LevelsComponent, levelMarksOf } from "@fz/brick-wall/app/levels";
 import { ResultComponent, type RunEnd } from "@fz/brick-wall/app/result";
-import {
-  BugReportDialogComponent,
-  BugReportLoaderComponent,
-} from "@fz/game-ui/bug_report";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
-import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { onDemand } from "@fz/ui/on_demand";
-import { ThemePickerComponent } from "@fz/ui/theme";
 import { MOST_STARS, starCount } from "../rules/run/stars";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import type { HelpPictures } from "./help/help.component";
 import { GameService } from "./play/game.service";
+import { SettingsComponent } from "./settings/settings.component";
 import { ProgressService } from "./stats/progress.service";
 import { StatsService } from "./stats/stats.service";
 import { GAME_LEVELS, LOAD_HELP } from "./tokens";
@@ -54,9 +50,9 @@ export const HELP_FAILED_WORDS =
  * Shows the game: the bar, the board in the room the bar leaves it, the
  * live region that says what happens, the result card over an ended run,
  * the Levels dialog it and the bar offer, How to play and the settings the
- * bar opens, the Report a bug dialog they open, the loader of a reported
- * game state in them where the game offers its debug menu, and the
- * question before a run is thrown away, each wired to `GameService`.
+ * bar opens (`<app-settings>`), the Report a bug dialog the settings open,
+ * and the question before a run is thrown away, each wired to
+ * `GameService`.
  * The bar's Nudges and Release steer the board's scene.
  *
  * How to play is a chunk of its own, loaded as it first opens
@@ -80,13 +76,11 @@ export const HELP_FAILED_WORDS =
     // shares the shell's components, and Rolldown then splits the main
     // chunk into several that weigh more gzipped than the dialog does.
     BugReportDialogComponent,
-    BugReportLoaderComponent,
     ConfirmDialogComponent,
     LevelsComponent,
     PlayRoomDirective,
     ResultComponent,
-    SettingsDrawerComponent,
-    ThemePickerComponent,
+    SettingsComponent,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",

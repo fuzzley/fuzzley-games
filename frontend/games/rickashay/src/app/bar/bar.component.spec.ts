@@ -99,6 +99,13 @@ function terms(): string[] {
   return screen.getAllByRole("term").map((dt) => dt.textContent.trim());
 }
 
+/** Returns the bar's link home, the wordmark or the home button, or null where it is in the menu. */
+function homeLink(): HTMLElement | null {
+  return within(screen.getByRole("banner")).queryByRole("link", {
+    name: "Fuzzley Games",
+  });
+}
+
 /** Returns the bar's buttons, in order. */
 function barButtons(): HTMLElement[] {
   return within(screen.getByRole("banner")).getAllByRole("button");
@@ -453,6 +460,78 @@ describe("BarComponent", () => {
       await user.click(screen.getByRole("menuitem", { name }));
 
       expect(heard[output]).toHaveBeenCalledOnce();
+    });
+  });
+
+  // The bar's link home gives Release its room where it would push the
+  // actions off a phone, or cut the game's name short on a desktop.
+  describe("with Release with a button on", () => {
+    it.each([
+      ["the wordmark", 1336, 800, "Fuzzley Games"],
+      ["the home button for the wordmark", 1335, 800, ""],
+    ] as const)("shows %s %i px wide", async (_, width, height, words) => {
+      installFakeViewport(width, height);
+
+      await renderBar({ releaseByButton: true });
+
+      expect(homeLink()?.textContent.trim()).toBe(words);
+    });
+
+    it.each([
+      ["a phone held upright", 408, 844],
+      ["a phone on its side", 844, 434],
+    ] as const)(
+      "keeps the home button on %s with room for it beside Release",
+      async (_, width, height) => {
+        installFakeViewport(width, height);
+
+        await renderBar({ releaseByButton: true });
+
+        expect(homeLink()?.textContent.trim()).toBe("");
+      },
+    );
+
+    it.each([
+      ["a phone held upright", 407, 844],
+      ["a phone on its side", 844, 433],
+    ] as const)(
+      "moves the link home into the menu on %s too small for it beside Release",
+      async (_, width, height) => {
+        installFakeViewport(width, height);
+        const { user } = await renderBar({ releaseByButton: true });
+
+        const items = await openBarMenu(user);
+
+        expect([homeLink(), items[0]]).toEqual([null, "Fuzzley Games"]);
+      },
+    );
+
+    it("keeps the link home in the menu where the bar has no room for it at all", async () => {
+      installFakeViewport(340, 700);
+      const { user } = await renderBar({ releaseByButton: true });
+
+      const items = await openBarMenu(user);
+
+      expect([homeLink(), items[0]]).toEqual([null, "Fuzzley Games"]);
+    });
+
+    it("follows the window as it narrows", async () => {
+      const viewport = installFakeViewport(412, 915);
+      await renderBar({ releaseByButton: true });
+
+      viewport.setSize(390, 844);
+
+      await vi.waitFor(() => {
+        expect(homeLink()).toBeNull();
+      });
+    });
+
+    it("keeps the link home where it is with Release off", async () => {
+      installFakeViewport(390, 844);
+
+      await renderBar();
+
+      expect(homeLink()).toBeInTheDocument();
     });
   });
 });

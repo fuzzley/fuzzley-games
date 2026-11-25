@@ -9,8 +9,9 @@
 // The level, the shots against par, the rows left, the best rally against
 // its mark and the score, each a card, narrower than the breakers' and
 // padded less, so that all five and the game's name fit beside the ten
-// actions at a desktop's width (from 1200 px; with Release, the eleventh,
-// the name is cut where the wordmark shows).
+// actions at a desktop's width (from 1200 px), and beside Release, the
+// eleventh, as the home button stands in for the wordmark
+// (`homeBesideRelease()`).
 @include bar-figures(64px, var(--fz-space-2));
 
 .metric {
@@ -31,6 +32,15 @@
 }
 
 @include bar-actions;
+
+// With Release, an eleventh action, a roomy bar below `desktop` sets its
+// actions as close as a compact bar does, which leaves the game's name
+// about the room it has without Release.
+@include below("desktop") {
+  :host(.release-by-button) {
+    --fz-bar-actions-gap: var(--fz-space-1);
+  }
+}
 
 // A Nudge's chevron turned to point the way it nudges the aim.
 .nudge.left fz-icon {

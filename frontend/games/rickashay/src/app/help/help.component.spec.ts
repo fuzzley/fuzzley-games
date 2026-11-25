@@ -272,6 +272,14 @@ describe("HelpComponent", () => {
     );
   });
 
+  it("says Settings can have the mouse and fingers pull back, or a button let a shot fly", async () => {
+    await renderHelp();
+
+    expect(paragraph("Other ways to aim.")).toHaveTextContent(
+      "If you'd rather aim like a slingshot, choose Pull back under Aiming in Settings. To shoot with the Release button instead of letting go, turn on Release with a button.",
+    );
+  });
+
   it("says G reads the guide and R the lowest rows with bricks, as many as it reads", async () => {
     await renderHelp();
 

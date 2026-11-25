@@ -1,8 +1,6 @@
 import { Injectable, type Provider, inject } from "@angular/core";
 import { WallReports } from "@fz/brick-wall/app/reported";
 import type { PlayedGame } from "@fz/brick-wall/rules/reported";
-import type { PointerAiming } from "@fz/brick-wall/view/aim_settings";
-import { count } from "@fz/core/format";
 import { BUG_REPORT_SOURCE } from "@fz/game-ui/bug_report";
 import type { RoundStart } from "../../rules/flight/events";
 import {
@@ -14,9 +12,13 @@ import {
 import type { LevelTally } from "../../rules/run/scoring";
 import type { Shot } from "../../rules/shot";
 import type { FlightRules } from "../../rules/tuning";
-import type { FlightSpeed } from "../../view/play/pace";
 import { DebugService } from "../debug/debug.service";
 import { GameService } from "../play/game.service";
+import {
+  AIMING_NAMES,
+  SPEED_NAMES,
+  guideName,
+} from "../settings/setting_names";
 import { SettingsService } from "../settings/settings.service";
 import { GAME_LEVELS, GAME_MARKS, PLAY_ROUND } from "../tokens";
 
@@ -25,18 +27,6 @@ export const REPORT_TAG = "rk1";
 
 /** The game as the round's driver reports it, each round as it was released. */
 type DrivenGame = PlayedGame<LevelTally, RoundStart, Shot, FlightRules>;
-
-/** Each way a pointer may aim, as Brick Fuzz Pop's settings and report name it. */
-const AIMING_NAMES: Readonly<Record<PointerAiming, string>> = {
-  pointAndHold: "Point and hold",
-  pullBack: "Pull back",
-};
-
-/** Each of the flight's speeds, as Brick Fuzz Pop's settings and report name it. */
-const SPEED_NAMES: Readonly<Record<FlightSpeed, string>> = {
-  normal: "Normal",
-  fast: "Fast",
-};
 
 /** Returns a setting that is on or off, as the report lists it. */
 function onOrOff(name: string, on: boolean): string {
@@ -88,7 +78,7 @@ export class RickashayReports extends WallReports<DrivenGame, ReplayedGame> {
     return [
       `Aiming: ${AIMING_NAMES[settings.aiming]}`,
       onOrOff("Release with a button", settings.releaseByButton),
-      `Aim guide: ${count(settings.guideTurns, "turn", "turns")}`,
+      `Aim guide: ${guideName(settings.guideTurns)}`,
       `Shot speed: ${SPEED_NAMES[settings.flightSpeed]}`,
       onOrOff("Play sounds", settings.sound),
       onOrOff("Fast-forward", settings.fastForward),
