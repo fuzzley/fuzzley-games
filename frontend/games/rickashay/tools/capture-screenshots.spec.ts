@@ -1,8 +1,9 @@
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { STRAIGHT_UP as STARTING_AIM } from "@fz/brick-wall/view/aim_settings";
 import { AIMS_PER_DEGREE } from "@fz/brick-wall/rules/aims";
 import { formatPoints } from "@fz/core/format";
 import { recordingPrinter } from "@fz/dev/script";
-import { LEVELS, levelEntryOf } from "../src/rules/levels/levels";
+import { LEVELS } from "../src/rules/levels/levels";
 import { playRound } from "../src/rules/round/round";
 import { describeAim } from "../src/rules/run/describe";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
@@ -239,7 +240,7 @@ describe("steadyFrames", () => {
 
 describe("RUN", () => {
   it("plays the first two shots of its level's certificate on its depth", () => {
-    const line = certificateOf(levelEntryOf(LEVELS, RUN.level), RUN.depth);
+    const line = certificateOf(levelAt(LEVELS, RUN.level), RUN.depth);
 
     expect(RUN.shots).toEqual(line?.slice(0, 2));
   });

@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { aimToward } from "@fz/brick-wall/view/aiming";
 import { STRAIGHT_UP } from "@fz/brick-wall/view/aim_settings";
 import { RADIUS } from "@fz/brick-wall/rules/field";
@@ -22,7 +23,6 @@ import { viewport } from "@fz/phaser/testing/pure";
 import { paintRoles } from "@fz/style/testing";
 import { render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { levelEntryOf } from "../rules/levels/levels";
 import type { Shot } from "../rules/shot";
 import { PALETTES } from "../testing/roles";
 import {
@@ -52,7 +52,7 @@ const PLAY_LIMIT_MS = 120_000;
 const THROUGH: readonly SpecRound[] = ["step", "cleared"];
 
 /** The id of the level each case plays through. */
-const FIRST_ID = levelEntryOf(SPEC_LEVELS, 1).data.id;
+const FIRST_ID = levelAt(SPEC_LEVELS, 1).data.id;
 
 /** The app played through its scene, and what a spec reads of it. */
 interface PlayedApp {

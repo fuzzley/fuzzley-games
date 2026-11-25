@@ -1,4 +1,5 @@
 import { signal } from "@angular/core";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
@@ -6,7 +7,7 @@ import {
   takeRound,
 } from "@fz/brick-wall/rules/run";
 import type { Round, RoundStart } from "../../rules/flight/events";
-import { levelEntryOf, parseLevel } from "../../rules/levels/levels";
+import { parseLevel } from "../../rules/levels/levels";
 import { describeCleared, describeRound } from "../../rules/run/describe";
 import { type Run, levelStart, runRulesOf } from "../../rules/run/run";
 import { FLIGHT_RULES } from "../../rules/tuning";
@@ -38,7 +39,7 @@ function runAt(level: number): Run {
 
 /** Returns where a spec level's first round starts, on a field 13 deep. */
 function startOf(level: number): RoundStart {
-  return levelStart(parseLevel(levelEntryOf(SPEC_LEVELS, level).data), 13);
+  return levelStart(parseLevel(levelAt(SPEC_LEVELS, level).data), 13);
 }
 
 /** Returns a round a spec's script names, played from the first level's start. */
@@ -101,7 +102,7 @@ describe("RunWords", () => {
     const words = wordsOf();
     words.follow(signal(runAt(1)));
 
-    const said = words.level(levelEntryOf(SPEC_LEVELS, 1));
+    const said = words.level(levelAt(SPEC_LEVELS, 1));
 
     expect(said).toBe("Level 1, First bounce. Par 8. Rally mark 9.");
   });
@@ -109,7 +110,7 @@ describe("RunWords", () => {
   it("refuses to say a level begun before it follows a run", () => {
     const words = wordsOf();
 
-    expect(() => words.level(levelEntryOf(SPEC_LEVELS, 1))).toThrow(
+    expect(() => words.level(levelAt(SPEC_LEVELS, 1))).toThrow(
       "No run is on the board to say a level of.",
     );
   });
@@ -139,7 +140,7 @@ describe("RunWords", () => {
     const said = [
       words.pause(run),
       words.resume(),
-      words.takenUp(run, levelEntryOf(SPEC_LEVELS, 2)),
+      words.takenUp(run, levelAt(SPEC_LEVELS, 2)),
     ];
 
     expect(said).toEqual([

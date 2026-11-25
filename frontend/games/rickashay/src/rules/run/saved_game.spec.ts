@@ -1,10 +1,11 @@
 import { parOf } from "@fz/brick-wall/rules/par";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { takeRound } from "@fz/brick-wall/rules/run";
 import type { Kept, RunKeeping } from "@fz/brick-wall/rules/saved_wall";
 import warmUpMarks from "../../testing/warm_up_marks.json";
 import type { Brick } from "../catalog/kinds";
 import type { RoundStart } from "../flight/events";
-import { LEVELS, type Level, levelEntryOf, parseLevel } from "../levels/levels";
+import { LEVELS, type Level, parseLevel } from "../levels/levels";
 import { type Run, levelStart, runRulesOf } from "./run";
 import {
   hasEarnedShot,
@@ -24,7 +25,7 @@ type Spoil = readonly [string, Readonly<Record<string, unknown>>];
 const MARKS: Marks = warmUpMarks;
 
 /** Girders, level 7: its wall's lowest row two tough bricks, the row over it steel and two more. */
-const GIRDERS: Level = parseLevel(levelEntryOf(LEVELS, 7).data);
+const GIRDERS: Level = parseLevel(levelAt(LEVELS, 7).data);
 
 /** What of the run the shell keeps beside it, as most specs have it: nothing tuned. */
 const KEEPING: RunKeeping = { tuned: false };

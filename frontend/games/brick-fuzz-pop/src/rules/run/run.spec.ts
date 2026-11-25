@@ -1,4 +1,5 @@
 import { parOf } from "@fz/brick-wall/rules/par";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
@@ -6,7 +7,7 @@ import {
   takeRound,
 } from "@fz/brick-wall/rules/run";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
-import { LEVELS, levelEntryOf, levelStart, parseLevel } from "../levels/levels";
+import { LEVELS, levelStart, parseLevel } from "../levels/levels";
 import type { RoundOutcome } from "../round/round";
 import { STAR_POINTS } from "../tuning";
 import { RUN_RULES, type Run, levelOf, openingOf } from "./run";
@@ -95,7 +96,7 @@ describe("RUN_RULES", () => {
 describe("levelOf", () => {
   it("parses the level in play", () => {
     expect(levelOf(runAt(5), LEVELS)).toEqual(
-      parseLevel(levelEntryOf(LEVELS, 5).data),
+      parseLevel(levelAt(LEVELS, 5).data),
     );
   });
 });

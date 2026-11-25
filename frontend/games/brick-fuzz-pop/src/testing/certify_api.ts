@@ -1,6 +1,7 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { parFrom } from "@fz/brick-wall/rules/par";
-import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
+import { levelAt } from "@fz/brick-wall/rules/progress";
+import { LEVELS, parseLevel } from "../rules/levels/levels";
 import { PAR_SHARE } from "../rules/tuning";
 import type { CertifyApi } from "./script_api";
 import { lineHolds, replayLine, solveLevel } from "./solver";
@@ -15,7 +16,7 @@ export const CERTIFY_API: CertifyApi = {
   levels: LEVELS,
   depths: DEPTHS,
   solve: (number, depth) => {
-    const level = parseLevel(levelEntryOf(LEVELS, number).data);
+    const level = parseLevel(levelAt(LEVELS, number).data);
     const solved = solveLevel(level, depth);
     if (
       solved !== null &&

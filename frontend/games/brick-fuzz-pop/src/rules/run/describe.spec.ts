@@ -1,8 +1,9 @@
 import { CEILINGWARD, FLOORWARD, RIGHT } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { PORTAL_BADGES, PORTAL_MARKS, WALL_LEGEND } from "../levels/legend";
-import { LEVELS, levelEntryOf } from "../levels/levels";
+import { LEVELS } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import {
   boonName,
@@ -22,7 +23,7 @@ import type { Run } from "./run";
 const { plain, punch, zap, cleared, lost } = FLIGHT_FIXTURES;
 
 /** Zip line, level 6. */
-const ZIP_LINE = levelEntryOf(LEVELS, 6);
+const ZIP_LINE = levelAt(LEVELS, 6);
 
 /** Returns a run of the specs: on level 6, 7 rounds in, against a par of 9. */
 function runOf(change: Partial<Run> = {}): Run {

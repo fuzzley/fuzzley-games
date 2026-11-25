@@ -1,4 +1,4 @@
-import { clearedOf, isOpen, levelAt, levelIdOf } from "./progress";
+import { clearedOf, isOpen, levelAt, levelIdOf, levelsOf } from "./progress";
 
 /** Four levels made up for the spec, "a" to "d", numbered 1 to 4. */
 const LEVELS = ["a", "b", "c", "d"].map((id) => ({ data: { id } }));
@@ -25,12 +25,44 @@ describe("levelAt", () => {
     ]);
   });
 
-  it.each([0, 5])("throws for level %i, which the game hasn't", (level) => {
-    expect(() => levelAt(LEVELS, level)).toThrow(
-      new RangeError(
-        `There is no level ${String(level)}: the levels run from 1 to 4.`,
-      ),
-    );
+  it.each([0, 5, 1.5])(
+    "throws for level %s, which the game hasn't",
+    (level) => {
+      expect(() => levelAt(LEVELS, level)).toThrow(
+        new RangeError(
+          `There is no level ${String(level)}: the levels run from 1 to 4.`,
+        ),
+      );
+    },
+  );
+});
+
+describe("levelsOf", () => {
+  it("numbers the levels of every set from 1, in the order played", () => {
+    const sets = [
+      { id: "a", levels: ["one", "two"] },
+      { id: "b", levels: [] },
+      { id: "c", levels: ["three"] },
+    ];
+
+    const entries = levelsOf(sets);
+
+    expect(
+      entries.map(({ number, set, data }) => [number, set.id, data]),
+    ).toEqual([
+      [1, "a", "one"],
+      [2, "a", "two"],
+      [3, "c", "three"],
+    ]);
+  });
+
+  it("hands each level its set and its data themselves, not copies", () => {
+    const set = { levels: [{ id: "one" }] };
+
+    const [entry] = levelsOf([set]);
+
+    expect(entry?.set).toBe(set);
+    expect(entry?.data).toBe(set.levels[0]);
   });
 });
 

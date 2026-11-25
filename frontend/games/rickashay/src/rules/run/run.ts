@@ -5,19 +5,14 @@
 // starts is the round's own, RoundStart, which the run leaves to the shell.
 
 import { levelOpening } from "@fz/brick-wall/rules/level_picture";
-import type { IdentifiedLevel } from "@fz/brick-wall/rules/progress";
+import { type IdentifiedLevel, levelAt } from "@fz/brick-wall/rules/progress";
 import {
   type RunRules,
   type Run as WallRun,
   isLevelCleared,
 } from "@fz/brick-wall/rules/run";
 import type { RoundOutcome, RoundStart } from "../flight/events";
-import {
-  type Level,
-  type LevelEntry,
-  levelEntryOf,
-  parseLevel,
-} from "../levels/levels";
+import { type Level, type LevelEntry, parseLevel } from "../levels/levels";
 import { STAR_POINTS } from "../tuning";
 import {
   type LevelTally,
@@ -65,7 +60,7 @@ export function levelOf(
   run: Pick<Run, "level">,
   levels: readonly LevelEntry[],
 ): Level {
-  return parseLevel(levelEntryOf(levels, run.level).data);
+  return parseLevel(levelAt(levels, run.level).data);
 }
 
 /**

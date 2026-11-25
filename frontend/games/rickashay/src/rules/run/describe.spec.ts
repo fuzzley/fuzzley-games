@@ -1,11 +1,12 @@
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   FLIGHT_FIXTURES,
   type FixtureName,
 } from "../../testing/flight_fixtures";
 import type { FlightEvent, RoundStart } from "../flight/events";
 import { WALL_LEGEND } from "../levels/legend";
-import { LEVELS, levelEntryOf } from "../levels/levels";
+import { LEVELS } from "../levels/levels";
 import { FLIGHT_RULES } from "../tuning";
 import {
   describeAim,
@@ -264,7 +265,7 @@ describe("describeDanger", () => {
 
 describe("describeLevel", () => {
   it("says the level's number, its name, its par and its rally mark", () => {
-    expect(describeLevel(levelEntryOf(LEVELS, 2), 9, 10)).toBe(
+    expect(describeLevel(levelAt(LEVELS, 2), 9, 10)).toBe(
       "Level 2, Side door. Par 9. Rally mark 10.",
     );
   });
@@ -341,37 +342,29 @@ describe("describeResume", () => {
 describe("describeTakenUp", () => {
   it("says the level, the shots taken there, the score and the key that resumes it", () => {
     expect(
-      describeTakenUp({ rounds: 3, score: 1640 }, levelEntryOf(LEVELS, 2)),
+      describeTakenUp({ rounds: 3, score: 1640 }, levelAt(LEVELS, 2)),
     ).toBe(
       "Paused on level 2, Side door. 3 shots taken. Score 1,640. Press Enter to resume.",
     );
   });
 
   it("says no shots for a level not yet begun", () => {
-    expect(
-      describeTakenUp({ rounds: 0, score: 0 }, levelEntryOf(LEVELS, 1)),
-    ).toBe("Paused on level 1, First bounce. Score 0. Press Enter to resume.");
+    expect(describeTakenUp({ rounds: 0, score: 0 }, levelAt(LEVELS, 1))).toBe(
+      "Paused on level 1, First bounce. Score 0. Press Enter to resume.",
+    );
   });
 });
 
 describe("describeEnd", () => {
   it("says a lost run's end, where it was lost and its score", () => {
     expect(
-      describeEnd(
-        { outcome: "over", score: 1240 },
-        levelEntryOf(LEVELS, 3),
-        false,
-      ),
+      describeEnd({ outcome: "over", score: 1240 }, levelAt(LEVELS, 3), false),
     ).toBe("Game over. Lost on level 3, Columns. Score 1,240.");
   });
 
   it("says a won run's end without an exclamation, and a new best", () => {
     expect(
-      describeEnd(
-        { outcome: "won", score: 9120 },
-        levelEntryOf(LEVELS, 9),
-        true,
-      ),
+      describeEnd({ outcome: "won", score: 9120 }, levelAt(LEVELS, 9), true),
     ).toBe("Every level cleared. Score 9,120. New best.");
   });
 });

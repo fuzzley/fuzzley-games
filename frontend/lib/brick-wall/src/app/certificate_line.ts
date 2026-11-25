@@ -1,23 +1,27 @@
-import type { Aim } from "@fz/brick-wall/rules/aims";
-import type { Run } from "@fz/brick-wall/rules/run";
-import type { RoundStart } from "../../rules/flight/events";
+// The line of shots a wall game's debug menu plays, held shot by shot till
+// it is done or its run, level or depth moves on. An entry of its own, as
+// the game's service, in the main chunk, holds one, where the certificates
+// load with the menu.
 
-/** Describes a line of shots, as a certificate or a rally line keeps it: each shot's aim, in order. */
-export type Line = readonly Aim[];
+import type { Run } from "../rules/run";
 
 /**
- * Holds a line of shots as the debug menu plays it, a certificate's or a
- * rally line's: its shots still to fly, in order, for the run and the
- * level it began, on the field's depth it was found on.
+ * Holds a line of shots, each a `C`, as a debug menu plays it, a certificate's or
+ * another the game keeps: its shots still to fly, in order, for the run and
+ * the level it began, on the field's depth it was found on.
  */
-export class CertificateLine {
-  private shots: Line = [];
+export class CertificateLine<C> {
+  private shots: readonly C[] = [];
   private depth = 0;
   private runId = 0;
   private level = 0;
 
   /** Starts a line: its shots to fly in a run's level, on the field's depth the line was found on. */
-  start(shots: Line, depth: number, { id, level }: Run<unknown>): void {
+  start(
+    shots: readonly C[],
+    depth: number,
+    { id, level }: Pick<Run<unknown>, "id" | "level">,
+  ): void {
     this.shots = shots;
     this.depth = depth;
     this.runId = id;
@@ -29,7 +33,10 @@ export class CertificateLine {
    * or level is in play, or the field takes a depth it wasn't found on, as
    * its shots would miss there.
    */
-  next(run: Run<unknown>, start: RoundStart): Aim | undefined {
+  next(
+    run: Pick<Run<unknown>, "id" | "level">,
+    start: { readonly depth: number },
+  ): C | undefined {
     if (
       run.id !== this.runId ||
       run.level !== this.level ||

@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { CertificateLine } from "@fz/brick-wall/app/certificate_line";
 import { waitingRows } from "@fz/brick-wall/app/panels";
 import { RunRecords } from "@fz/brick-wall/app/records";
 import {
@@ -18,7 +19,11 @@ import type { FrameChange } from "@fz/brick-wall/view/rounds_played";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { ThemeService } from "@fz/ui/theme";
-import { type Line, shotOf } from "../../rules/levels/certificate";
+import {
+  type CertifiedShot,
+  type Line,
+  shotOf,
+} from "../../rules/levels/certificate";
 import { type LevelEntry, parseLevel } from "../../rules/levels/levels";
 import {
   type Crew,
@@ -58,7 +63,6 @@ import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
-import { CertificateLine } from "./line";
 import { KEPT_GAME } from "./saved_game.service";
 import { ROUND_WORDS, fastForwardWords } from "./words";
 
@@ -158,7 +162,7 @@ export class GameService extends RoundDriver<
   /** The guide last cast, and what it was cast for. */
   private guideCast: GuideCast | null = null;
   /** The certificate's line the level in play plays, if any. */
-  private readonly line = new CertificateLine();
+  private readonly line = new CertificateLine<CertifiedShot>();
   /** How the next frame plays the round, written again each frame. */
   private readonly frame: FrameOptions = {
     pace: paceOf(this.debug.tuning.tuning()),

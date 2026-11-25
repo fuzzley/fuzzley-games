@@ -1,8 +1,8 @@
 import type { Signal } from "@angular/core";
 import type { RoundWords } from "@fz/brick-wall/app/round_driver";
-import { levelIdOf } from "@fz/brick-wall/rules/progress";
+import { levelAt, levelIdOf } from "@fz/brick-wall/rules/progress";
 import type { Round, RoundStart } from "../../rules/flight/events";
-import { type LevelEntry, levelEntryOf } from "../../rules/levels/levels";
+import type { LevelEntry } from "../../rules/levels/levels";
 import {
   CALL_WORDS,
   describeCleared,
@@ -124,7 +124,7 @@ export class RunWords implements RoundWords<
 
   /** Returns what is said as a run ends: how, where a lost one was lost, its score, and a new best. */
   end(run: Run, newBest: boolean): string {
-    return describeEnd(run, levelEntryOf(this.levels, run.level), newBest);
+    return describeEnd(run, levelAt(this.levels, run.level), newBest);
   }
 
   /** Returns what is said as a run pauses. */

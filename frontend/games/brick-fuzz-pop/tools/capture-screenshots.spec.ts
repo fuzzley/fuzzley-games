@@ -1,6 +1,7 @@
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { formatPoints } from "@fz/core/format";
 import { recordingPrinter } from "@fz/dev/script";
-import { LEVELS, levelEntryOf } from "../src/rules/levels/levels";
+import { LEVELS } from "../src/rules/levels/levels";
 import { describeShot } from "../src/rules/run/describe";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
 import { certificateOf } from "../src/testing/every_level";
@@ -128,7 +129,7 @@ describe("aimingKeys", () => {
 
 describe("RUN", () => {
   it("plays the first shot of its level's certificate on its depth", () => {
-    const line = certificateOf(levelEntryOf(LEVELS, RUN.level), RUN.depth);
+    const line = certificateOf(levelAt(LEVELS, RUN.level), RUN.depth);
 
     expect(RUN.shots).toEqual(line?.slice(0, 1));
   });

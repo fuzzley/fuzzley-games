@@ -16,13 +16,10 @@ import {
   LEVEL_SETS,
   type Level,
   type LevelData,
-  type LevelSetData,
   MOST_AIR,
   TWIN_ROWS,
   WALL_ROWS,
-  levelEntryOf,
   levelStart,
-  levelsOf,
   parseLevel,
 } from "./levels";
 
@@ -416,47 +413,6 @@ describe("levelStart", () => {
       boon: null,
     });
   });
-});
-
-describe("levelsOf", () => {
-  it("numbers the levels of every set from 1, in the order played", () => {
-    const set = (id: string, ...names: string[]): LevelSetData => ({
-      id,
-      name: id,
-      levels: names.map((name) => ({
-        id: name,
-        name,
-        boon: "hot",
-        bricks: [],
-      })),
-    });
-
-    const entries = levelsOf([set("a", "one", "two"), set("b", "three")]);
-
-    expect(
-      entries.map(({ number, set: { id }, data }) => [number, id, data.id]),
-    ).toEqual([
-      [1, "a", "one"],
-      [2, "a", "two"],
-      [3, "b", "three"],
-    ]);
-  });
-});
-
-describe("levelEntryOf", () => {
-  it("finds a level by its number, from 1", () => {
-    expect(levelEntryOf(LEVELS, 1)).toBe(LEVELS[0]);
-    expect(levelEntryOf(LEVELS, LEVELS.length)).toBe(LEVELS.at(-1));
-  });
-
-  it.each([0, LEVELS.length + 1, 1.5])(
-    "throws for level %s, which there isn't",
-    (number) => {
-      expect(() => levelEntryOf(LEVELS, number)).toThrow(
-        `There is no level ${String(number)}: the levels run from 1 to ${String(LEVELS.length)}.`,
-      );
-    },
-  );
 });
 
 describe("the reach check", () => {

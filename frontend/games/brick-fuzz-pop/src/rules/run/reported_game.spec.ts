@@ -1,10 +1,11 @@
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
   startLevel,
   takeRound,
 } from "@fz/brick-wall/rules/run";
-import { LEVELS, levelEntryOf } from "../levels/levels";
+import { LEVELS } from "../levels/levels";
 import {
   RULES,
   type RoundRules,
@@ -212,7 +213,7 @@ describe("reportedGameOf", () => {
       shots: 3,
       round: {
         shot: [200, 3],
-        boon: levelEntryOf(LEVELS, GIRDER).data.boon,
+        boon: levelAt(LEVELS, GIRDER).data.boon,
         bored: RULES.bored,
         moment: 7.25,
         dropped: null,
@@ -229,7 +230,7 @@ describe("reportedGameOf", () => {
         record: { from: reported.record?.from, shots: reported.record?.shots },
         round: {
           shot: [200, 3],
-          boon: levelEntryOf(LEVELS, GIRDER).data.boon,
+          boon: levelAt(LEVELS, GIRDER).data.boon,
           bored: RULES.bored,
           moment: 7.25,
           dropped: null,
@@ -259,7 +260,7 @@ describe("reportedGameOf", () => {
 
     expect(round).toEqual({
       shot: [100, 1],
-      boon: levelEntryOf(LEVELS, GIRDER).data.boon,
+      boon: levelAt(LEVELS, GIRDER).data.boon,
       bored: RETUNED.bored,
       moment: 9,
       dropped: 4,
@@ -375,7 +376,7 @@ describe("readReportedGame", () => {
 
     expect(round).toEqual({
       shot: { aim: 100, charge: 1 },
-      levelBoon: levelEntryOf(LEVELS, GIRDER).data.boon,
+      levelBoon: levelAt(LEVELS, GIRDER).data.boon,
       rules: RETUNED,
       moment: 9,
       dropped: 4,

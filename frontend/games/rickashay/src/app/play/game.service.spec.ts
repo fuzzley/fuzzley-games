@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { createRun } from "@fz/brick-wall/rules/run";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
@@ -11,7 +12,6 @@ import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { ThemeService } from "@fz/ui/theme";
 import type { RoundStart } from "../../rules/flight/events";
 import { guideOf } from "../../rules/flight/guide";
-import { levelEntryOf } from "../../rules/levels/levels";
 import {
   describeAim,
   describeGuide,
@@ -51,7 +51,7 @@ import { SavedGameService } from "./saved_game.service";
 // Rickashay's wiring of it.
 
 /** The first spec level's id, by which its records are kept. */
-const FIRST_ID = levelEntryOf(SPEC_LEVELS, 1).data.id;
+const FIRST_ID = levelAt(SPEC_LEVELS, 1).data.id;
 
 /** An aim other than straight up. */
 const LEANING = 200;

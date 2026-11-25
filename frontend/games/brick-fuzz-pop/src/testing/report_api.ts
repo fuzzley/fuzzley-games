@@ -1,5 +1,6 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
-import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
+import { levelAt } from "@fz/brick-wall/rules/progress";
+import { LEVELS, parseLevel } from "../rules/levels/levels";
 import { CASUAL_FLOORS, playCasually } from "./casual";
 import type { ReportApi } from "./script_api";
 
@@ -13,5 +14,5 @@ export const REPORT_API: ReportApi = {
   depths: DEPTHS,
   floors: CASUAL_FLOORS,
   playCasually: (level, depth, seed) =>
-    playCasually(parseLevel(levelEntryOf(LEVELS, level).data), depth, seed),
+    playCasually(parseLevel(levelAt(LEVELS, level).data), depth, seed),
 };

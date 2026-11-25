@@ -7,17 +7,13 @@
 // are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { DEPTHS } from "@fz/brick-wall/rules/field";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { isNeeded } from "@fz/brick-wall/rules/wall";
 import { playCarelessly } from "@fz/brick-wall/testing/careless";
 import { solveLine } from "@fz/brick-wall/testing/solver";
 import { WALL_RULES } from "../rules/bricks/wall_rules";
 import type { Brick } from "../rules/catalog/kinds";
-import {
-  LEVELS,
-  type LevelEntry,
-  levelEntryOf,
-  parseLevel,
-} from "../rules/levels/levels";
+import { LEVELS, type LevelEntry, parseLevel } from "../rules/levels/levels";
 import { BLIND_CEILING, playBlind } from "./blind";
 import { CARELESS_FLOORS, type RoundPlay, levelPlayOf } from "./line_play";
 import { ralliesOf } from "./rally_mark";
@@ -116,11 +112,7 @@ export const REPORT_API: ReportApi = {
   floors: CARELESS_FLOORS,
   blindCeiling: BLIND_CEILING,
   leastSweetSpot: LEAST_SWEET_SPOT,
-  wallOf: (level) => wallFiguresOf(levelEntryOf(LEVELS, level)),
+  wallOf: (level) => wallFiguresOf(levelAt(LEVELS, level)),
   figuresOf: (level, depth, firstSeed, games) =>
-    figuresOfPlay(
-      levelPlayOf(levelEntryOf(LEVELS, level), depth),
-      firstSeed,
-      games,
-    ),
+    figuresOfPlay(levelPlayOf(levelAt(LEVELS, level), depth), firstSeed, games),
 };

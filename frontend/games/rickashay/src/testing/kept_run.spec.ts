@@ -1,4 +1,5 @@
-import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
+import { levelAt } from "@fz/brick-wall/rules/progress";
+import { LEVELS, parseLevel } from "../rules/levels/levels";
 import { playRound } from "../rules/round/round";
 import { levelStart } from "../rules/run/run";
 import { restoreGame } from "../rules/run/saved_game";
@@ -41,7 +42,7 @@ describe("keptRun", () => {
   });
 
   it("keeps the points its rounds scored on the rules' own numbers", () => {
-    const level = parseLevel(levelEntryOf(LEVELS, 1).data);
+    const level = parseLevel(levelAt(LEVELS, 1).data);
     const { outcome } = playRound(
       levelStart(level, 11),
       { aim: 328 },
@@ -83,7 +84,7 @@ describe("keptRun", () => {
 
   it("throws for shots that clear the level", () => {
     // First bounce's certificate on a field 11 deep, which clears it.
-    const line = certificateOf(levelEntryOf(LEVELS, 1), 11) ?? [];
+    const line = certificateOf(levelAt(LEVELS, 1), 11) ?? [];
 
     expect(() => keptRun(LEVELS, MARKS, { ...KEPT, shots: line })).toThrow(
       `Round ${String(line.length)} of level 1 ends it: cleared.`,

@@ -1,12 +1,13 @@
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
-import { levelEntryOf, parseLevel } from "../rules/levels/levels";
+import { parseLevel } from "../rules/levels/levels";
 import { levelStart } from "../rules/run/run";
 import { roundPoints } from "../rules/run/scoring";
 import { FLIGHT_RULES } from "../rules/tuning";
 import { SPEC_FLIGHTS, SPEC_LEVELS, STILL, scriptedRounds } from "./spec_play";
 
 /** Where the first spec level's first round starts, on a field 13 deep. */
-const START = levelStart(parseLevel(levelEntryOf(SPEC_LEVELS, 1).data), 13);
+const START = levelStart(parseLevel(levelAt(SPEC_LEVELS, 1).data), 13);
 
 /** A shot the scripted rounds pay no heed to. */
 const SHOT = { aim: STILL.aim };

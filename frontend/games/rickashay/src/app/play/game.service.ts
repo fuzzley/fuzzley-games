@@ -7,6 +7,7 @@ import {
   signal,
   untracked,
 } from "@angular/core";
+import { CertificateLine } from "@fz/brick-wall/app/certificate_line";
 import { waitingRows } from "@fz/brick-wall/app/panels";
 import { RunRecords } from "@fz/brick-wall/app/records";
 import {
@@ -62,7 +63,6 @@ import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, GAME_MARKS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
-import { CertificateLine, type Line } from "./line";
 import { PlayedRounds } from "./played_rounds";
 import { KEPT_GAME } from "./saved_game.service";
 import { RunWords, fastForwardWords } from "./words";
@@ -104,7 +104,10 @@ type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
  * and else as the debug menu tunes them; and a hot shot's floor bounces,
  * which the menu leaves be.
  */
-function playRulesOf(debug: DebugService, line: CertificateLine): PlayRules {
+function playRulesOf(
+  debug: DebugService,
+  line: CertificateLine<Aim>,
+): PlayRules {
   return {
     get hatchHolds() {
       return (line.playing() ? FLIGHT_RULES : debug.rules()).hatchHolds;
@@ -122,7 +125,7 @@ function playRulesOf(debug: DebugService, line: CertificateLine): PlayRules {
  */
 function rickashayDriving(
   words: RunWords,
-  line: CertificateLine,
+  line: CertificateLine<Aim>,
 ): RoundDriving<LevelTally, LevelEntry, RoundStart, Round, PlayedRounds> {
   const levels = inject(GAME_LEVELS);
   const marks = inject(GAME_MARKS);
@@ -191,7 +194,7 @@ export class GameService extends RoundDriver<
   /** Whether the flight in the air is landing as the page is hidden, unseen and unheard. */
   private unseen = false;
   /** The certificate's or rally line the level in play plays, if any. */
-  private readonly line: CertificateLine;
+  private readonly line: CertificateLine<Aim>;
   /** How the next frame plays the round, written again each frame. */
   private readonly frame: FrameOptions = {
     pace: FLIGHT_PACE,
@@ -302,7 +305,7 @@ export class GameService extends RoundDriver<
       inject(GAME_MARKS),
       FLIGHT_RULES,
     );
-    const line = new CertificateLine();
+    const line = new CertificateLine<Aim>();
     super(rickashayDriving(words, line));
     words.follow(this.run);
     this.runWords = words;
@@ -414,7 +417,7 @@ export class GameService extends RoundDriver<
    */
   async playLine(
     level: number,
-    lineOn: (depth: number) => Line | null,
+    lineOn: (depth: number) => readonly Aim[] | null,
   ): Promise<boolean> {
     if (lineOn(this.roomDepth) === null) return false;
     if (!(await this.mayLoseRun())) return false;

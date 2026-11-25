@@ -1,8 +1,9 @@
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { createRun, startLevel, takeRound } from "@fz/brick-wall/rules/run";
 import warmUpMarks from "../../testing/warm_up_marks.json";
 import type { Wall } from "../catalog/kinds";
 import type { RoundOutcome, RoundStart } from "../flight/events";
-import { LEVELS, levelEntryOf, parseLevel } from "../levels/levels";
+import { LEVELS, parseLevel } from "../levels/levels";
 import type { Shot } from "../shot";
 import { FLIGHT_RULES, type FlightRules } from "../tuning";
 import {
@@ -71,7 +72,7 @@ function playedGame(
   shots: readonly Shooting[],
   inPlay = false,
 ): PlayedGame & { readonly next: RoundStart } {
-  const level = parseLevel(levelEntryOf(LEVELS, 2).data);
+  const level = parseLevel(levelAt(LEVELS, 2).data);
   let run: Run = startLevel(
     createRun({ id: 1, level: 2, depth: 11 }, LEVELS, RUN_RULES),
   );

@@ -10,6 +10,7 @@
 import type { Aim } from "@fz/brick-wall/rules/aims";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { parFrom } from "@fz/brick-wall/rules/par";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   type PlayedCarelessly,
   playCarelessly,
@@ -21,7 +22,7 @@ import {
   replayLine,
   solveLine,
 } from "@fz/brick-wall/testing/solver";
-import { LEVELS, type LevelEntry, levelEntryOf } from "../rules/levels/levels";
+import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import { PAR_SHARE } from "../rules/tuning";
 import { type RoundPlay, levelPlayOf } from "./line_play";
 import { type RallyMark, rallyMarkFrom } from "./rally_mark";
@@ -114,7 +115,7 @@ export const CERTIFY_API: CertifyApi = {
   levels: LEVELS,
   depths: DEPTHS,
   solve: (level, depth) => {
-    const play = levelPlayOf(levelEntryOf(LEVELS, level), depth);
+    const play = levelPlayOf(levelAt(LEVELS, level), depth);
     return certifiedOn(play, () => markGames(play, level));
   },
   parFrom: (rounds) => parFrom(rounds, PAR_SHARE),

@@ -1,8 +1,8 @@
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import type { Run as WallRun, RunRules } from "@fz/brick-wall/rules/run";
 import {
   type Level,
   type LevelEntry,
-  levelEntryOf,
   levelStart,
   parseLevel,
 } from "../levels/levels";
@@ -44,7 +44,7 @@ export function levelOf(
   run: Pick<Run, "level">,
   levels: readonly LevelEntry[],
 ): Level {
-  return parseLevel(levelEntryOf(levels, run.level).data);
+  return parseLevel(levelAt(levels, run.level).data);
 }
 
 /**

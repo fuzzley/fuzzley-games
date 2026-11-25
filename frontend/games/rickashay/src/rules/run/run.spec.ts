@@ -1,5 +1,6 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { parOf } from "@fz/brick-wall/rules/par";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
@@ -11,7 +12,7 @@ import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import warmUpMarks from "../../testing/warm_up_marks.json";
 import { WARM_UP_LEVELS } from "../../testing/warm_up_levels";
 import type { RoundOutcome } from "../flight/events";
-import { levelEntryOf, parseLevel } from "../levels/levels";
+import { parseLevel } from "../levels/levels";
 import { STAR_POINTS } from "../tuning";
 import {
   type Run,
@@ -154,7 +155,7 @@ describe("starsOf", () => {
 describe("levelOf", () => {
   it("parses the level in play", () => {
     expect(levelOf(runAt(5), WARM_UP_LEVELS)).toEqual(
-      parseLevel(levelEntryOf(WARM_UP_LEVELS, 5).data),
+      parseLevel(levelAt(WARM_UP_LEVELS, 5).data),
     );
   });
 });

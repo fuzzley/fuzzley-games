@@ -7,6 +7,7 @@ import {
   pictureProblem,
   wallFrom,
 } from "@fz/brick-wall/rules/level_picture";
+import { type NumberedLevel, levelsOf } from "@fz/brick-wall/rules/progress";
 import { unknownKey } from "@fz/core/json";
 import type { BrickKindId } from "../catalog/bricks";
 import type { RoundStart } from "../round/round";
@@ -59,13 +60,8 @@ export interface LevelSetData {
   readonly levels: readonly LevelData[];
 }
 
-/** Describes a level of the game: its data, its set, and its number. */
-export interface LevelEntry {
-  /** Its place in the game, from 1. */
-  readonly number: number;
-  readonly set: LevelSetData;
-  readonly data: LevelData;
-}
+/** Describes a level of the game: its place in the game, from 1, its set, and its data. */
+export type LevelEntry = NumberedLevel<LevelSetData, LevelData>;
 
 /** Every set of levels, in the order they are played. */
 export const LEVEL_SETS: readonly LevelSetData[] = [
@@ -75,29 +71,8 @@ export const LEVEL_SETS: readonly LevelSetData[] = [
   thickWalls,
 ];
 
-/** Returns the levels of sets, in the order played, numbered from 1. */
-export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {
-  return sets
-    .flatMap((set) => set.levels.map((data) => ({ set, data })))
-    .map((entry, index) => ({ ...entry, number: index + 1 }));
-}
-
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);
-
-/** Returns the level of a number among levels, or throws for a number they have no level of. */
-export function levelEntryOf(
-  levels: readonly LevelEntry[],
-  number: number,
-): LevelEntry {
-  const entry = levels[number - 1];
-  if (!entry) {
-    throw new RangeError(
-      `There is no level ${String(number)}: the levels run from 1 to ${String(levels.length)}.`,
-    );
-  }
-  return entry;
-}
 
 /** The fewest and the most rows a level's wall has. */
 export const WALL_ROWS = { least: 12, most: 40 } as const;

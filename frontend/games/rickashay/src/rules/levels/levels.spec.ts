@@ -7,9 +7,6 @@ import {
   LEVEL_SETS,
   type Level,
   type LevelData,
-  type LevelSetData,
-  levelEntryOf,
-  levelsOf,
   parseLevel,
 } from "./levels";
 
@@ -144,41 +141,6 @@ describe("parseLevel", () => {
 
     expect(data).toEqual(before);
   });
-});
-
-describe("levelsOf", () => {
-  it("numbers the levels of every set from 1, in the order played", () => {
-    const set = (id: string, ...ids: string[]): LevelSetData => ({
-      id,
-      name: id,
-      levels: ids.map((level) => dataWith([], { id: level })),
-    });
-
-    const entries = levelsOf([set("a", "one", "two"), set("b", "three")]);
-
-    expect(
-      entries.map(({ number, set: { id }, data }) => [number, id, data.id]),
-    ).toEqual([
-      [1, "a", "one"],
-      [2, "a", "two"],
-      [3, "b", "three"],
-    ]);
-  });
-});
-
-describe("levelEntryOf", () => {
-  it.each([1, LEVELS.length])("finds level %s by its number", (number) => {
-    expect(levelEntryOf(LEVELS, number)).toBe(LEVELS[number - 1]);
-  });
-
-  it.each([0, LEVELS.length + 1, 1.5])(
-    "throws for level %s, which there isn't",
-    (number) => {
-      expect(() => levelEntryOf(LEVELS, number)).toThrow(
-        `There is no level ${String(number)}: the levels run from 1 to ${String(LEVELS.length)}.`,
-      );
-    },
-  );
 });
 
 describe("the sets", () => {

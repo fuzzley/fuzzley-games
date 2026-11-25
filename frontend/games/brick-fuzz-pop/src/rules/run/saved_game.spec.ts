@@ -1,13 +1,8 @@
 import { parOf } from "@fz/brick-wall/rules/par";
+import { levelAt } from "@fz/brick-wall/rules/progress";
 import { takeRound } from "@fz/brick-wall/rules/run";
 import type { Kept, RunKeeping } from "@fz/brick-wall/rules/saved_wall";
-import {
-  LEVELS,
-  type Level,
-  levelEntryOf,
-  levelStart,
-  parseLevel,
-} from "../levels/levels";
+import { LEVELS, type Level, levelStart, parseLevel } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import type { Brick } from "../wall/wall";
 import { RUN_RULES, type Run } from "./run";
@@ -27,7 +22,7 @@ import { PARS, starsFor } from "./stars";
 type Spoil = readonly [string, Readonly<Record<string, unknown>>];
 
 /** Girder, level 5: its wall's lowest row steel, the row over it bricks and two tough ones. */
-const GIRDER: Level = parseLevel(levelEntryOf(LEVELS, 5).data);
+const GIRDER: Level = parseLevel(levelAt(LEVELS, 5).data);
 
 /** What of the run the shell keeps beside it, as most specs have it: nothing tuned. */
 const KEEPING: RunKeeping = { tuned: false };
