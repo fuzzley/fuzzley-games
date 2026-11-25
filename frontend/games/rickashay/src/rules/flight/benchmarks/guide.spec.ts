@@ -5,11 +5,20 @@ import {
   quantile,
   sortedTimes,
 } from "@fz/brick-wall/testing/timing";
+import { createRandom, shuffled } from "@fz/core/random";
 import { keysOf } from "@fz/core/records";
 import { levelOpenings, unflown } from "../../../testing/cast_reference";
 import { FLIGHT_RULES } from "../../tuning";
 import type { RoundStart } from "../events";
 import { guideOf } from "../guide";
+
+/**
+ * How many of the levels' openings the guides are timed at, each a wall of
+ * its own, drawn from a seed: as many as Warm-up's levels and depths, so
+ * the time stays the same as sets are added, at the cost of a slow wall
+ * the draw passes over.
+ */
+const OPENINGS = 108;
 
 /** How many rounds of guides are timed, after one that warms the code up. */
 const ROUNDS = 3;
@@ -69,9 +78,14 @@ function timeRound(openings: readonly RoundStart[], times: GuideTimes): void {
   }
 }
 
-/** Returns the times of `ROUNDS` rounds of guides over the levels' openings, after one that warms the code up. */
+/** Returns `OPENINGS` of the levels' openings, none twice, drawn from a seed. */
+function drawnOpenings(): readonly RoundStart[] {
+  return shuffled(levelOpenings(), createRandom(2026)).slice(0, OPENINGS);
+}
+
+/** Returns the times of `ROUNDS` rounds of guides over openings drawn from a seed, after one that warms the code up. */
 function timedGuides(): GuideTimes {
-  const openings = levelOpenings();
+  const openings = drawnOpenings();
   timeRound(openings, { plain: [], hot: [], firsts: [] });
   const times: GuideTimes = { plain: [], hot: [], firsts: [] };
   for (let round = 0; round < ROUNDS; round++) {
@@ -86,7 +100,7 @@ function timedGuides(): GuideTimes {
 // first flight at a wall is: its time is the field's building more than
 // the guide's.
 describe("guideOf's time", { timeout: SIM_TIMEOUT_MS }, () => {
-  it("keeps under its bound at the 99th percentile to the fifth turn, over the levels' openings plain and hot", () => {
+  it("keeps under its bound at the 99th percentile to the fifth turn, over openings drawn from a seed, plain and hot", () => {
     const { plain, hot, firsts } = timedGuides();
 
     console.log(
