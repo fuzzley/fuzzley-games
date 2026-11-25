@@ -21,10 +21,9 @@ import angles from "../rules/levels/certificates/angles.json";
 import warmUp from "../rules/levels/certificates/warm-up.json";
 import anglesLines from "../rules/levels/lines/angles.json";
 import warmUpLines from "../rules/levels/lines/warm-up.json";
-import anglesMarks from "../rules/levels/marks/angles.json";
-import warmUpMarks from "../rules/levels/marks/warm-up.json";
+import { LEVEL_MARKS } from "../rules/levels/level_marks";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
-import { type Marks, marksOf } from "../rules/run/stars";
+import type { Marks } from "../rules/run/stars";
 import { BLIND_CEILING, blindClears } from "./blind";
 import { CERTIFY_API } from "./certify_api";
 import { CARELESS_FLOORS, type RoundPlay, levelPlayOf } from "./line_play";
@@ -46,8 +45,8 @@ export const RALLY_LINES: Readonly<Record<string, holders.Certificates>> = {
   angles: anglesLines,
 };
 
-/** Every level's par and rally mark on every depth, from each set's marks as `yarn certify:levels` writes them. */
-export const MARKS: Marks = marksOf([warmUpMarks, anglesMarks]);
+/** Every level's par and rally mark on every depth, the game's own, which the certificates' pars and the rally lines are held to. */
+export const MARKS: Marks = LEVEL_MARKS;
 
 /** The depths the careless player is held to its floors on: the two shapes of the shallowest fields, and the deepest. */
 export const FLOOR_DEPTHS = [11, 13, 22] as const;
