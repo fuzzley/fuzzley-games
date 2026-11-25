@@ -51,9 +51,13 @@ Built from 2026-11-22 to 25 to this plan, by packages in worktrees of their
 own (§6), each commit reviewed. Part 1 merged into `main` on 2026-11-24, at
 8496d2a0. Part 2 through the feel gate (Q3), with its fixes (M2 and Q4),
 followed on 2026-11-25, at cbabc893, behind "In development". X1 to X4, Z1, Y1
-to Y3, D1, a fix to the skills and F1 then landed on `rickashay`. The work log
-(§7) is not merged. This plan describes the code as it was, so check a path
-against the tree before following one.
+to Y3, D1, a fix to the skills and F1 then landed on `rickashay`. The finish
+retook both games' screenshots: Brick Fuzz Pop's two images changed, as the
+page around its field had (5dd23540); Rickashay's moved under the threshold,
+so its images stand. 4a1d71b0 and 03b02e61 then ran in a spec, or dropped,
+every line and branch the build added or changed but those 03b02e61 names,
+with why each stays unrun. The work log (§7) is not merged. This plan describes the
+code as it was, so check a path against the tree before following one.
 
 What the build decided that the sections below don't say:
 
@@ -127,6 +131,8 @@ What the build decided that the sections below don't say:
   and the loose "them" in How to play's "clear them all".
 - A flight fixture whose moment closes with two of a floor bounce spent, the
   hatches opening and a bolt drawn, so a spec runs the sort of those events.
+- One clip for the ramp's `clipped()` and Rickashay's plated brick's
+  `cutAt()`, which moves a plate's cut by a rounding (03b02e61).
 - The trademark search, before the game leaves "In development".
 
 ---
