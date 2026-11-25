@@ -1,5 +1,6 @@
 import { bodyOutline } from "@fz/phaser/bricks";
 import {
+  type Area,
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
@@ -15,9 +16,17 @@ import {
 } from "../../testing/art_frames";
 import { atlasFrames, brickLayers, wallAtlasFrames } from "./atlas_frames";
 import { cellOf } from "./cells";
-import { CRACKS, FRAMES, FRAME_NAMES, FURS, INKS, PIPS } from "./frames";
+import {
+  CRACKS,
+  FRAMES,
+  FRAME_NAMES,
+  FURS,
+  INKS,
+  PIPS,
+  RAMP_CORNERS,
+} from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
-import { CUT_TILE } from "./kinds/brick";
+import { CUT_TILE, tileBody } from "./kinds/brick";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -56,6 +65,16 @@ function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
 /** Returns the corners of an area a command covers. */
 function cornersOf(command: DrawCommand): readonly Point[] {
   const { x, y, width, height } = extentOf(command);
+  return [
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
+  ];
+}
+
+/** Returns the outline of an area, its corners clockwise from its top left. */
+function outlineOf({ x, y, width, height }: Area): readonly Point[] {
   return [
     { x, y },
     { x: x + width, y },
@@ -119,6 +138,7 @@ describe.each(ART_SCALES)(
       fuzzballFrames(ART_PALETTE, scale).map(({ name }) => name),
     );
     const bricks = frames.filter(({ name }) => !fuzzballs.has(name));
+    const ramps = new Set<string>(RAMP_CORNERS.map(FRAMES.ramp));
 
     it("draws every frame within its cell", () => {
       expect(
@@ -128,13 +148,17 @@ describe.each(ART_SCALES)(
       ).toEqual([]);
     });
 
-    it("draws every brick's frame within the cut tile's body, so no mark shows past it", () => {
-      const outline = bodyOutline(cellOf(scale), CUT_TILE);
+    // A ramp stands on no tile, so its points reach the square corners of
+    // the body a tile's corners are cut from.
+    it("draws every brick's frame within the cut tile's body, a ramp's within its square body, so no mark shows past it", () => {
+      const cut = bodyOutline(cellOf(scale), CUT_TILE);
+      const square = outlineOf(tileBody(cellOf(scale)));
 
       expect(
         breaking(bricks, (frame) =>
           frame.commands.every(
-            (command) => reachPast(command, outline) <= SLACK,
+            (command) =>
+              reachPast(command, ramps.has(frame.name) ? square : cut) <= SLACK,
           ),
         ),
       ).toEqual([]);
@@ -245,12 +269,13 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks and the steel, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel and 4 ramps, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
       ...CRACKS.map(FRAMES.cracks),
       FRAMES.steel,
+      ...RAMP_CORNERS.map(FRAMES.ramp),
       ...FURS.map(FRAMES.fuzzball),
       FRAMES.hotShot,
       FRAMES.eyes,
@@ -258,14 +283,18 @@ describe("atlasFrames", () => {
     ]);
   });
 
-  it("leaves out only the cracks and the steel's rivets at 29 CSS pixels a unit, where 31 shows them", () => {
+  it("leaves out only the cracks and the steel's and the ramps' rivets at 29 CSS pixels a unit, where 31 shows them", () => {
     const small = atlasFrames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
 
     const fewer = ART_FRAMES.filter(
       (frame, i) => frame.commands.length > (small[i]?.commands.length ?? 0),
     ).map((frame) => frame.name);
 
-    expect(fewer).toEqual([...CRACKS.map(FRAMES.cracks), FRAMES.steel]);
+    expect(fewer).toEqual([
+      ...CRACKS.map(FRAMES.cracks),
+      FRAMES.steel,
+      ...RAMP_CORNERS.map(FRAMES.ramp),
+    ]);
   });
 });
 

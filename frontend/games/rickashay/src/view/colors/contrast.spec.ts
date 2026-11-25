@@ -28,6 +28,8 @@ function stripOf(ink: number): number {
 // too. None crosses the darker lip along its foot, which they keep less
 // than 3:1 against in Midnight blue, and steel's frame and rivets keep off
 // its strip, which they keep less than 3:1 against in the light palettes.
+// A ramp's bright edge, which keeps less than 3:1 against the light
+// palettes' field, lies inside a rim of the ramp's steel.
 // The floor bounces' springs, lit and unlit, keep 3:1 against the floor's
 // band they stand in, and the rally's number, text, 4.5:1 against its
 // pill.
