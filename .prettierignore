@@ -12,3 +12,13 @@ coverage
 # reports on its sounds, which the build that makes them lays out.
 docs/archive/asteroid-breaker-uplift/assets
 docs/archive/asteroid-breaker-uplift/sound/report
+
+# What the Fuzz Flux design's scripts write: the feel sketch as one page, and
+# the numbers of its sounds and its levels.
+docs/fuzz-flux/mocks/feel.html
+docs/fuzz-flux/sound/sprite.json
+docs/fuzz-flux/sound/measures.md
+docs/fuzz-flux/sketch/results.json
+docs/fuzz-flux/sketch/certificates.json
+docs/fuzz-flux/sketch/results-table.md
+docs/fuzz-flux/levels/*.json

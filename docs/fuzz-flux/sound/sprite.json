@@ -1,0 +1,186 @@
+{
+  "pick": {
+    "start": 0.1,
+    "seconds": 0.06
+  },
+  "swap": {
+    "start": 0.26,
+    "seconds": 0.1
+  },
+  "refuse": {
+    "start": 0.46,
+    "seconds": 0.2
+  },
+  "land": {
+    "start": 0.76,
+    "seconds": 0.06
+  },
+  "note": {
+    "start": 0.92,
+    "seconds": 0.301
+  },
+  "note-4": {
+    "start": 1.321,
+    "seconds": 0.327
+  },
+  "note-5": {
+    "start": 1.748,
+    "seconds": 0.35
+  },
+  "pop": {
+    "start": 2.197,
+    "seconds": 0.134
+  },
+  "born-dasher": {
+    "start": 2.431,
+    "seconds": 0.828
+  },
+  "born-puffer": {
+    "start": 3.359,
+    "seconds": 0.745
+  },
+  "born-wisp": {
+    "start": 4.205,
+    "seconds": 0.808
+  },
+  "born-frizz": {
+    "start": 5.112,
+    "seconds": 0.797
+  },
+  "dash": {
+    "start": 6.009,
+    "seconds": 0.4
+  },
+  "puff": {
+    "start": 6.509,
+    "seconds": 0.899
+  },
+  "wisp": {
+    "start": 7.509,
+    "seconds": 0.45
+  },
+  "zap": {
+    "start": 8.059,
+    "seconds": 0.062
+  },
+  "frizz": {
+    "start": 8.221,
+    "seconds": 1.31
+  },
+  "pair": {
+    "start": 9.631,
+    "seconds": 0.32
+  },
+  "big-puff": {
+    "start": 10.051,
+    "seconds": 1.25
+  },
+  "knock-3": {
+    "start": 11.401,
+    "seconds": 0.301
+  },
+  "knock-2": {
+    "start": 11.802,
+    "seconds": 0.296
+  },
+  "knock-1": {
+    "start": 12.199,
+    "seconds": 0.299
+  },
+  "break": {
+    "start": 12.598,
+    "seconds": 0.383
+  },
+  "cage": {
+    "start": 13.081,
+    "seconds": 0.336
+  },
+  "yip": {
+    "start": 13.517,
+    "seconds": 0.13
+  },
+  "dust": {
+    "start": 13.747,
+    "seconds": 0.14
+  },
+  "burr-off": {
+    "start": 13.987,
+    "seconds": 0.11
+  },
+  "burr-spread": {
+    "start": 14.197,
+    "seconds": 0.16
+  },
+  "bed": {
+    "start": 14.457,
+    "seconds": 1.617
+  },
+  "gust": {
+    "start": 16.174,
+    "seconds": 0.83
+  },
+  "shuffle": {
+    "start": 17.104,
+    "seconds": 0.42
+  },
+  "tick": {
+    "start": 17.624,
+    "seconds": 0.04
+  },
+  "goal": {
+    "start": 17.764,
+    "seconds": 1.016
+  },
+  "low": {
+    "start": 18.88,
+    "seconds": 0.21
+  },
+  "chirp-1": {
+    "start": 19.19,
+    "seconds": 0.19
+  },
+  "chirp-2": {
+    "start": 19.48,
+    "seconds": 0.23
+  },
+  "chirp-3": {
+    "start": 19.81,
+    "seconds": 0.29
+  },
+  "chirp-4": {
+    "start": 20.2,
+    "seconds": 0.35
+  },
+  "encore": {
+    "start": 20.65,
+    "seconds": 0.246
+  },
+  "win": {
+    "start": 20.996,
+    "seconds": 1.934
+  },
+  "star-1": {
+    "start": 23.03,
+    "seconds": 0.713
+  },
+  "star-2": {
+    "start": 23.843,
+    "seconds": 0.712
+  },
+  "star-3": {
+    "start": 24.655,
+    "seconds": 0.949
+  },
+  "lose": {
+    "start": 25.704,
+    "seconds": 0.74
+  },
+  "hint": {
+    "start": 26.544,
+    "seconds": 0.241
+  },
+  "button": {
+    "start": 26.885,
+    "seconds": 0.04
+  }
+}
