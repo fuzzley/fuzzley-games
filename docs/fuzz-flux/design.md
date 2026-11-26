@@ -116,8 +116,10 @@ spare.
 
 ## Choices put to the user
 
-These are the ones the design could not settle for itself. Each has a
-recommendation, and the design is written as if it were taken.
+These are the ones the design could not settle for itself. Each had a
+recommendation, and the design is written as it was taken. The user chose
+the name on 2026-11-26, and the same day took the recommendation for each of
+the others.
 
 1. **The name: settled.** The user chose **Fuzz Flux** on 2026-11-26. Two
    general web searches that day found no game, app or mark by that name.
@@ -129,24 +131,25 @@ recommendation, and the design is written as if it were taken.
    [`creature-pieces-and-names.md`](research/creature-pieces-and-names.md)
    has the other names that were checked. "Bunch" stays the game's word for
    a match.
-2. **36 levels or 30.** The ask was "at least 30". The house's level games
-   have sets of 9, so the design has 4 sets, 36 levels. Dropping the last set,
-   the wind, leaves 27, under the ask.
-3. **No score.** Stars come from moves to spare, and a level's best is its
-   most moves to spare. The engine in the sketch keeps a score, and nothing
-   shows it. A score could come back as a line on the cleared card.
-4. **"Try again" deals afresh, "Restart" does not.** A level has 8 proven
-   deals. This follows the house's own words for the two buttons. The other
-   way is one fixed deal a level, which makes levels learnable by heart.
-5. **Swap, never slide.** The nearest existing game to this one, Chuzzle,
-   slides whole rows of furry creatures. Fuzz Flux swaps 2 neighbors, which is
-   the genre's commonest input and keeps the two games apart. See "Fuzzley
-   flavor".
-6. **"Brick" or "cushion".** A brick is now drawn as a pile of felt cushions.
-   The design still calls it a brick: that is the house's word, the goal
-   reads "break every brick", and a set is named "Bricks and bars". The
-   recommendation is to keep "brick". If it reads oddly beside the picture,
-   "cushion" is the other word, and level 27 is already "Pillow fort".
+2. **36 levels, not 30: settled.** The ask was "at least 30". The house's
+   level games have sets of 9, so the design has 4 sets, 36 levels. Dropping
+   the last set, the wind, would have left 27, under the ask.
+3. **No score: settled.** Stars come from moves to spare, and a level's best
+   is its most moves to spare. The engine in the sketch keeps a score, and
+   nothing shows it. A score could come back as a line on the cleared card.
+4. **"Try again" deals afresh, "Restart" does not: settled.** A level has 8
+   proven deals. This follows the house's own words for the two buttons. The
+   other way was one fixed deal a level, which makes levels learnable by
+   heart.
+5. **Swap, never slide: settled.** The nearest existing game to this one,
+   Chuzzle, slides whole rows of furry creatures. Fuzz Flux swaps 2 neighbors,
+   which is the genre's commonest input and keeps the two games apart. See
+   "Fuzzley flavor".
+6. **"Brick", not "cushion": settled.** A brick is now drawn as a pile of
+   felt cushions. The design still calls it a brick: that is the house's
+   word, the goal reads "break every brick", and a set is named "Bricks and
+   bars". If it reads oddly beside the picture once played, "cushion" is the
+   other word, and level 27 is already "Pillow fort".
 
 ## Decisions
 

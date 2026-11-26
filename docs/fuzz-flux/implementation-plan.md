@@ -1,10 +1,12 @@
 # Fuzz Flux: the implementation plan
 
-Written 2026-11-26, as a companion to [`design.md`](design.md). The design
-says what the game is: its 16 decisions, its rules, its numbers, its look,
-its sounds and its 36 levels. This file says how to build it:
+Written 2026-11-26, as a companion to [`design.md`](design.md), and given
+your answers to §2.1 the same day. The design says what the game is: its 16
+decisions, its rules, its numbers, its look, its sounds and its 36 levels.
+This file says how to build it:
 
-- the questions for you before any code, and the plan's own calls (§2);
+- your answers to the questions before any code, and the plan's own calls
+  (§2);
 - what the game takes from the house's libraries as they are, what moves
   out of other games and libraries into shared places first, and what
   stays the game's own (§3);
@@ -52,12 +54,14 @@ Paths are relative to `frontend/` unless they start with `docs/`,
 ## 1. Summary
 
 - **Two parts, as Rickashay was built.**
-  - **Part 1, the lifts (§3.3):** about 12 commits in two packages, on
+  - **Part 1, the lifts (§3.3):** about 15 commits in three packages, on
     the branch `fuzz-flux-lift`. Pieces any game could use, and the level
     pieces that sit in `@fz/brick-wall` though they name no wall, move into
     the libraries that hold their kind. Each is adopted by the games that
     had it, in the commit that moves it, and they play and look exactly as
-    before. Part 1 can merge into `main` on its own (question 5).
+    before. Brick Breaker's own Levels dialog then moves onto the shared one
+    (question 2). Part 1 merges into `main` on its own, at your word
+    (question 5).
   - **Part 2, the game (§5.2):** about 144 commits in thirty-one packages,
     on the branch `fuzz-flux`, in `games/fuzz-flux`. It writes only what is
     Fuzz Flux's: the rules, the art, the feel, the sounds, the board for
@@ -93,9 +97,9 @@ Paths are relative to `frontend/` unless they start with `docs/`,
   which is longer than K1). The look, the motion and the sound (A1 → A2;
   V2 → V3, with V1; N1) meet at S1, which reaches U1 before R3 does when
   R1 and V2 start first (§6.2). The gate, Q3, comes off U2 through T1.
-- **What it costs:** about 155 commits. At Rickashay's measured rate
+- **What it costs:** about 159 commits. At Rickashay's measured rate
   ($6.99 and about 0.32% of a week a commit, counting its fixes and
-  squashed reviews) that is about $1,080 and half a week. Rickashay's own
+  squashed reviews) that is about $1,110 and half a week. Rickashay's own
   plan estimated $890 and it came to $1,314, so read the week again once
   K2 and R1 land (§6.1). It can start at your word: you said on 2026-11-23
   to keep a build going through the weekly limit and resume after the
@@ -103,7 +107,7 @@ Paths are relative to `frontend/` unless they start with `docs/`,
 
 ```text
 Part 1, on fuzz-flux-lift
-  LA (pieces) and LL (levels and the specs' helpers), side by side ── Q1
+  LA (pieces) and LL (levels and the specs' helpers), side by side; LB (Brick Breaker's dialog) after LL ── Q1
 
 Part 2, on fuzz-flux
   K1 ── K2 (after LA) ──┬── R1 ── R2 ── R3 (also after R0, P1) ── P2 ── P3 ── Q2
@@ -111,8 +115,8 @@ Part 2, on fuzz-flux
                         ├── A1 ── A2
                         ├── V1, V2 ── V3
                         └── N1
-  S1 (after A2, V3, N1) ── U1 (after R3, LL) ──┬── U2 ──┬── T1 (also after P3) ── Q3, the gate (also after Q2)
-                                               └── U3 ──┘
+  S1 (after A2, V3, N1) ── U1 (after R3, LL) ──┬── U2 (also after LB) ──┬── T1 (also after P3) ── Q3, the gate (also after Q2)
+                                               └── U3 ──────────────────┘
   X1, X2, X3, X4, X5 (after U2, U3) ── Z1 ──┬── F1 (also after Y1–Y3) ──┬── Z2, the finish
                                             └── D1 ──────────────────────┘
   Y1 (after X1, X2, P3) · Y2 (after X1–X4, P3) · Y3 (after X1–X5, P3)
@@ -122,11 +126,12 @@ Part 2, on fuzz-flux
 
 ## 2. Settled before code
 
-### 2.1 Questions for you
+### 2.1 Your answers
 
 Each of these changes what a player sees, touches a live game, or sets how
-the work reaches `main`, so each is yours. Each has a recommendation, and
-the rest of this file is written as if it were taken.
+the work reaches `main`, so each was yours to answer. On 2026-11-26 you
+took four of the recommendations and answered question 2 the other way, so
+each answer below is yours, and the rest of this file is written to them.
 
 1. **Where the shared pieces go.** Fuzz Flux needs pieces that live today
    where it can't sensibly take them: the level sets and which levels are
@@ -135,64 +140,56 @@ the rest of this file is written as if it were taken.
    rule is that it holds "what the two wall games mean alike"; the
    climbing ladder of notes is Asteroid Breaker's; the sprite's AAC and
    Ogg encoding is Asteroid Breaker's build script's.
-   - **Recommended: into the libraries that hold their kind (Part 1),** as
-     Rickashay's plan put "pieces any game could use": the levels' rules
-     into `@fz/core`, the dialog and stored progress into `@fz/game-ui`,
-     the easings beside `@fz/core/math`'s, the test helpers into the
-     libraries' `testing` entries, the ladder into
+   - **Yours, as recommended: into the libraries that hold their kind
+     (Part 1),** as Rickashay's plan put "pieces any game could use": the
+     levels' rules into `@fz/core`, the dialog and stored progress into
+     `@fz/game-ui`, the easings beside `@fz/core/math`'s, the test helpers
+     into the libraries' `testing` entries, the ladder into
      `@fz/core/sound_mix`, the encoding into `@fz/dev/sounds`. The wall
      games, Asteroid Breaker and Rickashay adopt each in the commit that
      moves it. `@fz/brick-wall` keeps its wall, its run and its board.
-   - Or: Fuzz Flux imports `@fz/brick-wall` as it stands. It is quicker,
-     but a match-three would depend on a library named and fenced for wall
-     games, and the library's own rule would stop being true.
-   - Or: copy what it needs. That is a fourth copy of a Levels dialog
-     (Brick Breaker keeps one of its own) and is not recommended.
 2. **Brick Breaker's own Levels dialog.** Brick Breaker keeps its own copy
    of the dialog `@fz/brick-wall` lifted from it, and it has grown apart:
    its tiles show a tick once cleared, each of three stars held or not by
    its own id (not a count), "Cleared" where there is no best yet, and a
    best for each speed, with a star count on each set and a paragraph on
-   stars. The shared dialog could show that only with a mode, which §3.1's
-   bar refuses.
-   - **Recommended: leave it.** Brick Breaker keeps its dialog, and the
-     shared one serves the two wall games and Fuzz Flux.
-   - Or: make the shared dialog's tile a template each game hands in, and
-     move Brick Breaker onto it: one package more in Part 1, touching a
-     third live game, for one dialog in the house.
-3. **The design's open choices 2 to 6.** The design is written as if each
-   recommendation were taken, and the plan builds them so:
-   - **Recommended, all as the design says:** 36 levels in 4 sets; no
-     score shown; "Try again" deals the next of a level's 8 proven deals and
-     "Restart" plays the same deal again; swap 2 neighbors, never slide a
-     row; and the word "brick" for the pile of cushions.
-   - Or name any you want otherwise. Dropping Windy days (27 levels) drops
-     X5 and Y3; one fixed deal a level changes only `Try again`'s deal and
-     the records; showing a score is a line on the Cleared card.
+   stars.
+   - **Yours, the other way: Brick Breaker moves onto the shared dialog.**
+     The recommendation was to leave it, since the shared dialog could show
+     all that only with a mode, which §3.1's bar refuses. So what a tile
+     shows and what a set's heading ends with become templates a game hands
+     in, and the shared dialog draws its own where none is handed in. That
+     is LB (§3.3), a package more in Part 1, which touches a fourth live
+     game. One dialog then serves Brick Breaker, the two wall games and
+     Fuzz Flux.
+3. **The design's open choices 2 to 6.**
+   - **Yours, as recommended: all as the design says.** 36 levels in 4
+     sets; no score shown; "Try again" deals the next of a level's 8 proven
+     deals and "Restart" plays the same deal again; swap 2 neighbors, never
+     slide a row; and the word "brick" for the pile of cushions.
 4. **The feel gate.** The design's first risk is that nobody has played it,
    and its numbers were set from storyboards. You follow builds from a
    phone, which can't reach the devbox.
-   - **Recommended: play it on the live site, behind "In development",**
-     once Warm-up plays end to end with sound (Q3). At your word, the work
-     so far is merged into `main` and deployed with the game's tile marked
-     "In development". Under `?debug` a tuning panel holds every number of
-     "The feel, in numbers" with a slider, and a Copy numbers button that
-     puts what you settled on into the clipboard to paste back here. The
-     elements and the other sets are built while you play.
-   - Or: wait for the end and play the whole game once, with the risk that
-     the numbers move after every level is built on them.
-5. **Part 1 on its own.** The lifts change three live games (Brick Fuzz Pop,
-   Rickashay, Asteroid Breaker's sound script and its pilot's faces, and
-   Brick Breaker only if your answer to question 2 is the other way) and
-   touch nothing of Fuzz Flux.
-   - **Recommended: merge Part 1 into `main` alone once Q1 passes, at your
-     word,** as the last two builds did. It ships the refactor while it is
-     fresh and keeps later rebases of the game's branch small.
+   - **Yours, as recommended: play it on the live site, behind "In
+     development",** once Warm-up plays end to end with sound (Q3). At your
+     word, the work so far is merged into `main` and deployed with the
+     game's tile marked "In development". Under `?debug` a tuning panel
+     holds every number of "The feel, in numbers" with a slider, and a Copy
+     numbers button that puts what you settled on into the clipboard to
+     paste back here. The elements and the other sets are built while you
+     play.
+5. **Part 1 on its own.** The lifts change four live games (Brick Fuzz Pop,
+   Rickashay, Brick Breaker's Levels dialog, and Asteroid Breaker's sound
+   script and its pilot's faces) and touch nothing of Fuzz Flux.
+   - **Yours, as recommended: Part 1 merges into `main` alone once Q1
+     passes, at your word,** as the last two builds did. It ships the
+     refactor while it is fresh and keeps later rebases of the game's
+     branch small.
 
-`design.md` takes your answers and the calls below where they belong, so
-the design and the build agree. That is the first commit on
-`fuzz-flux-lift`, made by the orchestrator before any package starts, so it
-reaches `main` with Part 1.
+`design.md` took your answers to its own open choices on 2026-11-26, in the
+commit that wrote them here. The calls below go into it, where they bear on
+the design, in the first commit on `fuzz-flux-lift`, made by the
+orchestrator before any package starts, so it reaches `main` with Part 1.
 
 ### 2.2 The plan's own calls
 
@@ -484,8 +481,10 @@ kind** (after nothing; 7 commits, each in one library):
    and Rickashay import it from there.
 2. _`@fz/game-ui/levels`,_ `LevelsComponent` (`fz-levels`) with
    `levelMarksOf()`, from `@fz/brick-wall/app/levels`. The line under its
-   heading, which says what choosing a level does, becomes the game's own,
-   projected, and each wall game passes today's words, so its dialog reads
+   heading, which says what choosing a level does, becomes the game's own:
+   `intro`, its paragraphs as text, which the dialog sets in `<p>`s of its
+   own, since paragraphs projected in would take the game's styles and not
+   the dialog's. Each wall game passes today's words, so its dialog reads
    as before.
 3. _`StoredProgress` and the `StoredAt` it takes,_ from
    `@fz/brick-wall/app/stored` into `@fz/game-ui/levels`. `StoredStats` and
@@ -509,15 +508,83 @@ The testing skills that name a moved helper by its path change in the same
 commit: `brick-wall-testing`, `brick-fuzz-pop-testing` and
 `rickashay-testing`. Each step keeps the games' pages as they were:
 `check:layout` passes and a retake of their screenshots, without
-`--force`, moves no image. If your answer to question 2 is the other way,
-a third package, LB, moves Brick Breaker onto the shared dialog after LL.
+`--force`, moves no image.
 
-**Q1. Part 1's gate** (the orchestrator; after LA and LL): every
-certificate of Brick Fuzz Pop and Rickashay replays; the three games'
-screenshots retaken without `--force` move no image; their main and scene
-chunks are within 1% of `main`'s; Asteroid Breaker's atlas differs only by
-the `cross` eyes, and its sprite plays in its sound lab. Then
-`merge-to-main` at your word (question 5).
+**LB. Brick Breaker's Levels dialog, onto the shared one** (after LL; 3
+commits, in `@fz/game-ui` and Brick Breaker; your answer to question 2):
+
+Brick Breaker's dialog (`games/brick-breaker/src/app/levels/`) is the one
+`@fz/brick-wall`'s was lifted from. It now differs in what a tile shows,
+in what a set's heading ends with, in its words, and in starting the run
+itself. LB makes the first two a game's to hand in, as templates, which
+§3.1's bar counts as a function handed in, and moves Brick Breaker onto the
+dialog. Every game's dialog looks as it does today.
+
+1. _A tile a game hands in:_ `LevelTileDirective`,
+   `<ng-template fzLevelTile let-level>`, in `@fz/game-ui/levels`, read with
+   `contentChild()` and drawn with `NgTemplateOutlet` inside each tile's
+   button. Its context, typed by `ngTemplateContextGuard`, is the level as
+   the dialog offers it, its id added. The dialog keeps the button: what it
+   hands on through `chosen`, `aria-current` and `aria-disabled`. Handed no
+   template, the dialog draws the tile it draws now: the number, the name,
+   the stars earned and the best. Its spec holds both, through a host of
+   its own.
+2. _A set's note, and the heading as a row:_ `LevelSetNoteDirective`,
+   `<ng-template fzLevelSetNote let-set>`, drawn at the end of each set's
+   heading, with the set as the dialog lists it. The heading becomes a row
+   for every game, as Brick Breaker's `.set-head` is. Its margins
+   (`--fz-space-5` above, `--fz-space-3` below, the heading's own 0) are
+   what the shared heading's are today, `field-label`'s included, so the
+   wall games' dialogs don't move.
+3. _Brick Breaker onto it:_ its `app-levels` keeps its services and hands
+   `<fz-levels>` its levels; their marks (open, the stars held, the best at
+   the speed in play); the level in play; its tile and its set's note; and
+   `figure` as "Best" and `mostStars` as 3, which are true of it, though
+   its own tile shows its best. Its two paragraphs go in as `intro` (LL2),
+   a `computed()` whose second counts the stars held from its
+   `StarsService`, since the `sets()` that counts them now goes. The dialog
+   spaces a second paragraph as Brick Breaker's does (`p + p`), which the
+   wall games' one paragraph never meets. Its tile reads the context's
+   `starsWords`, which are its own words ("2 of 3 stars"), and by the
+   level's id the rest it shows now: the number, with a tick once cleared;
+   the name; three stars by their ids, filled where held and outlined where
+   not; and its best at the speed in play, or "Cleared". Its set's note is
+   the stars the set's levels hold, of all they can ("5 of 30"). It starts
+   a run on `chosen` and closes once it has, as the wall games' boards do.
+
+   Its styles go with what it draws. Angular's emulated encapsulation
+   scopes every part of a selector to the component that declares it, so a
+   rule of Brick Breaker's under `.card`, `.level` or `.set-head`, which
+   are now the dialog's, matches nothing, and the dialog's rules for a
+   tile's `.number`, `.name` and `.status` don't reach Brick Breaker's
+   spans. So its tile's and its note's rules are written on its own
+   elements alone, and carry what the dialog's gave them: the type of the
+   number, the name and the status, and the count's margin, color and
+   size. What the shared dialog now draws leaves its template and SCSS. Its
+   progress, stars and records don't change, and
+   `levels.component.spec.ts` keeps every case it has, met as a player
+   meets the dialog.
+
+**LB's check,** in its last commit: the Levels dialog of Brick Breaker,
+Brick Fuzz Pop and Rickashay, taken in Chrome at `fuzz-flux-lift`'s merge
+base with `main` and at LB's tip, so that `main` moving under the build is
+never counted as LB's: at 390 and 1280 CSS px wide, in a light and a dark
+palette, with levels locked, open, cleared and starred from stored
+progress. Every picture is the same pixel for pixel. The script, on
+`@fz/dev/chrome`, is kept on the log's branch as
+`checks/levels-dialogs.mjs` (§7.1) and in no commit of the code, so Q1 can
+run it again. The commit's body gives the count, and the pictures aren't
+committed.
+
+**Q1. Part 1's gate** (the orchestrator; after LA, LL and LB): every
+certificate of Brick Fuzz Pop and Rickashay replays; the four games'
+screenshots retaken without `--force` move no image; LB's script, copied
+into Part 1's worktree to run, since Node finds its imports from where it
+lies, and deleted after, finds the three Levels dialogs at Part 1's tip the
+same as at its merge base; the four
+games' main and scene chunks are within 1% of `main`'s; Asteroid Breaker's
+atlas differs only by the `cross` eyes, and its sprite plays in its sound
+lab. Then `merge-to-main` at your word (question 5).
 
 ### 3.4 Not lifted, and why
 
@@ -724,7 +791,7 @@ commit counts are a guide: a package keeps to three to nine.
 
 ### 5.1 Part 1
 
-§3.3 has them: LA, LL and Q1.
+§3.3 has them: LA, LL, LB and Q1.
 
 ### 5.2 Part 2
 
@@ -1036,7 +1103,8 @@ in numbers" and "Effects", at `FeelTuning`'s numbers.
    level begun, a move ("Bunch of 4, blue. Dasher made. 6 blue left."), a
    refused swap, a goal met, 5 moves left, cleared, out of moves.
 
-**U2. Cards, levels, records, settings and help** (after U1; 7 commits):
+**U2. Cards, levels, records, settings and help** (after U1, LB; 7
+commits):
 
 1. `cards/`: Cleared (stars lit one at a time, "4 moves to spare.", Next
    level, Play again) and Out of moves (what each open goal still needs;
@@ -1173,7 +1241,7 @@ the player's words read again by the `player-text` skill.
 
 ### 6.1 Before it starts
 
-- **Your answers** to §2.1.
+- **Your word to start.** Your answers to §2.1 came on 2026-11-26.
 - **The week.** On 2026-11-26 it read 31% used, resetting Wed Dec 02,
   02:00 UTC. At Rickashay's rate the build is about half a week, so it can
   start at your word. Following your word of 2026-11-23, it keeps
@@ -1199,7 +1267,8 @@ the player's words read again by the `player-text` skill.
   - `fuzz-flux-lift`, cut from `origin/main`, where Part 1 lands;
   - `fuzz-flux`, cut from `fuzz-flux-lift` when K1 starts, where Part 2
     lands, and moved onto each later lift as §6.7 says;
-  - `fuzz-flux-log`, which holds the work log and nothing else (§7), an
+  - `fuzz-flux-log`, which holds the work log, the briefs and the check Q1
+    runs again, and nothing else (§7), an
     orphan branch made from the main checkout with
     `git worktree add --orphan -b fuzz-flux-log .claude/worktrees/fuzz-flux-log`.
 
@@ -1211,16 +1280,19 @@ first ready package in this order: what most packages wait on, then the
 longest chains, then the rest.
 
 1. **First:** LA, LL and K1.
-2. **Then, in this order:** K2, R1, V2, R0, P1, A1, V1, N1, R2, A2, V3, R3,
-   S1, P2, U1, P3, U2, U3, T1, X1, X2, X3, X4, X5, Y1, Y2, Y3, Z1, F1, D1.
-3. **The orchestrator's own steps** come as their waits end: Q1 after LA
-   and LL, Q2 after P3, Q3 after T1 and Q2, and Z2 after F1 and D1.
+2. **Then, in this order:** K2, R1, V2, LB, R0, P1, A1, V1, N1, R2, A2, V3,
+   R3, S1, P2, U1, P3, U2, U3, T1, X1, X2, X3, X4, X5, Y1, Y2, Y3, Z1, F1,
+   D1. LB comes before the rest of the streams for Q1, so Part 1 can merge
+   early.
+3. **The orchestrator's own steps** come as their waits end: Q1 after LA,
+   LL and LB, Q2 after P3, Q3 after T1 and Q2, and Z2 after F1 and D1.
 
 - **One slot is idle at the start:** everything but the lifts and K1 waits
   on K2.
 - **Part 2 starts beside Part 1.** K1 needs no lift; K2 and what follows it
-  need LA, and U1 needs LL. A Part 2 package starts only once every lift it
-  names has landed, so it never builds on an API still moving.
+  need LA, U1 needs LL, and U2 needs LB. A Part 2 package starts only once
+  every lift it names has landed, so it never builds on an API still
+  moving.
 - **After K2, four streams run side by side:** the rules (R1 to R3, with
   R0 and P1 beside them), the look (A1, A2), the motion (V1 to V3) and the
   sound (N1). R1 and V2 go first, since the two longest chains run through
@@ -1237,8 +1309,8 @@ Each package that opens a page serves its game on its own port
 before its report.
 
 - **Part 1:** LA 9201 (Asteroid Breaker's sound lab, then the wall games),
-  LL 9202 (the wall games), Q1 9203, and LB 9204 if question 2 calls for
-  it.
+  LL 9202 (the wall games), Q1 9203, and LB 9204 (Brick Breaker, then the
+  wall games).
 - **Part 2:** K1 9209, A2 9210, N1 9211 (the sound lab), S1 9212, U1 9213,
   U2 9214, U3 9215, T1 9216, X1 to X5 9221 to 9225, Z1 9226, F1 9227, and
   Y1 to Y3 9228 to 9230.
@@ -1264,6 +1336,9 @@ renames, moves and restyles nothing it doesn't own.
   skills that name a helper it moves (`brick-wall-testing`,
   `brick-fuzz-pop-testing`, `rickashay-testing`), and the imports of the
   games that adopt.
+- **LB**, once LL has landed, owns `lib/game-ui/src/levels/` and
+  `games/brick-breaker/src/app/levels/`. It adds to the `fuzzley-ui`
+  skill's row for `@fz/game-ui/levels`.
 - **K1** owns `games/fuzz-flux/`'s configs, `index.html` and `main.ts`, and
   adds to `site/games.json`, the site's catalog, `README.md` and
   `docs/operations.md`.
@@ -1343,11 +1418,11 @@ be started again from it.
 
 The skills, by package:
 
-- `fuzzley-ui` ("Changing a library") for LA and LL; `phaser-core` for LA,
-  S1 and U1; `brick-wall-testing` for LA and LL where they edit the
+- `fuzzley-ui` ("Changing a library") for LA, LL and LB; `phaser-core` for
+  LA, S1 and U1; `brick-wall-testing` for LA and LL where they edit the
   library's specs, by its path, and the wall games' testing skills where
-  they edit those games' specs.
-- `angular-developer` and `angular-testing` for LL and U1 to U3.
+  they edit those games' specs; `brick-breaker-testing` for LB.
+- `angular-developer` and `angular-testing` for LL, LB and U1 to U3.
 - `phaser-canvas-performance` for A2, S1 and F1.
 - `web-game-accessibility` for V1, U1, U3 and F1.
 - `player-text` for U1, U2, U3, each X and D1.
@@ -1368,7 +1443,7 @@ which the harness loads:
   is announced state" and "An icon-only button has one name", for U1 to
   U3; "What a browser stores outlives the code", for LL, U1 and U2;
   "Before changing a library, read the `fuzzley-ui` skill's 'Changing a
-  library'", for LA and LL.
+  library'", for LA, LL and LB.
 - From `.agents/AGENTS.md`: "Writing for Players" (whole), for U1 to U3,
   every X and D1; "A union of ids is derived from its list" and "An
   optional property is left out, not set to `undefined`", for K2; "Agent
@@ -1422,7 +1497,8 @@ survives the session and can be read from any worktree.
 ### 7.1 Where it is, and how it is committed
 
 - **On `fuzz-flux-log`,** an orphan branch in its own worktree,
-  `.claude/worktrees/fuzz-flux-log`: `work-log.md` and `briefs/<id>.md`, and
+  `.claude/worktrees/fuzz-flux-log`: `work-log.md`, `briefs/<id>.md` and
+  `checks/`, the scripts a later step runs again (LB's, for Q1), and
   nothing else. It shares no history with the code, so it is never rebased,
   never merged, and writing it never touches a worktree where a check runs.
 - **Each entry is its own commit,** `docs(work-log): <what happened>`, not
@@ -1448,7 +1524,7 @@ On its own branch; never merged (implementation-plan.md §7).
 ## Now
 
 - Tips: fuzz-flux-lift <sha>, fuzz-flux <sha> (on lift tip <sha>); origin/main <sha> (fetched <time> UTC)
-- Landed: LA, LL, K1, K2 (4 of 33 packages; 19 of about 155 commits)
+- Landed: LA, LL, K1, K2 (4 of 34 packages; 19 of about 159 commits)
 - In flight:
 
   | Package | Worktree                | Branch | Cut from          | Agent      | Since       | Commits | Reviews out |
@@ -1603,7 +1679,7 @@ its own.
 | What                                                | Budget                                                                                                                                                                                                                                                   | Held by                                        |
 | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | Coverage floors                                     | rules, view and what is held as rules 100/95/100/100; scene 98/92/100/99; shell 98/97/97/98                                                                                                                                                              | `vitest.config.ts`                             |
-| The games Part 1 touches                            | every certificate replays; no screenshot moves; main and scene chunks within 1% of `main`'s                                                                                                                                                              | each L's checks, Q1                            |
+| The games Part 1 touches                            | every certificate replays; no screenshot moves; the Levels dialogs the same pixel for pixel; main and scene chunks within 1% of `main`'s                                                                                                                 | each L's checks, Q1                            |
 | The port against the sketch                         | every golden game the same, wave by wave; Warm-up's report and certificates the same figures and lines                                                                                                                                                   | `golden.spec.ts`, Q2; each Y for its set       |
 | `play()` over every level's deals with random moves | median ≤ 100 µs, 99th percentile ≤ 1 ms (the sketch: 47 µs and 0.41 ms)                                                                                                                                                                                  | R3's benchmark, printed, recorded at Q2        |
 | `timelineOf()` for the busiest move                 | ≤ 4 ms (two frizzballs on an 8 by 9 board)                                                                                                                                                                                                               | V2's benchmark                                 |
@@ -1626,23 +1702,23 @@ its own.
 
 ## 10. Risks to the build, and what answers them
 
-| Risk                                                                           | What answers it                                                                                                                                                                                          |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The port plays differently from the sketch, and the proven deals stop clearing | The sketch's hash kept (C2); the golden games wave by wave (R0, R3); every certificate replayed (P3); Warm-up's report the same figures (Q2)                                                             |
-| The golden digest hides a difference, or invents one                           | Two specs of the digest (R0): one that catches a planted change, one that holds it to the sketch's own text                                                                                              |
-| The sketch has a fault the golden games copy into the game                     | C1: a fault is fixed in the sketch and the game together, its golden games written again; the property specs (R1, R3) check what the sketch checked, independently                                       |
-| The feel, which is the game, feels wrong                                       | Every number is `FeelTuning`; the timeline's specs hold the design's measures; the tuning panel and Copy numbers at the gate (Q3); the gate comes before the elements and the sets are built on the view |
-| Baked frames make fur look stiff (C9)                                          | The lean frame, rotation and squash; the gate judges; drawing fur live is the fallback, held to §9's frame budget                                                                                        |
-| Rebuilt sounds lose what the design's had                                      | N1 holds each to the design's measures; the lab plays each beside the design's take; the gate listens                                                                                                    |
-| The grid over the canvas misreads a tap, or a screen reader can't play         | The grid lets pointer events through, the canvas reads every tap; U3's look in Chrome; F1's input pass; a real screen reader and phone are on Z2's list for you                                          |
-| A lift changes how a live game looks or plays                                  | Each adopted in the commit that lifts it; certificates replayed, screenshots retaken without `--force`, chunks held (Q1); Part 1 merged alone                                                            |
-| Two packages edit one file                                                     | §6.4; the lists are a line each; written files written again, never merged (§6.7)                                                                                                                        |
-| The wind does little on a full board                                           | Y3's column in the report, how often a turn moves a fuzzball (C17); you decide level 30 as Y3 lands, and a redraw runs before F1                                                                         |
-| CI's time grows                                                                | `sim` without coverage; the random golden games a knob; Q2 measures before the sets are built on it                                                                                                      |
-| The devbox runs out of memory                                                  | One queued check at a time; the report, certification and the mutants queued too; workers run single spec files as they go                                                                               |
-| The week runs short, or the build stops for days                               | The work log on its own branch, and §7.3 to start again from any point                                                                                                                                   |
-| `main` moves under the build                                                   | Part 1 merged early; the skill's rebase onto `origin/main` every few landings, reviewed by `range-diff`                                                                                                  |
-| What only hands, eyes, ears and devices can judge                              | Q3, and Z2's list (§11)                                                                                                                                                                                  |
+| Risk                                                                           | What answers it                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The port plays differently from the sketch, and the proven deals stop clearing | The sketch's hash kept (C2); the golden games wave by wave (R0, R3); every certificate replayed (P3); Warm-up's report the same figures (Q2)                                                                 |
+| The golden digest hides a difference, or invents one                           | Two specs of the digest (R0): one that catches a planted change, one that holds it to the sketch's own text                                                                                                  |
+| The sketch has a fault the golden games copy into the game                     | C1: a fault is fixed in the sketch and the game together, its golden games written again; the property specs (R1, R3) check what the sketch checked, independently                                           |
+| The feel, which is the game, feels wrong                                       | Every number is `FeelTuning`; the timeline's specs hold the design's measures; the tuning panel and Copy numbers at the gate (Q3); the gate comes before the elements and the sets are built on the view     |
+| Baked frames make fur look stiff (C9)                                          | The lean frame, rotation and squash; the gate judges; drawing fur live is the fallback, held to §9's frame budget                                                                                            |
+| Rebuilt sounds lose what the design's had                                      | N1 holds each to the design's measures; the lab plays each beside the design's take; the gate listens                                                                                                        |
+| The grid over the canvas misreads a tap, or a screen reader can't play         | The grid lets pointer events through, the canvas reads every tap; U3's look in Chrome; F1's input pass; a real screen reader and phone are on Z2's list for you                                              |
+| A lift changes how a live game looks or plays                                  | Each adopted in the commit that lifts it; certificates replayed, screenshots retaken without `--force`, the Levels dialogs compared with `main`'s pixel for pixel, chunks held (LB, Q1); Part 1 merged alone |
+| Two packages edit one file                                                     | §6.4; the lists are a line each; written files written again, never merged (§6.7)                                                                                                                            |
+| The wind does little on a full board                                           | Y3's column in the report, how often a turn moves a fuzzball (C17); you decide level 30 as Y3 lands, and a redraw runs before F1                                                                             |
+| CI's time grows                                                                | `sim` without coverage; the random golden games a knob; Q2 measures before the sets are built on it                                                                                                          |
+| The devbox runs out of memory                                                  | One queued check at a time; the report, certification and the mutants queued too; workers run single spec files as they go                                                                                   |
+| The week runs short, or the build stops for days                               | The work log on its own branch, and §7.3 to start again from any point                                                                                                                                       |
+| `main` moves under the build                                                   | Part 1 merged early; the skill's rebase onto `origin/main` every few landings, reviewed by `range-diff`                                                                                                      |
+| What only hands, eyes, ears and devices can judge                              | Q3, and Z2's list (§11)                                                                                                                                                                                      |
 
 ---
 
