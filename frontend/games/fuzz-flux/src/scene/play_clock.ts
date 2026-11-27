@@ -30,7 +30,8 @@ const LANDED_MS = Number.MAX_SAFE_INTEGER;
 /**
  * Keeps the scene's clock, and where the play the board draws stands on
  * it: a play starts as the frame that first meets it does, and stands
- * as far into its timeline as the clock has run since.
+ * as far into its timeline as the clock has run since, which a tap may
+ * hurry through a level's end.
  */
 export class PlayClock {
   #nowMs = 0;
@@ -39,10 +40,12 @@ export class PlayClock {
   #sinceMs = 0;
   /** The play the clock last moved on with, or null before the first. */
   #play: BoardPlay | null = null;
-  /** When the play started, on the scene's clock. */
-  #startMs = 0;
+  /** How many times as fast as the frames take the clock runs: 1, or the play's hurried pace while a tap hurries it. */
+  #pace = 1;
+  /** The moment of its timeline up to which a tap hurries the play: the last of its level's end's beats. */
+  #hurriedToMs = 0;
 
-  /** The scene's time, in milliseconds since it started. */
+  /** The scene's time, in milliseconds since it started, which a hurry runs as fast as the play. */
   get nowMs(): number {
     return this.#nowMs;
   }
@@ -76,16 +79,33 @@ export class PlayClock {
     return this.#nowMs - (this.#playedMs - atMs);
   }
 
-  /** Moves the clock on by the time a frame took, with the play the board draws, from its start where it is new. */
+  /**
+   * Hurries the clock, as a tap does, at the play's `hurriedPace` up to the
+   * last of its level's end's beats, where its timeline lets a tap hurry it
+   * from the moment it stands at; else hurries nothing.
+   */
+  hurry(): void {
+    const play = this.#play;
+    const end = play?.timeline.end ?? null;
+    if (play === null || end === null) return;
+    const { hurriedFromMs } = end;
+    if (hurriedFromMs === null || this.#playedMs < hurriedFromMs) return;
+    this.#pace = play.feel.hurriedPace;
+    this.#hurriedToMs = Math.max(end.cardMs, ...end.starsMs);
+  }
+
+  /** Moves the clock on by the time a frame took, as fast as it is hurried, with the play the board draws, from its start where it is new. */
   advance(play: BoardPlay, deltaMs: number): void {
     if (play !== this.#play) {
       this.#play = play;
-      this.#startMs = this.#nowMs;
       this.#playedMs = 0;
+      this.#pace = 1;
     }
+    if (this.#playedMs >= this.#hurriedToMs) this.#pace = 1;
+    const ms = deltaMs * this.#pace;
     this.#thenMs = this.#nowMs;
-    this.#nowMs += deltaMs;
+    this.#nowMs += ms;
     this.#sinceMs = play.landed ? LANDED_MS : this.#playedMs;
-    this.#playedMs = play.landed ? LANDED_MS : this.#nowMs - this.#startMs;
+    this.#playedMs = play.landed ? LANDED_MS : this.#playedMs + ms;
   }
 }

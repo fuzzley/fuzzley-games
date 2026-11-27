@@ -1,9 +1,23 @@
 import { MOVE_FIXTURES } from "../testing/move_fixtures";
-import { playOf } from "../testing/scene_shell";
+import { drawnPlay, playOf } from "../testing/scene_shell";
+import { FEEL } from "../view/timeline/feel";
 import { PlayClock } from "./play_clock";
 
 const BUNCH = playOf(MOVE_FIXTURES.bunch);
 const REFUSED = playOf(MOVE_FIXTURES.refused);
+
+/** A level's end a tap may hurry from 100 ms in, its card at 500 ms and its star at 600 ms. */
+const ENDING = drawnPlay({
+  restMs: 400,
+  end: { cardMs: 500, starsMs: [600], hurriedFromMs: 100 },
+});
+
+/** Returns a clock that has played the level's end a time in, by frames of 16 ms, and been hurried then. */
+function hurriedAt(ms: number): PlayClock {
+  const clock = advanced(Array<number>(ms / 16).fill(16), ENDING);
+  clock.hurry();
+  return clock;
+}
 
 /** Returns a clock moved on by each frame's time with a play, from the scene's start unless it is handed one already running. */
 function advanced(
@@ -98,5 +112,43 @@ describe("PlayClock", () => {
     const clock = advanced([16, 16], REFUSED, runningClock());
 
     expect(clock.nowOf(20)).toBe(52);
+  });
+
+  it("runs the play and the scene's time as many times as fast as the feel hurries, once a tap hurries the play past the moment its end lets it", () => {
+    const clock = advanced([16], ENDING, hurriedAt(128));
+
+    expect([clock.playedMs, clock.nowMs]).toEqual([
+      128 + 16 * FEEL.hurriedPace,
+      128 + 16 * FEEL.hurriedPace,
+    ]);
+  });
+
+  it("hurries nothing before the moment its end lets a tap hurry it from", () => {
+    const clock = advanced([16], ENDING, hurriedAt(64));
+
+    expect(clock.playedMs).toBe(80);
+  });
+
+  it("hurries nothing of a play whose timeline lets no tap hurry it", () => {
+    const clock = advanced([16, 16], BUNCH);
+    clock.hurry();
+
+    advanced([16], BUNCH, clock);
+
+    expect(clock.playedMs).toBe(48);
+  });
+
+  it("runs at the frames' pace again once the play is past the last of its end's beats", () => {
+    const clock = advanced(Array<number>(8).fill(16), ENDING, hurriedAt(128));
+
+    advanced([16], ENDING, clock);
+
+    expect(clock.playedMs).toBe(128 + 8 * 16 * FEEL.hurriedPace + 16);
+  });
+
+  it("hurries no play after the one it hurried", () => {
+    const clock = advanced([16], REFUSED, hurriedAt(128));
+
+    expect(clock.playedMs).toBe(16);
   });
 });

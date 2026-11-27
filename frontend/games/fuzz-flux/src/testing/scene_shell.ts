@@ -13,10 +13,15 @@ import {
   type FuzzFluxSceneOptions,
   makeFuzzFluxScene,
 } from "../scene/fuzz_flux_scene";
+import type { Pictures } from "../scene/pictures";
 import type { BoardPlay } from "../scene/play_clock";
 import type { Piece } from "../rules/catalog/pieces";
 import type { BoardMetrics } from "../view/board/metrics";
+import type { BoardShape } from "../view/board/spaces";
 import { type BoardPalette, boardPalette } from "../view/colors/palette";
+import type { BoardCommand } from "../view/input/commands";
+import { Ring } from "../view/input/keys";
+import { Picking } from "../view/input/picking";
 import type { GridShown } from "../view/run_state";
 import {
   type PlaySettings,
@@ -32,6 +37,7 @@ import type {
   Timeline,
 } from "../view/timeline/timeline";
 import { ART_PALETTE } from "./art_frames";
+import { GameOnBoard } from "./input_board";
 import type { MoveFixture } from "./move_fixtures";
 import { moveStartOf } from "./shown_board";
 
@@ -128,6 +134,15 @@ export function stillTrackOf(
   };
 }
 
+/** Returns a grid's squares as the input reads them, a gap no square of it. */
+function shapeOf(grid: GridShown): BoardShape {
+  return {
+    width: grid.width,
+    height: grid.height,
+    open: grid.squares.map((square) => square !== null),
+  };
+}
+
 /** Describes a frame's clock, as the scene handed it to the shell. */
 interface Tick {
   readonly nowMs: number;
@@ -150,12 +165,25 @@ export class FakeShell implements FuzzFluxSceneOptions {
   wantsSound = true;
   /** The shell's own cues. */
   shellCues: readonly SoundCue[] = [];
+  /** The game the picking asks of, which answers for the board `input_board.ts` draws, whatever board the scene draws. */
+  readonly game = new GameOnBoard();
+  /** The picking the board's presses play on. */
+  readonly boardPicking: Picking;
+  /** The ring the keys move over the board. */
+  readonly keysRing: Ring;
+  /** Every command the scene handed over, in order. */
+  readonly commands: BoardCommand[] = [];
+  /** The pictures the scene handed over, each as it baked. */
+  readonly pictured: (() => Pictures)[] = [];
   readonly ticks: Tick[] = [];
   readonly layouts: BoardMetrics[] = [];
 
   /** Starts with a move played by hand's board standing still. */
   constructor(fixture: MoveFixture) {
-    this.shown = stillPlayOf(moveStartOf(fixture).grid);
+    const { grid } = moveStartOf(fixture);
+    this.shown = stillPlayOf(grid);
+    this.boardPicking = new Picking(shapeOf(grid), this.game);
+    this.keysRing = new Ring(shapeOf(grid), this.boardPicking);
   }
 
   readonly tick = (nowMs: number, playedMs: number): void => {
@@ -170,6 +198,14 @@ export class FakeShell implements FuzzFluxSceneOptions {
   readonly hand = (): Timeline | null => this.handShown;
   readonly sound = (): boolean => this.wantsSound;
   readonly cues = (): readonly SoundCue[] => this.shellCues;
+  readonly picking = (): Picking => this.boardPicking;
+  readonly ring = (): Ring => this.keysRing;
+  readonly command = (command: BoardCommand): void => {
+    this.commands.push(command);
+  };
+  readonly onPictures = (pictures: () => Pictures): void => {
+    this.pictured.push(pictures);
+  };
 }
 
 /** Describes the scene run for a shell. */

@@ -1,13 +1,15 @@
 // The one atlas every image on the board shows a frame of: the art's
-// frames, baked at whole device pixels for the board's square, as
-// `bakedScale()` caps it, in the board's palette, and again once either
-// changes. `bakeAtlas()` draws it again after a lost context.
+// frames, and the pictures the shell shows beside the board, baked at
+// whole device pixels for the board's square, as `bakedScale()` caps it,
+// in the board's palette, and again once either changes. `bakeAtlas()`
+// draws it again after a lost context.
 
 import { atlasFrameOf, bakeAtlas, retakeFrames } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { Scene } from "phaser";
-import { atlasFrames, bakedScale } from "../view/art/frames";
+import { bakedScale } from "../view/art/frames";
 import type { BoardPalette } from "../view/colors/palette";
+import { atlasWithPictures } from "./pictures";
 
 /** The atlas's texture key, which every image on the board shows a frame of. */
 export const ATLAS = "fuzz-flux-atlas";
@@ -63,12 +65,12 @@ export class BoardAtlas {
     return true;
   }
 
-  /** Bakes the art's frames at the scale and in the palette last asked for. */
+  /** Bakes the art's frames, and the pictures drawn from them, at the scale and in the palette last asked for. */
   private bake(): void {
     bakeAtlas(
       this.scene,
       ATLAS,
-      atlasFrames(this.bakedIn, this.bakedAt).map(atlasFrameOf),
+      atlasWithPictures(this.bakedIn, this.bakedAt).map(atlasFrameOf),
     );
   }
 }

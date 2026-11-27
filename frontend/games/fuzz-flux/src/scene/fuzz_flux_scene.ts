@@ -4,6 +4,7 @@ import { type CssRect, type Viewport, roomInside } from "@fz/phaser/layout";
 import {
   canvasChanged,
   onFirstFrame,
+  picturesWhenAsked,
   softDisc,
   uniqueSceneKey,
   viewportOf,
@@ -12,10 +13,14 @@ import type { ArtScale } from "@fz/phaser/shapes";
 import { type GameObjects, Scene } from "phaser";
 import { type BoardMetrics, boardMetrics } from "../view/board/metrics";
 import type { BoardPalette } from "../view/colors/palette";
+import type { BoardCommand } from "../view/input/commands";
+import type { Ring } from "../view/input/keys";
+import type { Picking } from "../view/input/picking";
 import type { GridShown } from "../view/run_state";
 import { type Frame, frameFor, sampleAt } from "../view/timeline/sample";
 import type { SoundCue, Timeline } from "../view/timeline/timeline";
-import { BoardAtlas } from "./atlas";
+import { ATLAS, BoardAtlas } from "./atlas";
+import { BoardInput } from "./board_input";
 import { BoardSounds } from "./board_sounds";
 import { DISC } from "./disc";
 import { LAYERS, type Layer } from "./layers";
@@ -29,6 +34,7 @@ import { MarksPainter } from "./painters/marks_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PiecesPainter } from "./painters/pieces_painter";
 import { PuffsPainter } from "./painters/puffs_painter";
+import { PICTURE_FRAMES, type Pictures } from "./pictures";
 import { type BoardPlay, PlayClock } from "./play_clock";
 
 /** What the scene asks of the shell, and tells it. */
@@ -48,8 +54,20 @@ export interface FuzzFluxSceneOptions {
   readonly play: () => BoardPlay;
   /** Returns the colors the board is drawn in; a new value bakes the atlas again. */
   readonly palette: () => BoardPalette;
-  /** Takes where the board now lies on the canvas, and the panels beside it. */
+  /** Takes where the board now lies on the canvas, its rect in CSS pixels where the grid over it and its focus ring go, and the panels beside it. */
   readonly onLayout: (metrics: BoardMetrics) => void;
+  /** Returns the picking the board's presses play on, the fuzzball held and the move kept, which the shell makes for a level and answers. */
+  readonly picking: () => Picking;
+  /** Returns the ring the keys move over the board, playing on the picking. */
+  readonly ring: () => Ring;
+  /** Takes each command a press or a key on the board gives, in turn. */
+  readonly command: (command: BoardCommand) => void;
+  /**
+   * Takes a picture of each piece the bar and How to play show as the atlas
+   * bakes, again as it bakes afresh: a function that draws them only once a
+   * page shows them.
+   */
+  readonly onPictures: (pictures: () => Pictures) => void;
   /**
    * Returns where each goal's picture lies on the bar, in CSS pixels from
    * the canvas's top left corner, in the level's order, which a fuzzball's
@@ -84,7 +102,10 @@ export interface FuzzFluxSceneOptions {
  * effects, the waves' marks, what flies loose and the copies flying to the
  * goals, the board dimmed and shaken as the timeline has it, and its life
  * between moves beside it, the pieces' blinks and breaths and the hint's
- * hand, on a board laid out to the canvas, its art baked for it.
+ * hand, on a board laid out to the canvas, its art baked for it, the
+ * shell handed pictures of the pieces from it; and reads the player's
+ * presses and keys into commands for the shell, a tap hurrying the clock
+ * through a level's end.
  */
 export class FuzzFluxScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -144,7 +165,8 @@ export class FuzzFluxScene extends Scene {
   /**
    * Lays the board out for the play the shell hands it first, bakes the
    * atlas for it, makes every painter's images in their layers, back to
-   * front, and says it is ready once it has drawn.
+   * front, the sound player and the input, hands the shell the board's
+   * place and pictures, and says it is ready once it has drawn.
    */
   create(): void {
     const { options } = this;
@@ -184,7 +206,19 @@ export class FuzzFluxScene extends Scene {
       hand: options.hand(),
     };
     this.sounds = new BoardSounds(this);
+    new BoardInput(
+      this,
+      {
+        picking: options.picking,
+        ring: options.ring,
+        command: options.command,
+        metrics: () => this.metrics,
+        feel: () => this.context.play.feel,
+      },
+      this.clock,
+    );
     options.onLayout(this.metrics);
+    this.handPictures();
     onFirstFrame(this, () => {
       this.surroundings.ready();
     });
@@ -194,8 +228,9 @@ export class FuzzFluxScene extends Scene {
    * Moves the clock on by the time the frame took, with the play the shell
    * hands it, lays the board out again where the canvas, the chrome or the
    * board changed, bakes the atlas again where the palette or the square
-   * changed, hands the shell the clock, plays the sounds whose moments come
-   * in the frame, and draws the play as it stands.
+   * changed and hands the shell its pictures, hands the shell the clock,
+   * plays the sounds whose moments come in the frame, and draws the play
+   * as it stands.
    *
    * It makes nothing but on a new play, whose timeline's records it makes
    * once, a new layout or a new palette; the sound player makes a voice
@@ -206,7 +241,9 @@ export class FuzzFluxScene extends Scene {
     const { options, clock } = this;
     const play = options.play();
     this.fit(play.grid);
-    this.atlas.bakeFor(options.palette(), this.square);
+    if (this.atlas.bakeFor(options.palette(), this.square)) {
+      this.handPictures();
+    }
     clock.advance(play, deltaMs);
     options.tick(clock.nowMs, clock.playedMs);
     this.sounds.play(options.sound(), play, options.cues(), clock);
@@ -244,6 +281,11 @@ export class FuzzFluxScene extends Scene {
       this.frame = frameFor(timeline);
     }
     return this.frame;
+  }
+
+  /** Hands the shell the pictures of the pieces, as the atlas last baked them. */
+  private handPictures(): void {
+    this.options.onPictures(picturesWhenAsked(this, ATLAS, PICTURE_FRAMES));
   }
 
   /** Returns a layer for each entry of the list, made back to front. */

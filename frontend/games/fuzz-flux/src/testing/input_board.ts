@@ -1,5 +1,6 @@
-// A small board for the input's specs, as the screen shows it, and a game
-// on it that answers the picking as its picture says:
+// A small board for the input's specs, as the screen shows it, a game on
+// it that answers the picking as its picture says, and the board as a move
+// played by hand, for the specs that run the scene on it:
 //
 //   A B C ·      · a gap
 //   D # E F      # a brick, which can't be swapped
@@ -8,6 +9,7 @@
 import type { Square } from "../rules/board/cells";
 import { type BoardShape, sameSquare } from "../view/board/spaces";
 import type { GameInPlay } from "../view/input/picking";
+import type { MoveFixture } from "./move_fixtures";
 
 export const A: Square = { x: 0, y: 0 };
 export const B: Square = { x: 1, y: 0 };
@@ -42,3 +44,23 @@ export class GameOnBoard implements GameInPlay {
     sameSquare(square, B) ? B_MATES : [];
   readonly movePlays = (): boolean => this.playing;
 }
+
+/**
+ * The board drawn as a move played by hand, a swap on it refused: B, D and
+ * S blue, S a dasher across, and no three of a kind in a line.
+ */
+export const BOARD_FIXTURE: MoveFixture = {
+  picture: {
+    pieces: ["rbg_", "b1av", "bprg"],
+    marks: ["....", "....", "-..."],
+  },
+  options: {},
+  record: {
+    swap: { from: 0, to: 1, refused: true },
+    waves: [],
+    burrSpread: null,
+    gust: null,
+    shuffle: null,
+    outcome: "playing",
+  },
+};
