@@ -1,6 +1,6 @@
 import { levelSetOf } from "../rules/levels/level";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
-import { DESIGN_SETS, designSet, designText } from "./design_files";
+import { DESIGN_SETS, designJson, designSet, designText } from "./design_files";
 import { MOVE_FIXTURES } from "./move_fixtures";
 import {
   CLEARS_ASKED,
@@ -91,6 +91,17 @@ describe("carefulFiguresOf", () => {
 describe("REPORT_API", () => {
   it("plays the game's levels", () => {
     expect(REPORT_API.levels).toBe(LEVELS);
+  });
+
+  it("plays levels that keep the moves, deals and stars the sketch's report set them", () => {
+    const kept = Object.fromEntries(
+      REPORT_API.levels.map(({ data: { id, moves, deals, stars } }) => [
+        id,
+        { moves, deals, stars },
+      ]),
+    );
+
+    expect(designJson("sketch/results.json")).toMatchObject({ levels: kept });
   });
 
   it("asks of a level, by its number, what its place in its set asks", () => {

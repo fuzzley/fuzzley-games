@@ -1,6 +1,17 @@
 import { isRecord } from "@fz/core/json";
+import { levelSetOf } from "../rules/levels/level";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
-import { CERTIFICATES, certificateProblem } from "./certificates";
+import windyDays from "../rules/levels/windy-days.json";
+import {
+  CERTIFICATES,
+  GAME_REPLAY,
+  type Replay,
+  certificateProblem,
+  keptAt,
+  sketchLineOf,
+} from "./certificates";
+import { designJson } from "./design_files";
+import { DESIGN_PARTS, DESIGN_WIND } from "./made_up_rules";
 
 /** Level 1, Three's company, played as the 30th level of a game, so a sentence that named it by its id would show. */
 const THIRTIETH: LevelEntry = { ...LEVELS[0]!, number: 30 };
@@ -11,9 +22,52 @@ const CLEARING = [
   [15, 16],
 ];
 
-/** Returns certificates that keep only a line for level 1's deal 1, as a file keeps it. */
-function keeping(line: unknown): Readonly<Record<string, unknown>> {
-  return { "warm-up": { "1": { "1": line } } };
+/** The design's Windy days. */
+const WINDY_DAYS = levelSetOf(windyDays);
+
+/** Level 28, Crosswind, whose wind blows from the right, so the screen's frame and the board's part. */
+const CROSSWIND: LevelEntry = {
+  number: 28,
+  set: WINDY_DAYS,
+  data: WINDY_DAYS.levels[0]!,
+};
+
+/** The proof's line on Crosswind's deal 2, in the screen's frame, as `yarn certify:deals` would write it. */
+const ACROSS_THE_WIND = [
+  [19, 20],
+  [35, 27],
+  [46, 47],
+  [32, 33],
+];
+
+/** Level 30, Weather vane, whose wind turns the board a quarter every 3 moves. */
+const WEATHER_VANE: LevelEntry = {
+  number: 30,
+  set: WINDY_DAYS,
+  data: WINDY_DAYS.levels[2]!,
+};
+
+/** The proof's line on Weather vane's deal 6, in the screen's frame, played by the specs' made-up elements and wind, which turn the board after its third move. */
+const WITH_THE_VANE = [
+  [30, 31],
+  [46, 47],
+  [8, 15],
+  [25, 18],
+  [19, 12],
+  [29, 22],
+];
+
+/** The design's sketch's certificates, each move in the board's frame. */
+const SKETCH_CERTIFICATES = designJson("sketch/certificates.json");
+
+/** Returns the game's own replay, but of certificates handed in. */
+function replayOf(certificates: Readonly<Record<string, unknown>>): Replay {
+  return { ...GAME_REPLAY, certificates };
+}
+
+/** Returns the game's own replay of certificates that keep only a line for level 1's deal 1, as a file keeps it. */
+function keeping(line: unknown): Replay {
+  return replayOf({ "warm-up": { "1": { "1": line } } });
 }
 
 /** Returns the keys of a record read from JSON, none for anything else. */
@@ -29,10 +83,7 @@ function keptSeeds(
     Object.entries(certificates).map(([set, levels]) => [
       set,
       Object.fromEntries(
-        keysOf(levels).map((level) => [
-          level,
-          keysOf(isRecord(levels) ? levels[level] : null),
-        ]),
+        keysOf(levels).map((level) => [level, keysOf(keptAt(levels, level))]),
       ),
     ]),
   );
@@ -73,17 +124,17 @@ describe("certificateProblem", () => {
   it.each([
     [
       "no set",
-      {},
+      replayOf({}),
       'The certificates keep no set "warm-up", which level 30, Three\'s company, is in: certify it with `yarn certify:deals --set warm-up`, and its file joins `CERTIFICATES`.',
     ],
     [
       "no line for the level",
-      { "warm-up": {} },
+      replayOf({ "warm-up": {} }),
       `${OF_DEAL_1} keeps no line: certify its set again with \`yarn certify:deals --set warm-up\`, and where the proof finds none, the deal or the rules are at fault.`,
     ],
     [
       "no line for the deal",
-      { "warm-up": { "1": {} } },
+      replayOf({ "warm-up": { "1": {} } }),
       `${OF_DEAL_1} keeps no line: certify its set again with \`yarn certify:deals --set warm-up\`, and where the proof finds none, the deal or the rules are at fault.`,
     ],
     [
@@ -134,5 +185,52 @@ describe("certificateProblem", () => {
     expect(certificateProblem(short, 1, keeping(CLEARING))).toBe(
       `${OF_DEAL_1} runs out of moves at its move 1 of 2, 34 to 35${MOVED}`,
     );
+  });
+});
+
+describe("sketchLineOf", () => {
+  it("keeps a line as it is on a board the wind doesn't turn from the screen", () => {
+    expect(sketchLineOf(THIRTIETH, 1, keeping(CLEARING))).toEqual(CLEARING);
+  });
+
+  it("turns each move of a line to the board's frame, on a board the wind blows across, as the sketch's certificate keeps it", () => {
+    const kept = replayOf({ "windy-days": { "28": { "2": ACROSS_THE_WIND } } });
+
+    expect({
+      line: sketchLineOf(CROSSWIND, 2, kept),
+      problem: certificateProblem(CROSSWIND, 2, kept),
+    }).toEqual({ line: keptAt(SKETCH_CERTIFICATES, "28", "2"), problem: null });
+  });
+
+  it("turns each move of a line to the board's frame as the board stands before it, once the wind has turned it, as the sketch's certificate keeps it", () => {
+    const kept: Replay = {
+      certificates: { "windy-days": { "30": { "6": WITH_THE_VANE } } },
+      rules: DESIGN_PARTS,
+      wind: DESIGN_WIND,
+    };
+
+    expect({
+      line: sketchLineOf(WEATHER_VANE, 6, kept),
+      problem: certificateProblem(WEATHER_VANE, 6, kept),
+    }).toEqual({ line: keptAt(SKETCH_CERTIFICATES, "30", "6"), problem: null });
+  });
+
+  it.each([
+    ["no line", undefined],
+    ["something other than a line", [34, 35]],
+  ])("gives none for %s", (_, line) => {
+    expect(sketchLineOf(THIRTIETH, 1, keeping(line))).toBeNull();
+  });
+});
+
+describe("keptAt", () => {
+  it("reads what a value read from JSON keeps at a path of keys, and nothing past what isn't a record", () => {
+    const value = { a: { b: [1] } };
+
+    expect([
+      keptAt(value, "a", "b"),
+      keptAt(value, "a", "b", "0"),
+      keptAt(value, "c", "b"),
+    ]).toEqual([[1], undefined, undefined]);
   });
 });
