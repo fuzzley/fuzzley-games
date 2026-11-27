@@ -1,6 +1,14 @@
-import { LEVELS } from "../rules/levels/levels";
+import { levelSetOf } from "../rules/levels/level";
+import { LEVELS, type LevelEntry } from "../rules/levels/levels";
+import { DESIGN_SETS, designSet, designText } from "./design_files";
 import { MOVE_FIXTURES } from "./move_fixtures";
-import { REPORT_API, type ReportDeal, carefulFiguresOf } from "./report_api";
+import {
+  CLEARS_ASKED,
+  REPORT_API,
+  type ReportDeal,
+  askOf,
+  carefulFiguresOf,
+} from "./report_api";
 
 /** Level 1's first deal as the sketch's report plays its players' games on it, dealt moves to spare. */
 const OPEN_DEAL: ReportDeal = { level: 1, moves: 99, seed: 1 };
@@ -12,6 +20,51 @@ const SHORT_DEAL: ReportDeal = { level: 1, moves: 5, seed: 2 };
 function sketchDice(seed: number, game: number): number {
   return seed * 1000 + game + 17;
 }
+
+/** Returns how many times in 100 the sketch's report asked the casual player to clear each level, by the level's id, as its table writes it. */
+function askedInTheSketch(): ReadonlyMap<string, number> {
+  const rows = designText("sketch/results-table.md")
+    .split("\n")
+    .slice(2)
+    .filter((line) => line.startsWith("|"))
+    .map((line) => line.split("|").map((cell) => cell.trim()));
+  return new Map(
+    rows.map(([, id = "", , , asked = ""]) => [id, parseInt(asked)]),
+  );
+}
+
+describe("CLEARS_ASKED", () => {
+  it("asks of each level of every set of the design's what the sketch's report asked", () => {
+    const asked = askedInTheSketch();
+
+    expect(CLEARS_ASKED).toEqual(
+      Object.fromEntries(
+        DESIGN_SETS.map((set) => [
+          set,
+          levelSetOf(designSet(set)).levels.map(({ id }) => asked.get(id)),
+        ]),
+      ),
+    );
+  });
+});
+
+describe("askOf", () => {
+  it("asks of each level what its place in its set asks", () => {
+    expect(LEVELS.map(askOf)).toEqual(CLEARS_ASKED["warm-up"]);
+  });
+
+  it("throws for a level of a set that asks nothing of it", () => {
+    const [first] = LEVELS;
+    const entry: LevelEntry = {
+      ...first!,
+      set: { ...first!.set, id: "made-up" },
+    };
+
+    expect(() => askOf(entry)).toThrow(
+      'Level 1\'s set, "made-up", asks nothing of it.',
+    );
+  });
+});
 
 describe("carefulFiguresOf", () => {
   it("counts each move's waves, the specials its bunches made and the shuffles, leaving the wind's waves out", () => {
@@ -38,6 +91,18 @@ describe("carefulFiguresOf", () => {
 describe("REPORT_API", () => {
   it("plays the game's levels", () => {
     expect(REPORT_API.levels).toBe(LEVELS);
+  });
+
+  it("asks of a level, by its number, what its place in its set asks", () => {
+    expect(REPORT_API.asked(9)).toBe(80);
+  });
+
+  it("plays the casual player's 16 games on a deal, the dice of each seeded as the sketch's report seeds them", () => {
+    const sketch = Array.from({ length: 16 }, (_, game) =>
+      REPORT_API.casual(OPEN_DEAL, sketchDice(OPEN_DEAL.seed, game)),
+    );
+
+    expect(REPORT_API.casualGames(OPEN_DEAL)).toEqual(sketch);
   });
 
   it("plays the casual player's game on a deal as the sketch's report plays it first", () => {
