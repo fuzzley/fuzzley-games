@@ -23,6 +23,9 @@ const LEAST_SQUARE_CSS_PX = 40;
 /** How far the board keeps from the room's edges where the room spares it, in CSS pixels. */
 const MARGIN_CSS_PX = 16;
 
+/** How far past the board's edge a piece falling in from past it shows, in squares, as the sketch clips one: the page round the board hides it beyond. */
+export const FALLING_IN_MARGIN = 0.04;
+
 /** Says where the board lies on the canvas. */
 export interface BoardMetrics {
   /** A square's side, in whole device pixels. */

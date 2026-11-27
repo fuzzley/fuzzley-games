@@ -23,6 +23,9 @@ const COLUMNS: Range = { least: 6, most: 8 };
 /** The fewest and the most rows a level's board has. */
 const ROWS: Range = { least: 6, most: 9 };
 
+/** The most squares a level's board has: its most columns by its most rows. */
+export const MOST_SQUARES = COLUMNS.most * ROWS.most;
+
 /** The fewest and the most moves a level lasts. */
 const MOVES: Range = { least: 11, most: 33 };
 

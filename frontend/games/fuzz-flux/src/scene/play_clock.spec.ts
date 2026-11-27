@@ -65,4 +65,27 @@ describe("PlayClock", () => {
       since: clock.sinceMs,
     }).toEqual({ past: true, since: clock.playedMs });
   });
+
+  it("takes the moments of the play's timeline from the one the frame before stood at, up to the one it stands at", () => {
+    const clock = advanced([16, 16]);
+
+    expect([15, 16, 31, 32].map((atMs) => clock.starts(atMs))).toEqual([
+      false,
+      true,
+      true,
+      false,
+    ]);
+  });
+
+  it("takes nothing of a play that lands at once", () => {
+    const clock = advanced([16], { ...BUNCH, landed: true }, runningClock());
+
+    expect(clock.starts(BUNCH.timeline.restMs)).toBe(false);
+  });
+
+  it("finds a moment of the play's timeline on the scene's clock", () => {
+    const clock = advanced([16, 16], REFUSED, runningClock());
+
+    expect(clock.nowOf(20)).toBe(52);
+  });
 });

@@ -1,16 +1,19 @@
 // The shell's part, played for the scene's specs: what the board plays,
-// made of a move played by hand or of a board standing still, a dark
-// palette beside the art's light one, and a shell that hands the scene
-// each and keeps what the scene tells it, the scene run for it.
+// made of a move played by hand, of a board standing still or of tracks a
+// spec draws, a dark palette beside the art's light one, and a shell that
+// hands the scene each and keeps what the scene tells it, the scene run
+// for it.
 
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
+import type { FuzzballFace } from "@fz/style/fuzzball";
 import {
   type FuzzFluxScene,
   type FuzzFluxSceneOptions,
   makeFuzzFluxScene,
 } from "../scene/fuzz_flux_scene";
 import type { BoardPlay } from "../scene/play_clock";
+import type { Piece } from "../rules/catalog/pieces";
 import type { BoardMetrics } from "../view/board/metrics";
 import { type BoardPalette, boardPalette } from "../view/colors/palette";
 import type { GridShown } from "../view/run_state";
@@ -20,6 +23,8 @@ import {
   timelineOf,
 } from "../view/timeline/build";
 import { FEEL } from "../view/timeline/feel";
+import { lookAt } from "../view/timeline/looks";
+import type { Look, PieceTrack, SpriteTrack } from "../view/timeline/timeline";
 import { ART_PALETTE } from "./art_frames";
 import type { MoveFixture } from "./move_fixtures";
 import { moveStartOf } from "./shown_board";
@@ -68,6 +73,57 @@ export function stillPlayOf(grid: GridShown): BoardPlay {
   };
 }
 
+/** A board 3 squares by 3 with nothing on it, which a play of tracks drawn by hand plays over. */
+const BARE_GRID: GridShown = {
+  width: 3,
+  height: 3,
+  squares: Array.from({ length: 9 }, () => ({ piece: null, dust: 0 })),
+};
+
+/** Returns the play of a timeline drawing the tracks given and nothing more, over a bare board 3 squares by 3, at rest from the tap. */
+export function playOfTracks(
+  pieces: readonly PieceTrack[],
+  sprites: readonly SpriteTrack[] = [],
+): BoardPlay {
+  return {
+    grid: BARE_GRID,
+    timeline: {
+      pieces,
+      sprites,
+      effects: [],
+      flights: [],
+      counts: [],
+      dust: [],
+      marks: [],
+      sounds: [],
+      dim: [],
+      restMs: 0,
+      end: null,
+    },
+    feel: FEEL,
+    landed: false,
+  };
+}
+
+/** Returns the track of a piece standing still on the board from the tap, its look a resting one's in the middle square but as a spec changes it. */
+export function stillTrackOf(
+  piece: Piece,
+  look: Partial<Look> = {},
+  face: FuzzballFace = "rest",
+): PieceTrack {
+  return {
+    id: piece.id,
+    fromMs: 0,
+    untilMs: null,
+    drawn: piece,
+    look: { ...lookAt({ x: 1, y: 1 }), ...look },
+    face,
+    keys: {},
+    becomes: [],
+    faces: [],
+  };
+}
+
 /** Describes a frame's clock, as the scene handed it to the shell. */
 interface Tick {
   readonly nowMs: number;
@@ -104,6 +160,7 @@ export class FakeShell implements FuzzFluxSceneOptions {
 export interface Board {
   readonly shell: FakeShell;
   readonly run: SceneRun<FuzzFluxScene>;
+  readonly scene: FuzzFluxScene;
 }
 
 /** Describes the canvas a board runs on, in pixels, at one to a CSS pixel. */
@@ -134,5 +191,18 @@ export async function startBoard(
     run.destroy();
   });
   run.advance(16);
-  return { shell, run };
+  return { shell, run, scene: run.scene };
+}
+
+/** Returns where the scene last laid the board out. */
+export function layoutOf({ shell }: Board): BoardMetrics {
+  const metrics = shell.layouts.at(-1);
+  if (metrics === undefined) throw new Error("The board was never laid out.");
+  return metrics;
+}
+
+/** Hands the scene a play, and draws frames of 16 ms until it stands a time into its timeline, to the frame: one frame at the least. */
+export function playTo(board: Board, play: BoardPlay, ms: number): void {
+  board.shell.shown = play;
+  board.run.advance(Math.max(16, Math.ceil(ms / 16) * 16));
 }

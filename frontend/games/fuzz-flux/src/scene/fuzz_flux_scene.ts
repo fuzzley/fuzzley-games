@@ -1,3 +1,4 @@
+import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Viewport, roomInside } from "@fz/phaser/layout";
 import {
@@ -7,11 +8,19 @@ import {
   viewportOf,
 } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
-import { Scene } from "phaser";
+import { type GameObjects, Scene } from "phaser";
 import { type BoardMetrics, boardMetrics } from "../view/board/metrics";
 import type { BoardPalette } from "../view/colors/palette";
 import type { GridShown } from "../view/run_state";
+import { type Frame, frameFor, sampleAt } from "../view/timeline/sample";
+import type { Timeline } from "../view/timeline/timeline";
 import { BoardAtlas } from "./atlas";
+import { LAYERS, type Layer } from "./layers";
+import { BoardPainter } from "./painters/board_painter";
+import { LoosePainter } from "./painters/loose_painter";
+import { MarksPainter } from "./painters/marks_painter";
+import type { PaintContext, Painter } from "./painters/painter";
+import { PiecesPainter } from "./painters/pieces_painter";
 import { type BoardPlay, PlayClock } from "./play_clock";
 
 /** What the scene asks of the shell, and tells it. */
@@ -37,8 +46,10 @@ export interface FuzzFluxSceneOptions {
 /**
  * Plays a level of Fuzz Flux on the board: keeps the one clock a level
  * plays by, standing the play the shell hands it on it, hands the clock to
- * the shell each frame, and lays the board out to the canvas, its art
- * baked for it.
+ * the shell each frame, and draws the play's timeline as it samples at the
+ * moment the play stands at: the squares and their dust, the pieces, the
+ * loose sprites and the waves' marks, on a board laid out to the canvas,
+ * its art baked for it.
  */
 export class FuzzFluxScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -59,6 +70,23 @@ export class FuzzFluxScene extends Scene {
   /** Bakes the board's art, in its palette and for its square. */
   private atlas!: BoardAtlas;
 
+  /** Draws the squares, their dust and the rim. */
+  board!: BoardPainter;
+  /** Draws the pieces. */
+  pieces!: PiecesPainter;
+  /** Draws the loose sprites. */
+  loose!: LoosePainter;
+  /** Draws the waves' marks. */
+  marks!: MarksPainter;
+  /** Every painter, back to front, which each frame draws. */
+  private painters: readonly Painter[] = [];
+  /** What the painters draw each frame from, which the scene writes over. */
+  private context!: PaintContext;
+  /** The timeline the frame's records were made for, which a new one's are made again for. */
+  private sampled: Timeline | null = null;
+  /** The records the timeline's frames are sampled into. */
+  private frame!: Frame;
+
   constructor(
     private readonly options: FuzzFluxSceneOptions,
     private readonly surroundings: SceneSurroundings,
@@ -70,12 +98,28 @@ export class FuzzFluxScene extends Scene {
 
   /**
    * Lays the board out for the play the shell hands it first, bakes the
-   * atlas for it, and says it is ready once it has drawn.
+   * atlas for it, makes every painter's images in their layers, back to
+   * front, and says it is ready once it has drawn.
    */
   create(): void {
     const { options } = this;
-    this.measure(options.play().grid);
+    const play = options.play();
+    this.measure(play.grid);
     this.atlas = new BoardAtlas(this, options.palette(), this.square);
+    const layers = this.layers();
+    this.board = new BoardPainter(this, layers);
+    this.pieces = new PiecesPainter(this, layers);
+    this.loose = new LoosePainter(this, layers.loose);
+    this.marks = new MarksPainter(this, layers.marks);
+    this.painters = [this.board, this.pieces, this.loose, this.marks];
+    this.context = {
+      play,
+      frame: this.frameOf(play.timeline),
+      clock: this.clock,
+      metrics: this.metrics,
+      baked: this.atlas.scale,
+      palette: this.atlas.palette,
+    };
     options.onLayout(this.metrics);
     onFirstFrame(this, () => {
       this.surroundings.ready();
@@ -86,7 +130,10 @@ export class FuzzFluxScene extends Scene {
    * Moves the clock on by the time the frame took, with the play the shell
    * hands it, lays the board out again where the canvas, the chrome or the
    * board changed, bakes the atlas again where the palette or the square
-   * changed, and hands the shell the clock.
+   * changed, hands the shell the clock, and draws the play as it stands.
+   *
+   * It makes nothing but on a new play, whose timeline's records it makes
+   * once, a new layout or a new palette.
    */
   override update(_time: number, deltaMs: number): void {
     const { options, clock } = this;
@@ -95,6 +142,42 @@ export class FuzzFluxScene extends Scene {
     this.atlas.bakeFor(options.palette(), this.square);
     clock.advance(play, deltaMs);
     options.tick(clock.nowMs, clock.playedMs);
+    this.draw(play);
+  }
+
+  /** Samples the play's timeline at the moment the play stands at, and has each painter draw the frame in its layer. */
+  private draw(play: BoardPlay): void {
+    const { context } = this;
+    context.play = play;
+    context.frame = sampleAt(
+      play.timeline,
+      play.feel,
+      this.clock.playedMs,
+      this.frameOf(play.timeline),
+    );
+    context.metrics = this.metrics;
+    context.baked = this.atlas.scale;
+    context.palette = this.atlas.palette;
+    this.painters.forEach(this.paint);
+  }
+
+  /** Has a painter draw the frame: made once, so the frame's round of the painters makes nothing. */
+  private readonly paint = (painter: Painter): void => {
+    painter.draw(this.context);
+  };
+
+  /** Returns the records a timeline's frames are sampled into: those made for it, or new ones for a new timeline. */
+  private frameOf(timeline: Timeline): Frame {
+    if (timeline !== this.sampled) {
+      this.sampled = timeline;
+      this.frame = frameFor(timeline);
+    }
+    return this.frame;
+  }
+
+  /** Returns a layer for each entry of the list, made back to front. */
+  private layers(): Readonly<Record<Layer, GameObjects.Layer>> {
+    return recordOf(LAYERS, () => this.add.layer());
   }
 
   /** Lays the board out again, and says where, if the canvas, the chrome over it or the board's size changed. */

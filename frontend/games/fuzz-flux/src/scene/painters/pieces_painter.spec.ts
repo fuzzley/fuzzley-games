@@ -1,0 +1,236 @@
+import { itemAt } from "@fz/core/records";
+import type { GameObjects } from "phaser";
+import type { Fuzzball } from "../../rules/catalog/pieces";
+import { MOVE_FIXTURES } from "../../testing/move_fixtures";
+import {
+  type Board,
+  layoutOf,
+  playOf,
+  playOfTracks,
+  playTo,
+  startBoard,
+  stillTrackOf,
+} from "../../testing/scene_shell";
+import { FRAMES } from "../../view/art/frame_names";
+import { PieceLook } from "../../view/art/piece_look";
+import { frameFor, sampleAt } from "../../view/timeline/sample";
+import type { PieceTrack, Sampled } from "../../view/timeline/timeline";
+import type { PieceSprite } from "./piece_sprite";
+
+/** Returns a plain red fuzzball, but as a spec changes it. */
+function fuzzball(change: Partial<Fuzzball> = {}): Fuzzball {
+  return {
+    what: "fuzzball",
+    id: 1,
+    kind: "red",
+    special: null,
+    caged: false,
+    burred: false,
+    ...change,
+  };
+}
+
+/** Runs the scene on a board drawing the pieces' tracks given, and returns it once it has drawn a frame of them. */
+async function boardOf(...tracks: readonly PieceTrack[]): Promise<Board> {
+  const board = await startBoard(MOVE_FIXTURES.bunch);
+  playTo(board, playOfTracks(tracks), 16);
+  return board;
+}
+
+/** Returns the sprite of the board's pieces the scene draws a piece on the board with, in the order the timeline lists them. */
+function spriteAt(board: Board, index: number): PieceSprite {
+  return itemAt(board.scene.pieces.onBoard, index);
+}
+
+/** Returns how an image shows: its frame, or null where it is hidden, and how opaque it is. */
+function showing(image: GameObjects.Image): {
+  frame: string | null;
+  alpha: number;
+} {
+  return {
+    frame: image.visible ? image.frame.name : null,
+    alpha: image.alpha,
+  };
+}
+
+/** Returns how far the eyes of the sprite the board draws a piece on it with sit from the middle of the square the piece stands on, in the middle row, in squares. */
+function eyesFrom(
+  board: Board,
+  index: number,
+  across = 1,
+): { x: number; y: number } {
+  const { x, y, square } = layoutOf(board);
+  const { eyes } = spriteAt(board, index);
+  return {
+    x: (eyes.x - x) / square - across - 0.5,
+    y: (eyes.y - y) / square - 1.5,
+  };
+}
+
+/** Returns how a piece's track samples standing still, as it does from the tap. */
+function sampledOf(track: PieceTrack): Sampled {
+  return { ...track.look, shown: true, face: track.face, drawn: track.drawn };
+}
+
+/** Returns how many of the sprites show a body. */
+function bodiesShown(sprites: readonly PieceSprite[]): number {
+  return sprites.filter(({ body }) => body.visible).length;
+}
+
+describe("PiecesPainter", () => {
+  it("draws a piece where it stands, leaning as it leans, in its body's frame", async () => {
+    const board = await boardOf(
+      stillTrackOf(fuzzball(), { x: 2, y: 0, leanX: 0.25, leanY: -0.5 }),
+    );
+    const { x, y, square } = layoutOf(board);
+
+    const { body } = spriteAt(board, 0);
+
+    expect([body.x, body.y, body.frame.name, body.visible]).toEqual([
+      x + 2.75 * square,
+      y + 0 * square,
+      FRAMES.body("red", "plain", "rest"),
+      true,
+    ]);
+  });
+
+  it("squashes, stretches and turns a piece as it is sampled", async () => {
+    const board = await boardOf(
+      stillTrackOf(fuzzball(), { scaleX: 1.25, scaleY: 0.75, rotation: 0.5 }),
+    );
+
+    const { body } = spriteAt(board, 0);
+
+    expect([body.scaleX, body.scaleY, body.rotation]).toEqual([
+      1.25, 0.75, 0.5,
+    ]);
+  });
+
+  it("shows each of a piece's images in the frame and at the opacity the view's look has it", async () => {
+    const piece = fuzzball({ special: "wisp", caged: true, burred: true });
+    const track = stillTrackOf(piece, { furIn: 0.5, lift: 0.25, fade: 0.5 });
+    const board = await boardOf(track);
+    const look = new PieceLook().of(sampledOf(track), piece);
+
+    const images = spriteAt(board, 0).images.map(showing);
+
+    expect(images).toEqual(
+      [look.behind, look.body, look.second, look.eyes, look.over].map(
+        ({ frame, alpha }) => ({ frame, alpha }),
+      ),
+    );
+  });
+
+  it("sets a piece's eyes where the view's look seats them, at the size it gives them", async () => {
+    const piece = fuzzball({ special: "wisp" });
+    const track = stillTrackOf(piece, {
+      lookX: 1,
+      scaleX: 1.5,
+      rotation: 0.5,
+    });
+    const board = await boardOf(track);
+    const look = new PieceLook().of(sampledOf(track), piece);
+
+    const eyes = eyesFrom(board, 0);
+
+    expect({ ...eyes, scale: spriteAt(board, 0).eyes.scaleX }).toEqual({
+      x: expect.closeTo(look.eyesX, 9) as number,
+      y: expect.closeTo(look.eyesY, 9) as number,
+      scale: expect.closeTo(1.5 * look.eyesScale, 9) as number,
+    });
+  });
+
+  it("hides each image the view's look shows in no frame, or not at all", async () => {
+    const board = await boardOf(
+      stillTrackOf({ what: "brick", id: 1, layers: 2 }, { x: 0 }),
+      stillTrackOf(fuzzball({ id: 2 }), { x: 2 }),
+    );
+
+    const frames = [0, 1].map((index) =>
+      spriteAt(board, index)
+        .images.map(showing)
+        .map(({ frame }) => frame),
+    );
+
+    expect(frames).toEqual([
+      [null, FRAMES.brick(2), null, null, null],
+      [
+        null,
+        FRAMES.body("red", "plain", "rest"),
+        null,
+        FRAMES.eyes("rest"),
+        null,
+      ],
+    ]);
+  });
+
+  it("draws a piece from the depth the view's look gives it", async () => {
+    const piece = fuzzball({ caged: true, burred: true });
+    const track = stillTrackOf(piece, { raise: 2, y: 2 });
+    const board = await boardOf(track);
+    const look = new PieceLook().of(sampledOf(track), piece);
+
+    expect(spriteAt(board, 0).behind.depth).toBe(look.depth);
+  });
+
+  it("draws each of a piece's images deeper than the one behind it, so its layer keeps them in order however its depth changes", async () => {
+    const piece = fuzzball({ special: "wisp", caged: true, burred: true });
+    const board = await boardOf(stillTrackOf(piece));
+    playTo(
+      board,
+      playOfTracks([stillTrackOf(piece, { raise: 2, furIn: 0.5 })]),
+      16,
+    );
+
+    const depths = spriteAt(board, 0).images.map(({ depth }) => depth);
+
+    expect(depths).toEqual([...new Set(depths)].sort((p, q) => p - q));
+  });
+
+  it("draws a piece falling in from past the board's edge under the rim, which hides it", async () => {
+    const board = await boardOf(stillTrackOf(fuzzball(), { y: -1 }));
+    const layerOf = (image: GameObjects.GameObject): number =>
+      board.scene.children
+        .getChildren()
+        .findIndex((layer) => layer === image.displayList);
+
+    const falling = itemAt(board.scene.pieces.fallingIn, 0).body;
+
+    expect({
+      falling: falling.visible,
+      onBoard: bodiesShown(board.scene.pieces.onBoard),
+      underRim: layerOf(falling) < layerOf(board.scene.board.rim),
+    }).toEqual({ falling: true, onBoard: 0, underRim: true });
+  });
+
+  it("draws every piece a move's timeline shows at the frame's moment, and no more", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+    const play = playOf(MOVE_FIXTURES.bunch);
+    const ms = play.timeline.restMs / 2;
+    const shown = sampleAt(
+      play.timeline,
+      play.feel,
+      Math.ceil(ms / 16) * 16,
+      frameFor(play.timeline),
+    ).pieces.filter(({ shown }) => shown).length;
+
+    playTo(board, play, ms);
+
+    expect(
+      bodiesShown(board.scene.pieces.onBoard) +
+        bodiesShown(board.scene.pieces.fallingIn),
+    ).toBe(shown);
+  });
+
+  it("hides a piece once it is gone", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+    const gone: PieceTrack = { ...stillTrackOf(fuzzball()), untilMs: 32 };
+    playTo(board, playOfTracks([gone]), 16);
+
+    board.run.advance(32);
+
+    expect(spriteAt(board, 0).images.some(({ visible }) => visible)).toBe(
+      false,
+    );
+  });
+});

@@ -60,6 +60,16 @@ export class PlayClock {
     return this.#sinceMs;
   }
 
+  /** Returns whether a moment of the play's timeline comes in the frame: from the moment the frame before stood at, up to the one the frame stands at. */
+  starts(atMs: number): boolean {
+    return this.#sinceMs <= atMs && atMs < this.#playedMs;
+  }
+
+  /** Returns when a moment of the play's timeline comes on the scene's clock. */
+  nowOf(atMs: number): number {
+    return this.#nowMs - (this.#playedMs - atMs);
+  }
+
   /** Moves the clock on by the time a frame took, with the play the board draws, from its start where it is new. */
   advance(play: BoardPlay, deltaMs: number): void {
     if (play !== this.#play) {
