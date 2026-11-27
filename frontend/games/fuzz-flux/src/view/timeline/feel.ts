@@ -1,10 +1,11 @@
 // The feel: every number the design gives a move's motion, its effects and
-// their limits, the sounds' gaps as its sketch gives them, as one record of
-// numbers, which the view is handed and the
-// debug menu's `createTuning()` takes. Nothing in the view reads one from a
-// module, so retuning changes numbers, never code. Times are in
-// milliseconds, lengths in squares, and shakes in pixels across their whole
-// width.
+// their limits, the sounds' gaps as its sketch gives them, every other
+// number its sketch plays a move by, and the numbers its sound script
+// plays a bunch's chord by, as one record of numbers, which the
+// view is handed and the debug menu's `createTuning()` takes. Nothing in the
+// view reads one from a module, so retuning changes numbers, never code.
+// Times are in milliseconds, lengths in squares, shakes in pixels across
+// their whole width, and a sound's volume 1 at its own loudness.
 
 /** Describes the feel of a move, each number named for its moment. */
 export interface FeelTuning {
@@ -178,6 +179,16 @@ export interface FeelTuning {
   readonly hintHops: number;
   /** How far a swipe goes, along its longer way, before it is read as one. */
   readonly swipeSquares: number;
+  /** How many times as fast as Normal the Fast speed plays a move. */
+  readonly fastPace: number;
+  /** How many times as fast, on top of the speed chosen, a tap plays the rest of the encore and the level's end. */
+  readonly hurriedPace: number;
+  /** How many rungs up the ladder each note of a bunch's chord plays above the one before. */
+  readonly chordRungs: number;
+  /** The least bunch whose chord plays a second note. */
+  readonly chordSecondFrom: number;
+  /** The least bunch whose chord plays a third note. */
+  readonly chordThirdFrom: number;
   /** The least time between two starts of a fuzzball's bubble as it leaves, a cue sooner after the last dropped, as each gap below drops its sound's. */
   readonly popSoundGapMs: number;
   /** The least time between two landings' sounds. */
@@ -198,6 +209,322 @@ export interface FeelTuning {
   readonly tickSoundGapMs: number;
   /** The least time between two sounds of a goal met. */
   readonly goalSoundGapMs: number;
+
+  // The numbers the sketch plays a move by that the design's words don't
+  // give, in the order a move plays them.
+
+  /** How long a fuzzball put down takes to spring back to its size. */
+  readonly putDownMs: number;
+  /** How long a special set off where it stands waits before it goes off. */
+  readonly setOffWaitMs: number;
+  /** How hard the two of a refused swap shake their heads as they lean out, dying away over the refused swap. */
+  readonly refusedWobble: number;
+  /** How long they look cross. */
+  readonly refusedCrossMs: number;
+  /** How far a head shaken with a wobble of 1 sways each way. */
+  readonly wobbleSquares: number;
+  /** How long a wobble's sway takes to turn a radian. */
+  readonly wobbleRadianMs: number;
+  /** How small a bunch shrinks as it huddles. */
+  readonly huddleScale: number;
+  /** How far apart the bunches of a wave hop off. */
+  readonly bunchGapMs: number;
+  /** How much of a hop's time its fade takes. */
+  readonly hopFadeLength: number;
+  /** How hard tufts fly where nothing throws them harder, as a run-in's and the first wave's hops' do. */
+  readonly tuftPower: number;
+  /** The most tufts a later wave adds to each fuzzball that hops off, a tuft a wave. */
+  readonly mostWaveTufts: number;
+  /** How much harder its tufts fly for each wave before its own. */
+  readonly tuftPowerPerWave: number;
+  /** How far the ring a fuzzball leaves as it hops off spreads. */
+  readonly hopRingSquares: number;
+  /** How long that ring takes to spread. */
+  readonly hopRingMs: number;
+  /** How small the rest of a bunch shrinks as it runs into the special it makes. */
+  readonly runInScale: number;
+  /** How far through its run it starts to fade, which it takes the rest of the way to do. */
+  readonly runInFadeFrom: number;
+  /** How many tufts each fuzzball that runs in leaves. */
+  readonly runInTufts: number;
+  /** How long before the run-in ends the special shows. */
+  readonly madeLeadMs: number;
+  /** How long a special made takes to lay its fur down. */
+  readonly madeFurDownMs: number;
+  /** How far the white ring spreads as a special is made. */
+  readonly madeWhiteRingSquares: number;
+  /** How long it takes to spread. */
+  readonly madeWhiteRingMs: number;
+  /** How far the ring in the special's color spreads. */
+  readonly madeInkRingSquares: number;
+  /** How long after the white one it starts. */
+  readonly madeInkRingAfterMs: number;
+  /** How long it takes to spread. */
+  readonly madeInkRingMs: number;
+  /** How hard the tufts fly as a special is made. */
+  readonly madeTuftPower: number;
+  /** How long a special made stands wide-eyed over the board. */
+  readonly madeStareMs: number;
+  /** How far the board dims as a frizzball is made. */
+  readonly frizzballMadeDim: number;
+  /** How long it stays dim before it brightens. */
+  readonly frizzballMadeDimWaitMs: number;
+  /** How long it takes to brighten. */
+  readonly frizzballMadeDimMs: number;
+  /** How far toward the frizzball made everyone on the board looks. */
+  readonly frizzballMadeLook: number;
+  /** How long they look at it, wide-eyed. */
+  readonly frizzballMadeStareMs: number;
+  /** How much of a hop's time after a bunch's last hop is due passes before the board's wait to fall starts. */
+  readonly fallAfterHop: number;
+  /** How long the board waits to fall after a bunch's run-in ends. */
+  readonly fallAfterMadeMs: number;
+  /** How far above a bunch's middle its wave's mark shows. */
+  readonly markAboveSquares: number;
+  /** How long a wave's mark shows. */
+  readonly markMs: number;
+  /** How far it rises as it shows. */
+  readonly markRiseSquares: number;
+  /** How far down along its fall a fuzzball looks as it falls. */
+  readonly fallLook: number;
+  /** How much a falling fuzzball narrows across its fall. */
+  readonly fallNarrow: number;
+  /** How many times as fast as its fall a falling fuzzball's stretch grows, so that it is whole at 1 over this of the way. */
+  readonly fallStretchGrowth: number;
+  /** How much a landing widens across its fall as it squashes. */
+  readonly landWiden: number;
+  /** How long after it lands a fuzzball blinks. */
+  readonly landBlinkAfterMs: number;
+  /** How long a blink keeps the eyes shut. */
+  readonly blinkMs: number;
+  /** How long a wave that lets nothing fall waits after its last moment. */
+  readonly restWithoutFallMs: number;
+  /** How long after a wave's bunches hop off a special the move sets off goes off. */
+  readonly blastAfterMs: number;
+  /** How long after a wave's bunches hop off they strike what stands beside them. */
+  readonly struckAfterBunchMs: number;
+  /** How long before a blast takes a fuzzball it goes wide-eyed. */
+  readonly struckLookMs: number;
+  /** How long after a dasher goes off its streaks set out. */
+  readonly streaksAfterMs: number;
+  /** How far past the board's longer side a streak runs on. */
+  readonly streakRunOnSquares: number;
+  /** How far a dasher going off stretches along its streaks, as a scale. */
+  readonly dasherStretchScale: number;
+  /** How narrow it grows across them, as a scale. */
+  readonly dasherNarrowScale: number;
+  /** How long it takes to stretch out and fade. */
+  readonly dasherGoneMs: number;
+  /** How far the white ring of two dashers, or a dasher with a puffer, going off spreads. */
+  readonly crossRingSquares: number;
+  /** How long it takes to spread. */
+  readonly crossRingMs: number;
+  /** How far a puffer reaches as it goes off: its neighbors in it lean in, and its white ring spreads to it. */
+  readonly pufferReachSquares: number;
+  /** How far two puffers reach. */
+  readonly twoPuffersReachSquares: number;
+  /** How long a puffer's neighbors take to spring back from leaning in. */
+  readonly pufferLeanBackMs: number;
+  /** How big a puffer swells as it bursts. */
+  readonly pufferBurstScale: number;
+  /** How long it takes to burst and fade. */
+  readonly pufferBurstMs: number;
+  /** How long its rings take to spread, each as a whole, where `pufferRingMs` is its blast's time a ring out. */
+  readonly pufferRingSpreadMs: number;
+  /** How far its ring in its color spreads, a share of its reach. */
+  readonly pufferInkRing: number;
+  /** How long after its white ring that one starts. */
+  readonly pufferInkRingAfterMs: number;
+  /** How many tufts fly as two puffers go off. */
+  readonly twoPuffersTufts: number;
+  /** How hard a puffer's tufts fly. */
+  readonly pufferTuftPower: number;
+  /** How hard two puffers' fly. */
+  readonly twoPuffersTuftPower: number;
+  /** How far its flash reaches, a share of its reach. */
+  readonly pufferFlashReach: number;
+  /** How far it pushes back what stands beside it at the least distance, less the farther away. */
+  readonly pufferPush: number;
+  /** How far past its reach its push goes. */
+  readonly pufferPushReach: number;
+  /** How long what it pushes takes to go back. */
+  readonly pufferPushMs: number;
+  /** How long it takes to spring home. */
+  readonly pufferPushBackMs: number;
+  /** How far aside a wisp's flight bends, each wisp the other way from the last. */
+  readonly wispBendSquares: number;
+  /** How much of a curved flight's bend it arcs out at its middle. */
+  readonly curveArc: number;
+  /** How far a curved flight rises at its middle. */
+  readonly curveRiseSquares: number;
+  /** How many tufts fly where a wisp lands. */
+  readonly wispTufts: number;
+  /** How far the white ring where it lands spreads. */
+  readonly wispRingSquares: number;
+  /** How long a ring with no time of its own takes to spread. */
+  readonly ringMs: number;
+  /** How far the board dims as a frizzball goes off. */
+  readonly frizzballDim: number;
+  /** How big the frizzball swells as it goes off. */
+  readonly frizzballSwellScale: number;
+  /** How long it takes to swell. */
+  readonly frizzballSwellMs: number;
+  /** How long a bolt of static stays. */
+  readonly boltMs: number;
+  /** How long a fuzzball a bolt reaches takes to stand its fur on end. */
+  readonly frizzedLiftMs: number;
+  /** How long the fur a frizzball gives a fuzzball takes to grow in. */
+  readonly givenFurMs: number;
+  /** How long the board takes to brighten once the frizzball has gone off. */
+  readonly frizzballUndimMs: number;
+  /** How big the frizzball swells as it bursts. */
+  readonly frizzballBurstScale: number;
+  /** How long it takes to burst and fade. */
+  readonly frizzballBurstMs: number;
+  /** How many tufts fly as it bursts. */
+  readonly frizzballTufts: number;
+  /** How hard they fly. */
+  readonly frizzballTuftPower: number;
+  /** How far its white ring spreads. */
+  readonly frizzballRingSquares: number;
+  /** How long it takes to spread. */
+  readonly frizzballRingMs: number;
+  /** How far its flash reaches. */
+  readonly frizzballFlashSquares: number;
+  /** How long after its static has reached them all a frizzball swapped with a special strikes the first of the fuzzballs it gave that special's fur. */
+  readonly frizzballPairAfterMs: number;
+  /** How long it takes to reach each after. */
+  readonly frizzballPairStepMs: number;
+  /** How long after two frizzballs go off they strike the first square. */
+  readonly twoFrizzballsStrikeAfterMs: number;
+  /** How long they take to reach each after. */
+  readonly twoFrizzballsStepMs: number;
+  /** How far the board dims as two frizzballs go off. */
+  readonly twoFrizzballsDim: number;
+  /** How long it stays dim before it brightens. */
+  readonly twoFrizzballsDimWaitMs: number;
+  /** How long it takes to brighten. */
+  readonly twoFrizzballsDimMs: number;
+  /** How far their white ring spreads, a share of the board's longer side. */
+  readonly twoFrizzballsRing: number;
+  /** How long after they go off it starts. */
+  readonly twoFrizzballsRingAfterMs: number;
+  /** How long it and their ring of static take to spread. */
+  readonly twoFrizzballsRingMs: number;
+  /** How long after they go off their ring of static, as wide as the board's longer side, starts. */
+  readonly twoFrizzballsSparkRingAfterMs: number;
+  /** How far the ring of two specials swapped together spreads as one runs into the other. */
+  readonly pairRingSquares: number;
+  /** How many tufts fly as it does. */
+  readonly pairTufts: number;
+  /** How hard they fly. */
+  readonly pairTuftPower: number;
+  /** How long after a fuzzball is gathered its copy sets off to its goal. */
+  readonly flightAfterMs: number;
+  /** How many copies set off a gap apart before the next starts again with no gap. */
+  readonly flightsInTurn: number;
+  /** How big a copy is as it sets off to its goal, as a scale. */
+  readonly flightScale: number;
+  /** How far its fur stands as it flies. */
+  readonly flightLift: number;
+  /** How much smaller it grows on the way, as a scale. */
+  readonly flightShrink: number;
+  /** How wide the spread of bends its flight takes, half of it each way. */
+  readonly flightBendSpread: number;
+  /** How long a fuzzball gathered with no flight takes to be counted. */
+  readonly unflownCountMs: number;
+  /** How long after a wave's bunches hop off the board cheers. */
+  readonly cheerAfterMs: number;
+  /** How far apart, a square right or down, the fuzzballs hop as the board cheers. */
+  readonly cheerSquareGapMs: number;
+  /** How much taller each of the board's cheers stretches a fuzzball than the one before. */
+  readonly cheerStretch: number;
+  /** How much narrower. */
+  readonly cheerNarrow: number;
+  /** How long a fuzzball takes to stretch up as it cheers. */
+  readonly cheerUpMs: number;
+  /** How long it takes to spring back. */
+  readonly cheerDownMs: number;
+  /** How long it looks happy. */
+  readonly cheerHappyMs: number;
+  /** How long a square's puff of dust lasts as a layer comes off. */
+  readonly dustPuffMs: number;
+  /** How small a shuffled fuzzball shrinks before it moves. */
+  readonly shuffleShrink: number;
+  /** How long it takes to shrink. */
+  readonly shuffleShrinkMs: number;
+  /** How long after the shuffle starts it moves. */
+  readonly shuffleMoveAfterMs: number;
+  /** How long it takes to move. */
+  readonly shuffleMoveMs: number;
+  /** How long after the shuffle starts it grows back. */
+  readonly shuffleGrowAfterMs: number;
+  /** How long it takes to grow back. */
+  readonly shuffleGrowMs: number;
+  /** How long the shuffle takes. */
+  readonly shuffleMs: number;
+  /** How long after the move that clears a level its win sounds. */
+  readonly winSoundAfterMs: number;
+  /** How long after that move the encore starts. */
+  readonly encoreAfterMs: number;
+  /** How long the fur a spare move gives a fuzzball takes to grow in. */
+  readonly encoreFurMs: number;
+  /** How white the fuzzball glows as it does. */
+  readonly encoreGlow: number;
+  /** How long it glows. */
+  readonly encoreGlowMs: number;
+  /** How long a spare move waits after it makes its special before it sets it off. */
+  readonly encoreSpareMs: number;
+  /** How long after the encore the Cleared card shows. */
+  readonly clearedCardAfterMs: number;
+  /** How long after the card shows its first star waits before the gap to it. */
+  readonly starsAfterMs: number;
+  /** How far apart its stars light. */
+  readonly starGapMs: number;
+  /** How long after a level's last move with goals left its loss sounds. */
+  readonly loseSoundAfterMs: number;
+  /** How long after that move the Out of moves card shows. */
+  readonly overCardAfterMs: number;
+  /** How loud the note of each bunch of a wave after its first plays. */
+  readonly laterBunchVolume: number;
+  /** How long after a bunch's note its bubbles start. */
+  readonly bubbleAfterMs: number;
+  /** How loud a bubble plays. */
+  readonly bubbleVolume: number;
+  /** How long after a bunch's note the sound of the special it makes plays. */
+  readonly madeSoundAfterMs: number;
+  /** The most bubbles a wave's blasts play as they take fuzzballs. */
+  readonly mostStruckBubbles: number;
+  /** How many rungs those bubbles cycle through, a rung up from the wave's each, the sixth back at the wave's own. */
+  readonly struckBubbleRungs: number;
+  /** How loud they play. */
+  readonly struckBubbleVolume: number;
+  /** How loud a landing plays after no fall at all. */
+  readonly landVolume: number;
+  /** How much louder it plays for each square of the fall, to its own loudness. */
+  readonly landVolumePerSquare: number;
+  /** How loud a dasher's sound plays, but with a puffer, where it plays at its own loudness. */
+  readonly dashVolume: number;
+  /** How long after two frizzballs go off their crackle plays. */
+  readonly twoFrizzballsCrackleAfterMs: number;
+  /** How long after they go off their boom plays. */
+  readonly twoFrizzballsBoomAfterMs: number;
+  /** How loud their boom plays. */
+  readonly twoFrizzballsBoomVolume: number;
+  /** The most zaps a frizzball's static plays as it leaps. */
+  readonly mostZaps: number;
+  /** How long before the fuzzballs a frizzball reaches hop its crackle plays. */
+  readonly crackleLeadMs: number;
+  /** The least time a tuft of fluff flies for. */
+  readonly tuftLifeMs: number;
+  /** How much longer than that one may fly. */
+  readonly tuftLifeSpreadMs: number;
+  /** How long after the one before each note of a bunch's chord plays. */
+  readonly chordGapMs: number;
+  /** How loud the chord's second note plays, as a share of its first. */
+  readonly chordSecondVolume: number;
+  /** How loud the chord's third note plays, as a share of its first. */
+  readonly chordThirdVolume: number;
 }
 
 /** The feel as the design sets it, which the game plays at and the debug menu tunes from. */
@@ -287,6 +614,11 @@ export const FEEL: FeelTuning = {
   hintWaitMs: 7000,
   hintHops: 2,
   swipeSquares: 0.4,
+  fastPace: 1.6,
+  hurriedPace: 4,
+  chordRungs: 2,
+  chordSecondFrom: 4,
+  chordThirdFrom: 5,
   popSoundGapMs: 10,
   landSoundGapMs: 60,
   dashSoundGapMs: 60,
@@ -297,4 +629,160 @@ export const FEEL: FeelTuning = {
   burrOffSoundGapMs: 30,
   tickSoundGapMs: 30,
   goalSoundGapMs: 200,
+  putDownMs: 160,
+  setOffWaitMs: 30,
+  refusedWobble: 0.5,
+  refusedCrossMs: 380,
+  wobbleSquares: 0.07,
+  wobbleRadianMs: 18,
+  huddleScale: 0.93,
+  bunchGapMs: 50,
+  hopFadeLength: 0.75,
+  tuftPower: 1,
+  mostWaveTufts: 6,
+  tuftPowerPerWave: 0.06,
+  hopRingSquares: 0.75,
+  hopRingMs: 220,
+  runInScale: 0.5,
+  runInFadeFrom: 0.5,
+  runInTufts: 3,
+  madeLeadMs: 20,
+  madeFurDownMs: 260,
+  madeWhiteRingSquares: 1.5,
+  madeWhiteRingMs: 380,
+  madeInkRingSquares: 1,
+  madeInkRingAfterMs: 60,
+  madeInkRingMs: 320,
+  madeTuftPower: 1.4,
+  madeStareMs: 560,
+  frizzballMadeDim: 0.4,
+  frizzballMadeDimWaitMs: 200,
+  frizzballMadeDimMs: 500,
+  frizzballMadeLook: 0.9,
+  frizzballMadeStareMs: 620,
+  fallAfterHop: 0.6,
+  fallAfterMadeMs: 180,
+  markAboveSquares: 0.5,
+  markMs: 620,
+  markRiseSquares: 0.5,
+  fallLook: 0.8,
+  fallNarrow: 0.1,
+  fallStretchGrowth: 1.4,
+  landWiden: 0.16,
+  landBlinkAfterMs: 20,
+  blinkMs: 110,
+  restWithoutFallMs: 150,
+  blastAfterMs: 20,
+  struckAfterBunchMs: 40,
+  struckLookMs: 40,
+  streaksAfterMs: 40,
+  streakRunOnSquares: 4,
+  dasherStretchScale: 2.4,
+  dasherNarrowScale: 0.5,
+  dasherGoneMs: 170,
+  crossRingSquares: 2.2,
+  crossRingMs: 360,
+  pufferReachSquares: 2.6,
+  twoPuffersReachSquares: 4.6,
+  pufferLeanBackMs: 200,
+  pufferBurstScale: 2.4,
+  pufferBurstMs: 160,
+  pufferRingSpreadMs: 340,
+  pufferInkRing: 0.7,
+  pufferInkRingAfterMs: 50,
+  twoPuffersTufts: 44,
+  pufferTuftPower: 2,
+  twoPuffersTuftPower: 2.8,
+  pufferFlashReach: 0.8,
+  pufferPush: 0.12,
+  pufferPushReach: 1.6,
+  pufferPushMs: 70,
+  pufferPushBackMs: 260,
+  wispBendSquares: 1.6,
+  curveArc: 0.5,
+  curveRiseSquares: 0.35,
+  wispTufts: 8,
+  wispRingSquares: 0.9,
+  ringMs: 280,
+  frizzballDim: 0.34,
+  frizzballSwellScale: 1.25,
+  frizzballSwellMs: 200,
+  boltMs: 200,
+  frizzedLiftMs: 90,
+  givenFurMs: 220,
+  frizzballUndimMs: 260,
+  frizzballBurstScale: 2,
+  frizzballBurstMs: 180,
+  frizzballTufts: 20,
+  frizzballTuftPower: 2,
+  frizzballRingSquares: 3.4,
+  frizzballRingMs: 420,
+  frizzballFlashSquares: 1.6,
+  frizzballPairAfterMs: 200,
+  frizzballPairStepMs: 90,
+  twoFrizzballsStrikeAfterMs: 260,
+  twoFrizzballsStepMs: 26,
+  twoFrizzballsDim: 0.5,
+  twoFrizzballsDimWaitMs: 200,
+  twoFrizzballsDimMs: 700,
+  twoFrizzballsRing: 1.2,
+  twoFrizzballsRingAfterMs: 200,
+  twoFrizzballsRingMs: 620,
+  twoFrizzballsSparkRingAfterMs: 260,
+  pairRingSquares: 1.1,
+  pairTufts: 10,
+  pairTuftPower: 1.2,
+  flightAfterMs: 40,
+  flightsInTurn: 6,
+  flightScale: 0.9,
+  flightLift: 0.4,
+  flightShrink: 0.45,
+  flightBendSpread: 2.4,
+  unflownCountMs: 200,
+  cheerAfterMs: 90,
+  cheerSquareGapMs: 22,
+  cheerStretch: 0.07,
+  cheerNarrow: 0.04,
+  cheerUpMs: 90,
+  cheerDownMs: 220,
+  cheerHappyMs: 420,
+  dustPuffMs: 320,
+  shuffleShrink: 0.7,
+  shuffleShrinkMs: 140,
+  shuffleMoveAfterMs: 60,
+  shuffleMoveMs: 380,
+  shuffleGrowAfterMs: 380,
+  shuffleGrowMs: 260,
+  shuffleMs: 700,
+  winSoundAfterMs: 150,
+  encoreAfterMs: 900,
+  encoreFurMs: 200,
+  encoreGlow: 0.8,
+  encoreGlowMs: 220,
+  encoreSpareMs: 230,
+  clearedCardAfterMs: 200,
+  starsAfterMs: 200,
+  starGapMs: 340,
+  loseSoundAfterMs: 100,
+  overCardAfterMs: 500,
+  laterBunchVolume: 0.7,
+  bubbleAfterMs: 50,
+  bubbleVolume: 0.8,
+  madeSoundAfterMs: 60,
+  mostStruckBubbles: 14,
+  struckBubbleRungs: 6,
+  struckBubbleVolume: 0.6,
+  landVolume: 0.7,
+  landVolumePerSquare: 0.06,
+  dashVolume: 0.9,
+  twoFrizzballsCrackleAfterMs: 200,
+  twoFrizzballsBoomAfterMs: 240,
+  twoFrizzballsBoomVolume: 0.7,
+  mostZaps: 18,
+  crackleLeadMs: 20,
+  tuftLifeMs: 420,
+  tuftLifeSpreadMs: 380,
+  chordGapMs: 22,
+  chordSecondVolume: 0.6,
+  chordThirdVolume: 0.5,
 };
