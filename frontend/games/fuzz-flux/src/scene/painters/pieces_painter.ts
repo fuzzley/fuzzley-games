@@ -3,6 +3,8 @@ import { type GameObjects, type Scene, TintModes } from "phaser";
 import { MOST_SQUARES } from "../../rules/levels/level_rules";
 import { FRAMES } from "../../view/art/frame_names";
 import { DIM_DEPTH } from "../../view/art/piece_look";
+import { blinkAt } from "../../view/idle/blinks";
+import { type Breath, breathAt } from "../../view/idle/breaths";
 import type { GridShown } from "../../view/run_state";
 import type { Place } from "../../view/timeline/timeline";
 import { ATLAS } from "../atlas";
@@ -36,6 +38,8 @@ export class PiecesPainter implements Painter {
   readonly dim: GameObjects.Rectangle;
   private readonly board: Pool;
   private readonly falling: Pool;
+  /** How the body of the piece being drawn stirs, written for each. */
+  private readonly breath: Breath = { scale: 1, turn: 0 };
 
   /** Makes every piece's sprite, hidden, those on the board in one layer and those falling in in another. */
   constructor(
@@ -60,23 +64,32 @@ export class PiecesPainter implements Painter {
     layers.pieces.add([this.glow, this.dim]);
   }
 
-  /** Draws each piece shown at the frame's moment, a piece whose track starts past the board's edge among those falling in, its glow and the board's dimming, and hides what is left over. */
+  /**
+   * Draws each piece shown at the frame's moment, a piece whose track
+   * starts past the board's edge among those falling in, blinking and
+   * stirring on the scene's clock as the view has it between moves and
+   * through them, and its glow and the board's dimming, and hides what is
+   * left over.
+   */
   draw(context: Readonly<PaintContext>): void {
-    const { board, falling } = this;
-    const { play, frame } = context;
+    const { board, falling, breath } = this;
+    const { play, frame, clock } = context;
     const tracks = play.timeline.pieces;
     let onBoard = 0;
     let fallingIn = 0;
     let glowing = false;
     for (let index = 0; index < tracks.length; index++) {
       const sampled = itemAt(frame.pieces, index);
-      if (!sampled.shown || sampled.drawn === null) continue;
+      const piece = sampled.drawn;
+      if (!sampled.shown || piece === null) continue;
+      blinkAt(play.feel, clock.nowMs, sampled);
+      breathAt(piece, play.feel, clock.nowMs, breath);
       if (startsPastEdge(itemAt(tracks, index).look, play.grid)) {
-        falling.sprites[fallingIn++]?.paint(sampled, sampled.drawn, context);
+        falling.sprites[fallingIn++]?.paint(sampled, piece, context, breath);
         continue;
       }
       const sprite = board.sprites[onBoard++];
-      sprite?.paint(sampled, sampled.drawn, context);
+      sprite?.paint(sampled, piece, context, breath);
       glowing ||= sprite?.dressGlow(this.glow, context) ?? false;
     }
     hideFrom(board, onBoard);

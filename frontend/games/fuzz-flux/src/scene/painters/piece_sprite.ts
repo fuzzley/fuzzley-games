@@ -2,6 +2,7 @@ import type { GameObjects, Scene } from "phaser";
 import type { Piece } from "../../rules/catalog/pieces";
 import { FRAMES } from "../../view/art/frame_names";
 import { type ImageLook, PieceLook } from "../../view/art/piece_look";
+import type { Breath } from "../../view/idle/breaths";
 import type { Sampled } from "../../view/timeline/timeline";
 import { ATLAS } from "../atlas";
 import {
@@ -24,11 +25,15 @@ const IMAGE_DEPTH = 1 / 4096;
 /** Where a piece's glow draws among its images: over all the rest. */
 const GLOW_PLACE = 5;
 
+/** How a body stirs that stirs not at all. */
+const STILL: Readonly<Breath> = { scale: 1, turn: 0 };
+
 /**
  * Draws a piece as a move's timeline samples it, as the view's
  * `PieceLook` works it out, from images made once, back to front: what it
  * wears behind it, its body, a second body over it, its eyes, and what it
- * wears over them.
+ * wears over them; its bodies stir as the view's breath has them, between
+ * moves and through them, and nothing else does.
  */
 export class PieceSprite {
   /** What the piece wears behind its body. */
@@ -45,7 +50,7 @@ export class PieceSprite {
   readonly images: readonly GameObjects.Image[];
   /** How the piece is drawn, worked out again each frame. */
   private readonly look = new PieceLook();
-  /** Where the piece stands on the canvas, in device pixels and radians, and its images' depth, written each frame. */
+  /** Where the piece stands on the canvas, in device pixels and radians, its images' depth, and how its body stirs, written each frame. */
   private readonly pose = {
     x: 0,
     y: 0,
@@ -53,6 +58,7 @@ export class PieceSprite {
     scaleY: 1,
     rotation: 0,
     depth: 0,
+    breath: STILL,
   };
 
   /** Makes the piece's images, hidden, in a layer. */
@@ -68,11 +74,12 @@ export class PieceSprite {
     layer.add([...this.images]);
   }
 
-  /** Draws a piece as it is sampled at the frame's moment, on the board as it is laid out. */
+  /** Draws a piece as it is sampled at the frame's moment, on the board as it is laid out, its body stirring as given. */
   paint(
     sampled: Readonly<Sampled>,
     piece: Piece,
     context: Readonly<PaintContext>,
+    breath: Readonly<Breath> = STILL,
   ): void {
     const { metrics } = context;
     const { pose } = this;
@@ -84,10 +91,11 @@ export class PieceSprite {
     pose.scaleY = scale * sampled.scaleY;
     pose.rotation = sampled.rotation;
     pose.depth = look.depth;
-    this.show(this.behind, look.behind, 0);
-    this.show(this.body, look.body, 1);
-    this.show(this.second, look.second, 2);
-    if (this.show(this.eyes, look.eyes, 3)) {
+    pose.breath = breath;
+    this.show(this.behind, look.behind, 0, false);
+    this.show(this.body, look.body, 1, true);
+    this.show(this.second, look.second, 2, true);
+    if (this.show(this.eyes, look.eyes, 3, false)) {
       this.eyes
         .setPosition(
           pose.x + look.eyesX * metrics.square,
@@ -95,7 +103,7 @@ export class PieceSprite {
         )
         .setScale(pose.scaleX * look.eyesScale, pose.scaleY * look.eyesScale);
     }
-    this.show(this.over, look.over, 4);
+    this.show(this.over, look.over, 4, false);
   }
 
   /** Shows an image as the piece's glow where the frame drawn last lights it, its body lit over all its images in the effects' white, and returns whether it does. */
@@ -106,7 +114,7 @@ export class PieceSprite {
     const { glow } = this.look;
     if (glow.frame === null || glow.alpha <= 0) return false;
     tintIn(image, palette.flare);
-    return this.show(image, glow, GLOW_PLACE);
+    return this.show(image, glow, GLOW_PLACE, true);
   }
 
   /** Hides every image of the piece. */
@@ -114,11 +122,12 @@ export class PieceSprite {
     for (const image of this.images) image.setVisible(false);
   }
 
-  /** Shows one of the piece's images where the piece stands, as the look has it, at its place among the piece's images, and returns whether it shows. */
+  /** Shows one of the piece's images where the piece stands, as the look has it, at its place among the piece's images, stirring with its body for one of its bodies, and returns whether it shows. */
   private show(
     image: GameObjects.Image,
     shown: Readonly<ImageLook>,
     place: number,
+    stirs: boolean,
   ): boolean {
     if (shown.frame === null || shown.alpha <= 0) {
       image.setVisible(false);
@@ -126,12 +135,13 @@ export class PieceSprite {
     }
     const { pose } = this;
     const depth = pose.depth + place * IMAGE_DEPTH;
+    const { scale, turn } = stirs ? pose.breath : STILL;
     if (image.frame.name !== shown.frame) image.setFrame(shown.frame);
     if (image.depth !== depth) image.setDepth(depth);
     image
       .setPosition(pose.x, pose.y)
-      .setScale(pose.scaleX, pose.scaleY)
-      .setRotation(pose.rotation)
+      .setScale(pose.scaleX * scale, pose.scaleY * scale)
+      .setRotation(pose.rotation + turn)
       .setAlpha(shown.alpha)
       .setVisible(true);
     return true;

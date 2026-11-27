@@ -3,16 +3,15 @@ import { type Playing, Turns } from "@fz/core/turns";
 import { type GameObjects, type Scene, TintModes } from "phaser";
 import { MOST_SQUARES } from "../../rules/levels/level_rules";
 import { FRAMES } from "../../view/art/frame_names";
-import { opacityOf } from "../../view/art/piece_look";
 import { type Fluff, type TuftFlight, tuftAt } from "../../view/effects/tufts";
 import { FEEL } from "../../view/timeline/feel";
-import type { Sampled } from "../../view/timeline/timeline";
 import { ATLAS } from "../atlas";
 import {
   type PaintContext,
   type Painter,
   acrossOf,
   downOf,
+  placeSprite,
   shownScale,
 } from "./painter";
 import { PieceSprite } from "./piece_sprite";
@@ -102,7 +101,8 @@ export class LoosePainter implements Painter {
       const image = this.bits[bits++];
       if (image === undefined) continue;
       if (image.frame.name !== drawn.frame) image.setFrame(drawn.frame);
-      placeLoose(image, sampled, context);
+      fillIn(image, null);
+      placeSprite(image, sampled, context);
     }
     bits = this.drawTufts(bits, context);
     for (let index = bits; index < this.drawnBits; index++) {
@@ -170,27 +170,6 @@ function fillIn(image: GameObjects.Image, color: number | null): void {
   } else if (image.tintMode !== TintModes.FILL || image.tint !== color) {
     image.setTint(color).setTintMode(TintModes.FILL);
   }
-}
-
-/** Shows a loose frame's image where its sprite is sampled at the frame's moment, in its own colors. */
-function placeLoose(
-  image: GameObjects.Image,
-  sampled: Readonly<Sampled>,
-  context: Readonly<PaintContext>,
-): void {
-  const { metrics } = context;
-  const scale = shownScale(context);
-  fillIn(image, null);
-  if (image.depth !== sampled.raise) image.setDepth(sampled.raise);
-  image
-    .setPosition(
-      acrossOf(metrics, sampled.x + sampled.leanX),
-      downOf(metrics, sampled.y + sampled.leanY),
-    )
-    .setScale(scale * sampled.scaleX, scale * sampled.scaleY)
-    .setRotation(sampled.rotation)
-    .setAlpha(opacityOf(sampled.fade))
-    .setVisible(true);
 }
 
 /** Shows a tuft's image where it flies at the frame's moment, raised no further than a loose frame at rest. */

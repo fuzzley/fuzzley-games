@@ -5,6 +5,7 @@
 // for it.
 
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
+import type { CssRect } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import {
@@ -136,6 +137,10 @@ export class FakeShell implements FuzzFluxSceneOptions {
   chrome: Insets = NO_INSETS;
   /** The palette the board is drawn in. */
   colors: BoardPalette = ART_PALETTE;
+  /** Where each goal's picture lies on the bar. */
+  goalRects: readonly CssRect[] = [];
+  /** The hand's timeline the board shows, or null for none. */
+  handShown: Timeline | null = null;
   readonly ticks: Tick[] = [];
   readonly layouts: BoardMetrics[] = [];
 
@@ -152,6 +157,8 @@ export class FakeShell implements FuzzFluxSceneOptions {
   readonly onLayout = (metrics: BoardMetrics): void => {
     this.layouts.push(metrics);
   };
+  readonly goals = (): readonly CssRect[] => this.goalRects;
+  readonly hand = (): Timeline | null => this.handShown;
 }
 
 /** Describes the scene run for a shell. */

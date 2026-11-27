@@ -1,8 +1,10 @@
 // The board's squares in the screen's frame, x across from the left and y
 // down from the top, whichever way the wind has turned the board's own:
 // which are on the board, the ways a square has neighbors, the square under
-// a point on the canvas, and where a square lies there.
+// a point on the canvas, where a square lies there, and where a rect on
+// the canvas lies on the board.
 
+import type { CssRect } from "@fz/phaser/layout";
 import type { Point } from "@fz/phaser/shapes";
 import { type Square, indexOf } from "../../rules/board/cells";
 import type { BoardMetrics } from "./metrics";
@@ -97,4 +99,21 @@ export function middleOf(metrics: BoardMetrics, square: Square): Point {
     x: metrics.x + (square.x + 0.5) * metrics.square,
     y: metrics.y + (square.y + 0.5) * metrics.square,
   };
+}
+
+/**
+ * Writes where a rect's middle, in CSS pixels on the canvas, lies on the
+ * board, in squares from its first square's middle, into a place.
+ */
+export function placeOf(
+  metrics: BoardMetrics,
+  pixelRatio: number,
+  rect: Readonly<CssRect>,
+  into: { x: number; y: number },
+): void {
+  into.x =
+    ((rect.x + rect.width / 2) * pixelRatio - metrics.x) / metrics.square - 0.5;
+  into.y =
+    ((rect.y + rect.height / 2) * pixelRatio - metrics.y) / metrics.square -
+    0.5;
 }

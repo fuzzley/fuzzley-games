@@ -1,6 +1,6 @@
 import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
-import { type Viewport, roomInside } from "@fz/phaser/layout";
+import { type CssRect, type Viewport, roomInside } from "@fz/phaser/layout";
 import {
   canvasChanged,
   onFirstFrame,
@@ -21,6 +21,8 @@ import { LAYERS, type Layer } from "./layers";
 import { BoardPainter } from "./painters/board_painter";
 import { BoardShake } from "./painters/board_shake";
 import { EffectsPainter } from "./painters/effects_painter";
+import { FlightsPainter } from "./painters/flights_painter";
+import { HandPainter } from "./painters/hand_painter";
 import { LoosePainter } from "./painters/loose_painter";
 import { MarksPainter } from "./painters/marks_painter";
 import type { PaintContext, Painter } from "./painters/painter";
@@ -46,6 +48,19 @@ export interface FuzzFluxSceneOptions {
   readonly palette: () => BoardPalette;
   /** Takes where the board now lies on the canvas, and the panels beside it. */
   readonly onLayout: (metrics: BoardMetrics) => void;
+  /**
+   * Returns where each goal's picture lies on the bar, in CSS pixels from
+   * the canvas's top left corner, in the level's order, which a fuzzball's
+   * copy flies to; asked each frame, so the same array until a picture
+   * moves.
+   */
+  readonly goals: () => readonly CssRect[];
+  /**
+   * Returns the hand's timeline showing a move, which the board plays again
+   * and again, or null for no hand; a new value plays from its start, and a
+   * value the frame has met plays on.
+   */
+  readonly hand: () => Timeline | null;
 }
 
 /**
@@ -53,9 +68,10 @@ export interface FuzzFluxSceneOptions {
  * plays by, standing the play the shell hands it on it, hands the clock to
  * the shell each frame, and draws the play's timeline as it samples at the
  * moment the play stands at: the squares and their dust, the pieces, the
- * effects, the waves' marks and what flies loose, the board dimmed and
- * shaken as the timeline has it, on a board laid out to the canvas, its
- * art baked for it.
+ * effects, the waves' marks, what flies loose and the copies flying to the
+ * goals, the board dimmed and shaken as the timeline has it, and its life
+ * between moves beside it, the pieces' blinks and breaths and the hint's
+ * hand, on a board laid out to the canvas, its art baked for it.
  */
 export class FuzzFluxScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -88,6 +104,10 @@ export class FuzzFluxScene extends Scene {
   marks!: MarksPainter;
   /** Draws the loose sprites and the fluff. */
   loose!: LoosePainter;
+  /** Draws the fuzzballs' copies flying to their goals. */
+  flights!: FlightsPainter;
+  /** Draws the hint's hand. */
+  hand!: HandPainter;
   /** Every painter, back to front, which each frame draws. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
@@ -124,6 +144,8 @@ export class FuzzFluxScene extends Scene {
     this.effects = new EffectsPainter(this, layers);
     this.marks = new MarksPainter(this, layers.marks);
     this.loose = new LoosePainter(this, layers.loose);
+    this.flights = new FlightsPainter(this, layers.flights);
+    this.hand = new HandPainter(this, layers.hand);
     this.painters = [
       this.board,
       this.puffs,
@@ -131,6 +153,8 @@ export class FuzzFluxScene extends Scene {
       this.effects,
       this.marks,
       this.loose,
+      this.flights,
+      this.hand,
       new BoardShake(this.cameras.main),
     ];
     this.context = {
@@ -141,6 +165,8 @@ export class FuzzFluxScene extends Scene {
       pixelRatio: this.square.pixelRatio,
       baked: this.atlas.scale,
       palette: this.atlas.palette,
+      goals: options.goals(),
+      hand: options.hand(),
     };
     options.onLayout(this.metrics);
     onFirstFrame(this, () => {
@@ -181,6 +207,8 @@ export class FuzzFluxScene extends Scene {
     context.pixelRatio = this.square.pixelRatio;
     context.baked = this.atlas.scale;
     context.palette = this.atlas.palette;
+    context.goals = this.options.goals();
+    context.hand = this.options.hand();
     this.painters.forEach(this.paint);
   }
 

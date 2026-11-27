@@ -1,12 +1,16 @@
 // What each of the board's painters draws a frame from, where a place on
 // the board, in squares, lies on the canvas, how far past the canvas what
-// covers it reaches, and how an image takes a color.
+// covers it reaches, how an image takes a color, and how a sprite's image
+// shows where its track is sampled.
 
+import type { CssRect } from "@fz/phaser/layout";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects } from "phaser";
+import { opacityOf } from "../../view/art/piece_look";
 import type { BoardMetrics } from "../../view/board/metrics";
 import type { BoardPalette } from "../../view/colors/palette";
 import type { Frame } from "../../view/timeline/sample";
+import type { Sampled, Timeline } from "../../view/timeline/timeline";
 import type { BoardPlay, PlayClock } from "../play_clock";
 
 /** Says what a frame of the board is drawn from: a record the scene writes over each frame. */
@@ -25,6 +29,10 @@ export interface PaintContext {
   baked: ArtScale;
   /** The palette the atlas was last baked in. */
   palette: BoardPalette;
+  /** Where each goal's picture lies, in CSS pixels from the canvas's top left corner, in the level's order. */
+  goals: readonly CssRect[];
+  /** The hand's timeline showing a move, or null for no hand. */
+  hand: Timeline | null;
 }
 
 /** How far past the canvas what covers it reaches, in device pixels, so a shaken board shows no edge of it. */
@@ -53,4 +61,24 @@ export function shownScale({ metrics, baked }: Readonly<PaintContext>): number {
 /** Tints an image in a color, over its own, where it is tinted in another. */
 export function tintIn(image: GameObjects.Image, color: number): void {
   if (image.tint !== color) image.setTint(color);
+}
+
+/** Shows a sprite's image where its track is sampled at the frame's moment, in its own colors. */
+export function placeSprite(
+  image: GameObjects.Image,
+  sampled: Readonly<Sampled>,
+  context: Readonly<PaintContext>,
+): void {
+  const { metrics } = context;
+  const scale = shownScale(context);
+  if (image.depth !== sampled.raise) image.setDepth(sampled.raise);
+  image
+    .setPosition(
+      acrossOf(metrics, sampled.x + sampled.leanX),
+      downOf(metrics, sampled.y + sampled.leanY),
+    )
+    .setScale(scale * sampled.scaleX, scale * sampled.scaleY)
+    .setRotation(sampled.rotation)
+    .setAlpha(opacityOf(sampled.fade))
+    .setVisible(true);
 }

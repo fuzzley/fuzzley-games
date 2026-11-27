@@ -9,6 +9,7 @@ import {
   isWithinEdges,
   middleOf,
   neighborOf,
+  placeOf,
   sameSquare,
   squareAt,
 } from "./spaces";
@@ -150,5 +151,15 @@ describe("middleOf", () => {
     );
 
     expect(found).toEqual(squares);
+  });
+});
+
+describe("placeOf", () => {
+  it("finds where a rect's middle, in CSS pixels, lies on the board, in squares from its first square's middle, at the canvas's ratio", () => {
+    const place = { x: 0, y: 0 };
+
+    placeOf(METRICS, 2, { x: 30, y: 50, width: 12.5, height: 7.5 }, place);
+
+    expect(place).toEqual({ x: 0.75, y: 1.25 });
   });
 });

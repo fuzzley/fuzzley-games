@@ -14,6 +14,9 @@ import {
 } from "../../testing/scene_shell";
 import { FRAMES } from "../../view/art/frame_names";
 import { DIM_DEPTH, PieceLook } from "../../view/art/piece_look";
+import { blinkAt } from "../../view/idle/blinks";
+import { breathAt } from "../../view/idle/breaths";
+import { FEEL } from "../../view/timeline/feel";
 import { frameFor, sampleAt } from "../../view/timeline/sample";
 import type { PieceTrack, Sampled } from "../../view/timeline/timeline";
 import type { PieceSprite } from "./piece_sprite";
@@ -71,6 +74,14 @@ function eyesFrom(
 /** Returns how a piece's track samples standing still, as it does from the tap. */
 function sampledOf(track: PieceTrack): Sampled {
   return { ...track.look, shown: true, face: track.face, drawn: track.drawn };
+}
+
+/** Returns the first moment on the scene's clock from one on, a frame apart, at which a fuzzball at rest blinks. */
+function blinkMsOf(piece: Fuzzball, fromMs: number): number {
+  const sampled = sampledOf(stillTrackOf(piece));
+  let ms = fromMs;
+  while (blinkAt(FEEL, ms, { ...sampled }).face !== "blink") ms += 16;
+  return ms;
 }
 
 /** Returns how many of the sprites show a body. */
@@ -186,6 +197,30 @@ describe("PiecesPainter", () => {
     const depths = spriteAt(board, 0).images.map(({ depth }) => depth);
 
     expect(depths).toEqual([...new Set(depths)].sort((p, q) => p - q));
+  });
+
+  it("blinks a fuzzball at rest on the scene's clock, as the view has it between moves", async () => {
+    const board = await boardOf(stillTrackOf(fuzzball()));
+    const nowMs = board.shell.ticks.at(-1)?.nowMs ?? 0;
+
+    board.run.advance(blinkMsOf(fuzzball(), nowMs) - nowMs);
+
+    expect(spriteAt(board, 0).eyes.frame.name).toBe(FRAMES.eyes("blink"));
+  });
+
+  it("stirs a puffer's bodies as it breathes on the scene's clock, and not its eyes", async () => {
+    const puffer = fuzzball({ special: "puffer" });
+    const board = await boardOf(stillTrackOf(puffer));
+    const nowMs = board.shell.ticks.at(-1)?.nowMs ?? 0;
+    const breath = breathAt(puffer, FEEL, nowMs, { scale: 1, turn: 0 });
+    const look = new PieceLook().of(sampledOf(stillTrackOf(puffer)), puffer);
+
+    const { body, eyes } = spriteAt(board, 0);
+
+    expect([body.scaleX, eyes.scaleX]).toEqual([
+      expect.closeTo(breath.scale, 9),
+      expect.closeTo(look.eyesScale, 9),
+    ]);
   });
 
   it("lights a glowing piece's body with the glow, over all its images, filled with the effects' white", async () => {
