@@ -1,0 +1,234 @@
+{
+  "spritemap": {
+    "pick": {
+      "start": 0,
+      "end": 0.06,
+      "loop": false
+    },
+    "swap": {
+      "start": 0.16,
+      "end": 0.26,
+      "loop": false
+    },
+    "refuse": {
+      "start": 0.36,
+      "end": 0.56,
+      "loop": false
+    },
+    "land": {
+      "start": 0.66,
+      "end": 0.72,
+      "loop": false
+    },
+    "note": {
+      "start": 0.82,
+      "end": 1.1172,
+      "loop": false
+    },
+    "note-4": {
+      "start": 1.2172,
+      "end": 1.544,
+      "loop": false
+    },
+    "note-5": {
+      "start": 1.644,
+      "end": 1.9936,
+      "loop": false
+    },
+    "pop": {
+      "start": 2.0936,
+      "end": 2.2266,
+      "loop": false
+    },
+    "born-dasher": {
+      "start": 2.3266,
+      "end": 3.0919,
+      "loop": false
+    },
+    "born-puffer": {
+      "start": 3.1919,
+      "end": 3.9609,
+      "loop": false
+    },
+    "born-wisp": {
+      "start": 4.0609,
+      "end": 4.8621,
+      "loop": false
+    },
+    "born-frizz": {
+      "start": 4.9621,
+      "end": 5.7731,
+      "loop": false
+    },
+    "dash": {
+      "start": 5.8731,
+      "end": 6.2731,
+      "loop": false
+    },
+    "puff": {
+      "start": 6.3731,
+      "end": 7.2725,
+      "loop": false
+    },
+    "wisp": {
+      "start": 7.3725,
+      "end": 7.8225,
+      "loop": false
+    },
+    "zap": {
+      "start": 7.9225,
+      "end": 7.9848,
+      "loop": false
+    },
+    "frizz": {
+      "start": 8.0848,
+      "end": 9.3556,
+      "loop": false
+    },
+    "pair": {
+      "start": 9.4556,
+      "end": 9.7756,
+      "loop": false
+    },
+    "big-puff": {
+      "start": 9.8756,
+      "end": 11.1255,
+      "loop": false
+    },
+    "knock-3": {
+      "start": 11.2255,
+      "end": 11.5228,
+      "loop": false
+    },
+    "knock-2": {
+      "start": 11.6228,
+      "end": 11.9225,
+      "loop": false
+    },
+    "knock-1": {
+      "start": 12.0225,
+      "end": 12.3215,
+      "loop": false
+    },
+    "break": {
+      "start": 12.4215,
+      "end": 12.801,
+      "loop": false
+    },
+    "cage": {
+      "start": 12.901,
+      "end": 13.2354,
+      "loop": false
+    },
+    "yip": {
+      "start": 13.3354,
+      "end": 13.4654,
+      "loop": false
+    },
+    "dust": {
+      "start": 13.5654,
+      "end": 13.7054,
+      "loop": false
+    },
+    "burr-off": {
+      "start": 13.8054,
+      "end": 13.9154,
+      "loop": false
+    },
+    "burr-spread": {
+      "start": 14.0154,
+      "end": 14.1754,
+      "loop": false
+    },
+    "bed": {
+      "start": 14.2754,
+      "end": 15.8809,
+      "loop": false
+    },
+    "gust": {
+      "start": 15.9809,
+      "end": 16.8109,
+      "loop": false
+    },
+    "shuffle": {
+      "start": 16.9109,
+      "end": 17.3309,
+      "loop": false
+    },
+    "tick": {
+      "start": 17.4309,
+      "end": 17.4709,
+      "loop": false
+    },
+    "goal": {
+      "start": 17.5709,
+      "end": 18.584,
+      "loop": false
+    },
+    "low": {
+      "start": 18.684,
+      "end": 18.894,
+      "loop": false
+    },
+    "chirp-1": {
+      "start": 18.994,
+      "end": 19.184,
+      "loop": false
+    },
+    "chirp-2": {
+      "start": 19.284,
+      "end": 19.514,
+      "loop": false
+    },
+    "chirp-3": {
+      "start": 19.614,
+      "end": 19.904,
+      "loop": false
+    },
+    "chirp-4": {
+      "start": 20.004,
+      "end": 20.354,
+      "loop": false
+    },
+    "encore": {
+      "start": 20.454,
+      "end": 20.6946,
+      "loop": false
+    },
+    "win": {
+      "start": 20.7946,
+      "end": 22.6719,
+      "loop": false
+    },
+    "star-1": {
+      "start": 22.7719,
+      "end": 23.464,
+      "loop": false
+    },
+    "star-2": {
+      "start": 23.564,
+      "end": 24.2856,
+      "loop": false
+    },
+    "star-3": {
+      "start": 24.3856,
+      "end": 25.311,
+      "loop": false
+    },
+    "lose": {
+      "start": 25.411,
+      "end": 26.151,
+      "loop": false
+    },
+    "hint": {
+      "start": 26.251,
+      "end": 26.4912,
+      "loop": false
+    },
+    "button": {
+      "start": 26.5912,
+      "end": 26.6312,
+      "loop": false
+    }
+  }
+}

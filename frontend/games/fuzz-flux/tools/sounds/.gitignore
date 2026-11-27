@@ -1,2 +1,3 @@
-# The WAVs build-sounds.mjs renders.
+# The WAVs build-sounds.mjs renders, the sprite among them, and the encodes
+# it makes of the sprite before they ship into src/scene/sounds/.
 wav/

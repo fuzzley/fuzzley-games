@@ -1,7 +1,9 @@
+import { readFileSync, statSync } from "node:fs";
 import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { recordingPrinter } from "@fz/dev/script";
+import { type RunProgram, fakeFfmpeg, missingFfmpeg } from "@fz/dev/sounds";
 import {
   SR,
   type Signal,
@@ -11,9 +13,19 @@ import {
   spectrum,
   wav,
 } from "@fz/dev/synth";
+import shipped from "../src/scene/sounds/sprite.json";
 import { designText } from "../src/testing/design_files";
 import { SOUNDS } from "../src/view/effects/sounds";
-import { RECIPES, type Recipe, finished, run } from "./build-sounds.mjs";
+import {
+  RECIPES,
+  type Recipe,
+  SPRITE_DIGEST,
+  SPRITE_FOLDER,
+  digestOf,
+  finished,
+  run,
+  spriteOf,
+} from "./build-sounds.mjs";
 
 /** Describes a sound as the design's table of measures gives it. */
 interface Measures {
@@ -98,13 +110,24 @@ interface Measured extends Measures {
   readonly design: Measures;
 }
 
+/** Describes a recipe's sound, finished. */
+interface Finished {
+  readonly recipe: Recipe;
+  readonly x: Signal;
+}
+
+/** Every recipe's sound, finished once for every case. */
+const FINISHED: readonly Finished[] = RECIPES.map((recipe) => ({
+  recipe,
+  x: finished(recipe),
+}));
+
 /** Returns a recipe's sound measured, with the design's measures of it, or throws for one the design has none of. */
-function measured(recipe: Recipe): Measured {
+function measured({ recipe, x }: Finished): Measured {
   const design = DESIGN.get(recipe.name);
   if (design === undefined) {
     throw new Error(`The design measures no sound "${recipe.name}".`);
   }
-  const x = finished(recipe);
   const power = powerOf(x);
   const all = sum(power);
   return {
@@ -119,14 +142,47 @@ function measured(recipe: Recipe): Measured {
 }
 
 /** Every recipe's sound, measured once for every case. */
-const MEASURED = RECIPES.map(measured);
+const MEASURED = FINISHED.map(measured);
+
+/** The sprite the recipes make now. */
+const SPRITE = spriteOf(
+  FINISHED.map(({ recipe, x }) => ({ name: recipe.name, takes: [x] })),
+);
+
+/** The most a format of the sprite may weigh, in bytes. */
+const SPRITE_BUDGET = 300 * 1024;
 
 describe("the recipes", () => {
   it("are named by the view's sounds, in the order the sprite holds them", () => {
-    expect(RECIPES.map(({ name }) => name)).toEqual(
-      SOUNDS.slice(0, RECIPES.length),
+    expect(RECIPES.map(({ name }) => name)).toEqual(SOUNDS);
+  });
+});
+
+describe("the shipped sprite", () => {
+  it("holds the view's sounds, by name, in their order", () => {
+    expect(Object.keys(shipped.spritemap)).toEqual(SOUNDS);
+  });
+
+  it("lays each sound where the recipes lay it now, to the byte", () => {
+    expect(SPRITE.packed.json).toBe(
+      readFileSync(join(SPRITE_FOLDER, "sprite.json"), "utf8"),
     );
   });
+
+  it("was encoded from the sprite the recipes make now: once a recipe changes, `yarn build:sounds` encodes it again", () => {
+    expect(digestOf(SPRITE.wav)).toBe(
+      readFileSync(join(SPRITE_FOLDER, SPRITE_DIGEST), "utf8"),
+    );
+  });
+
+  it.each(["sprite.ogg", "sprite.m4a"])(
+    "is encoded as %s, in 300 KB or less",
+    (file) => {
+      expect(statSync(join(SPRITE_FOLDER, file)).size).toBeLessThanOrEqual(
+        SPRITE_BUDGET,
+      );
+    },
+  );
 });
 
 describe("each sound, held to the design's measures", () => {
@@ -222,42 +278,97 @@ const HIGH: Recipe = {
   make: () => osc("sine", 1500, 0.03),
 };
 
+describe("digestOf", () => {
+  it("writes a file's SHA-256 as `sha256sum` does, for the sprite's WAV", () => {
+    expect(digestOf(Buffer.alloc(0))).toBe(
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  sprite.wav\n",
+    );
+  });
+});
+
 describe("run", () => {
   let wavFolder = "";
+  let spriteFolder = "";
 
   beforeEach(async () => {
     wavFolder = await mkdtemp(join(tmpdir(), "fuzz-flux-sounds-"));
+    spriteFolder = await mkdtemp(join(tmpdir(), "fuzz-flux-sprite-"));
   });
 
   afterEach(async () => {
     await rm(wavFolder, { recursive: true, force: true });
+    await rm(spriteFolder, { recursive: true, force: true });
   });
 
-  /** Runs the build over the spec's tones, into its folder. */
-  async function build(args: readonly string[]) {
+  /** Runs the build over the spec's tones, into its folders, with an ffmpeg that runs or none, as where it isn't on the path. */
+  async function build(
+    args: readonly string[],
+    runFfmpeg: RunProgram = missingFfmpeg,
+  ) {
     const printer = recordingPrinter();
     const code = await run(args, {
       ...printer,
       recipes: [LOW, HIGH],
       wavFolder,
+      spriteFolder,
+      runFfmpeg,
     });
     return { code, out: printer.out, err: printer.err };
   }
 
-  it("writes each sound, finished, as a WAV named for it, and says so", async () => {
+  it("writes each sound, finished, as a WAV named for it, and the sprite of them with its map, leaving the game's as it is without ffmpeg", async () => {
     const { code, out } = await build([]);
 
     const high = await readFile(join(wavFolder, "high.wav"));
+    const spriteWav = await readFile(join(wavFolder, "sprite.wav"));
     expect({
       code,
       out,
       wavs: (await readdir(wavFolder)).sort(),
       high: high.equals(wav(finished(HIGH))),
+      spriteBytes: spriteWav.length,
+      map: Object.keys(
+        (
+          JSON.parse(
+            await readFile(join(wavFolder, "sprite.json"), "utf8"),
+          ) as { spritemap: object }
+        ).spritemap,
+      ),
+      game: await readdir(spriteFolder),
     }).toEqual({
       code: 0,
-      out: [`Wrote 2 sounds to ${wavFolder}.`],
-      wavs: ["high.wav", "low.wav"],
+      out: [
+        `Wrote 2 sounds to ${wavFolder}.`,
+        `The sprite: 0.2 s, in ${join(wavFolder, "sprite.wav")}.`,
+        expect.stringContaining("ffmpeg isn't on the path") as unknown,
+      ],
+      wavs: ["high.wav", "low.wav", "sprite.json", "sprite.wav"],
       high: true,
+      // The two tones, and a tenth of a second after each, the last's too.
+      spriteBytes: 44 + 2 * (0.05 * SR + 0.1 * SR + 0.03 * SR + 0.1 * SR),
+      map: ["low", "high"],
+      game: [],
+    });
+  });
+
+  it("encodes the sprite into the game's sounds with ffmpeg, AAC at 72 kb/s, its map and its WAV's digest beside it", async () => {
+    const { code } = await build([], fakeFfmpeg);
+
+    const spriteWav = await readFile(join(wavFolder, "sprite.wav"));
+    const shippedText = (file: string): Promise<string> =>
+      readFile(join(spriteFolder, file), "utf8");
+    expect({
+      code,
+      game: (await readdir(spriteFolder)).sort(),
+      m4a: await shippedText("sprite.m4a"),
+      map: await shippedText("sprite.json"),
+      digest: await shippedText(SPRITE_DIGEST),
+    }).toEqual({
+      code: 0,
+      game: ["sprite.json", "sprite.m4a", "sprite.ogg", SPRITE_DIGEST],
+      m4a: expect.stringContaining(" -b:a 72k ") as unknown,
+      map: await readFile(join(wavFolder, "sprite.json"), "utf8"),
+      digest: digestOf(spriteWav),
     });
   });
 
