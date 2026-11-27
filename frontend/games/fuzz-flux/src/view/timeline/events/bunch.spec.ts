@@ -1,5 +1,11 @@
 import { itemAt } from "@fz/core/records";
 import {
+  ELEMENT_RULES,
+  WIND_RULE,
+} from "../../../rules/elements/element_rules";
+import { play as playMove } from "../../../rules/move/play";
+import { type GameOptions, gameFrom } from "../../../testing/board_picture";
+import {
   MOVE_FIXTURES,
   type MoveFixture,
 } from "../../../testing/move_fixtures";
@@ -9,7 +15,10 @@ import {
   pieceAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
+import { moveStartOf } from "../../../testing/shown_board";
 import { noteVolumeOf, onRung } from "../../effects/ladder";
+import type { GridShown } from "../../run_state";
+import { timelineOf } from "../build";
 import { FEEL } from "../feel";
 import type { Motion } from "../less_motion";
 import type { Part } from "../part";
@@ -40,6 +49,25 @@ function firstBunch(
     throw new Error("The wave gathers no bunch.");
   }
   return bunchOf(bunch, order, { ...play, motion });
+}
+
+/** Returns a board with the fuzzballs on some of its squares caged. */
+function withCages(grid: GridShown, squares: readonly number[]): GridShown {
+  return {
+    ...grid,
+    squares: grid.squares.map((square, index) =>
+      square?.piece?.what === "fuzzball" && squares.includes(index)
+        ? { ...square, piece: { ...square.piece, caged: true } }
+        : square,
+    ),
+  };
+}
+
+/** Returns when each cage a bunch's parts open opens, by its sound. */
+function cagesOpenedMs(parts: readonly Part[]): readonly number[] {
+  return parts.flatMap((part) =>
+    part.what === "sound" && part.sound === "cage" ? [part.atMs] : [],
+  );
 }
 
 describe("bunchOf", () => {
@@ -267,6 +295,78 @@ describe("bunchOf", () => {
       timeline.pieces.find(({ id }) => id === 99)?.fromMs,
       pieceAt(timeline, 8, HOPS_MS).scaleX,
     ]).toEqual([HOPS_MS + FEEL.runInMs - FEEL.madeLeadMs, 1]);
+  });
+
+  describe("a bunch that takes in a caged fuzzball", () => {
+    it("opens its cage a moment before it hops off, its second", () => {
+      expect(cagesOpenedMs(firstBunch(MOVE_FIXTURES.cageBunched))).toEqual([
+        HOPS_MS + 2 * FEEL.hopGapMs - FEEL.hopShedLeadMs,
+      ]);
+    });
+
+    it("sends its copy to its goal out of the cage", () => {
+      expect(
+        firstBunch(MOVE_FIXTURES.cageBunched).flatMap((part) =>
+          part.what === "gathered" ? [part.piece] : [],
+        ),
+      ).toMatchObject([
+        { id: 1, caged: false },
+        { id: 2, caged: false },
+        { id: 6, caged: false },
+      ]);
+    });
+  });
+
+  it("opens the cage of each that runs into a special made a moment before they run in", () => {
+    const play = firstWaveOf(MOVE_FIXTURES.dasherAcrossMade);
+    const grid = withCages(play.grid, [0, 3]);
+
+    const parts = bunchOf(itemAt(play.wave.bunches, 0), 0, { ...play, grid });
+
+    expect(cagesOpenedMs(parts)).toEqual([
+      HOPS_MS - FEEL.hopShedLeadMs,
+      HOPS_MS - FEEL.hopShedLeadMs,
+    ]);
+  });
+
+  it("opens the cage of the one that stays to become the special a fall's bunch makes, before it becomes it", () => {
+    // The swap gathers the greens, the blues above them fall onto the
+    // caged blue, and the 4 down make a dasher at their bottom, the cage's
+    // square.
+    const picture = { pieces: ["bra", "bar", "ggr", "bag", "Bra"] };
+    const options: GameOptions = {
+      goals: [{ what: "cage" }, { what: "gather", kind: "pink", count: 30 }],
+    };
+    const { record } = playMove(
+      gameFrom(picture, options),
+      8,
+      11,
+      ELEMENT_RULES,
+      WIND_RULE,
+    );
+
+    const timeline = timelineOf(
+      record,
+      moveStartOf({ picture, options, record }),
+      FEEL,
+      { speed: "normal", motion: "full" },
+      null,
+    );
+
+    const opened = timeline.sounds.filter(({ sound }) => sound === "cage");
+    const runsInMs = timeline.pieces
+      .find(({ id }) => id === 1)
+      ?.faces.find(({ face }) => face === "happy")?.atMs;
+    expect({
+      opened: opened.map(({ atMs }) => atMs),
+      becomes: timeline.pieces.find(({ id }) => id === 13)?.becomes,
+    }).toMatchObject({
+      opened: [(runsInMs ?? 0) - FEEL.hopShedLeadMs],
+      becomes: [
+        { atMs: opened[0]?.atMs, piece: { caged: false, special: null } },
+        { piece: { caged: false, special: "dasher-down" } },
+      ],
+    });
   });
 
   it("has none the wave takes and no brick stare at a frizzball made", () => {

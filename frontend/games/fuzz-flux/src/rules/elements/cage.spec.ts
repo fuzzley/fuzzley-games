@@ -1,5 +1,6 @@
 import { boardFrom, gameFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
+import { wispTarget } from "../blasts/wisp";
 import type { Fuzzball } from "../catalog/pieces";
 import { play } from "../move/play";
 import { WISP_CAGE_WORTH, WISP_RANKS } from "../tuning";
@@ -87,6 +88,15 @@ describe("CAGE_RULE", () => {
     expect([CAGE_RULE.wisp?.rank, worthOn(1, true), worthOn(3, false)]).toEqual(
       [WISP_RANKS.cage, WISP_CAGE_WORTH.asked, WISP_CAGE_WORTH.unasked],
     );
+  });
+
+  it("has a wisp seek a caged fuzzball before the dustiest square while a goal asks for cages", () => {
+    const game = gameFrom(
+      { pieces: ["Rg", "gb"], dust: ["02", "00"] },
+      { goals: [{ what: "cage" }, { what: "dust" }] },
+    );
+
+    expect(wispTarget(game, 2, () => false, ELEMENT_RULES)).toBe(0);
   });
 
   it("makes no square worth anything to a wisp but one holding a caged fuzzball", () => {

@@ -4,7 +4,8 @@
 // special shows to its own sound, though with Less motion they hop off as
 // ever; and over it, in a move's later waves, its wave's mark. One that
 // hops off sheds what it wears a moment before, by each element's event in
-// the list, as a burr.
+// the list, as a cage or a burr; and the cage of one that runs into the
+// special, or stays to become it, opens a moment before the run.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { KindId } from "../../../rules/catalog/kinds";
@@ -16,12 +17,13 @@ import { type Standing, standingOn } from "../standing";
 import type { Place } from "../timeline";
 import { type WavePlay, stayingThrough } from "../wave_play";
 import { shedBeforeHop } from "./burr";
+import { openedInBunch } from "./cage";
 import { gatheredFrom, hopOff } from "./hop";
 import { chordOf } from "./chord";
 import { MADE_SOUNDS, type Made, madeOf } from "./made";
 import { waveMarkOf } from "./mark";
 
-/** Returns the parts of a fuzzball of a bunch shedding what it wears before it hops off at a moment, as a burr, or none for one that wears nothing. */
+/** Returns the parts of a fuzzball of a bunch shedding what it wears before it hops off at a moment, as a cage or a burr, or none for one that wears nothing. */
 type ShedEvent = (
   standing: Standing,
   hopMs: number,
@@ -29,7 +31,7 @@ type ShedEvent = (
 ) => readonly Part[];
 
 /** Each element's event for what a fuzzball of a bunch sheds before it hops off. */
-const SHED_EVENTS: readonly ShedEvent[] = [shedBeforeHop];
+const SHED_EVENTS: readonly ShedEvent[] = [openedInBunch, shedBeforeHop];
 
 /** Describes a fuzzball of a bunch gathered from its square. */
 interface Member {
@@ -52,6 +54,8 @@ export function bunchOf(
   const making = bunch.makes;
   const stays =
     making !== null && grid.squares[making.square]?.piece?.id === making.piece;
+  const staying =
+    making !== null && stays ? standingOn(grid, making.square) : null;
   const keeper = making === null ? null : squareOf(making.square, grid.width);
   const hopsMs = play.hopsMs + order * feel.bunchGapMs;
   const lastHopMs = hopsMs + members.length * feel.hopGapMs;
@@ -60,7 +64,7 @@ export function bunchOf(
   return [
     ...[
       ...members.map(({ standing }) => standing),
-      ...(making !== null && stays ? [standingOn(grid, making.square)] : []),
+      ...(staying === null ? [] : [staying]),
     ].flatMap((standing) =>
       huddle(standing, keeper ?? middleOf(bunch, grid.width), play),
     ),
@@ -85,8 +89,12 @@ export function bunchOf(
             hopsMs + (index + 1) * feel.hopGapMs,
             play,
           )
-        : runIn(standing, kind, runInto, hopsMs, feel)),
+        : [
+            ...openedInBunch(standing, hopsMs, feel),
+            ...runIn(standing, kind, runInto, hopsMs, feel),
+          ]),
     ]),
+    ...(staying === null ? [] : openedInBunch(staying, hopsMs, feel)),
     { what: "hold", atMs: lastHopMs + feel.hopMs * feel.fallAfterHop },
     ...waveMarkOf(middleOf(bunch, grid.width), hopsMs, play),
     ...(making === null

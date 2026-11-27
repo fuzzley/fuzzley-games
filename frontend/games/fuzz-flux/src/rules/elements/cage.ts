@@ -12,7 +12,7 @@ import { WISP_CAGE_WORTH, WISP_RANKS } from "../tuning";
 import type { Change, ElementRule, SquareState } from "./element_rule";
 
 /** Returns whether a piece is a caged fuzzball. */
-function isCaged(piece: Piece | null): piece is Fuzzball {
+export function isCaged(piece: Piece | null): piece is Fuzzball {
   return piece?.what === "fuzzball" && piece.caged;
 }
 

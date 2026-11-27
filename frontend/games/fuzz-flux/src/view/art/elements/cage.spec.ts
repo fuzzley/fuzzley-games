@@ -1,3 +1,4 @@
+import { itemAt } from "@fz/core/records";
 import { type ArtFrame, extentOf } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
@@ -68,6 +69,39 @@ describe("cageFrames", () => {
         return Math.abs(down - CAGE.height / 2) <= FRAME_INSIDE;
       }),
     }).toEqual({ colors: [ART_PALETTE.cage.frame], showingInside: true });
+  });
+
+  it("runs each bar from under the frame's line at the top to under it at the bottom", () => {
+    const bars = CAGE.commands.slice(0, -1).map(extentOf);
+
+    expect(
+      bars.every(
+        ({ y, height }) =>
+          y <= CAGE.height / 2 - FRAME_INSIDE &&
+          y + height >= CAGE.height / 2 + FRAME_INSIDE,
+      ),
+    ).toBe(true);
+  });
+
+  it("draws its frame 91 of the design's units across, its corners rounded 13 at the middle of its line", () => {
+    const frame = itemAt(CAGE.commands, CAGE.commands.length - 1);
+    const { x, y, width, height } = extentOf(frame);
+    // The corner's curve crosses the diagonal from the frame's outer corner
+    // 17.5 × (1 - 1/√2), about 5.13, in: one point is just outside it, and
+    // one just inside.
+    const corner = coverageOf([frame], {
+      from: { x: x + 4.5, y: y + 4.5 },
+      step: 1,
+      across: 2,
+      down: 2,
+    });
+
+    expect({ width, height, outside: corner[0], inside: corner[3] }).toEqual({
+      width: 91,
+      height: 91,
+      outside: 0,
+      inside: 1,
+    });
   });
 
   it("keeps the cage within its square's well", () => {

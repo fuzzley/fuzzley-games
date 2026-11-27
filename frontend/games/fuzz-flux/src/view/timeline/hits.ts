@@ -8,6 +8,7 @@ import { itemAt } from "@fz/core/records";
 import type { Hit } from "../../rules/move/record";
 import { broken, knocked } from "./events/brick";
 import { brushedOff } from "./events/burr";
+import { uncaged } from "./events/cage";
 import { dusted } from "./events/dust";
 import { gathered } from "./events/gathered";
 import { ruffled } from "./events/sleepyhead";
@@ -67,6 +68,7 @@ const HIT_EVENTS: readonly Listed[] = [
   playing("dusted", dusted),
   playing("knocked", knocked),
   playing("broken", broken),
+  playing("uncaged", uncaged),
   playing("ruffled", ruffled),
   playing("unburred", brushedOff),
 ];

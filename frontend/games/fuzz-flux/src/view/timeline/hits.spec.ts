@@ -1,3 +1,4 @@
+import { itemAt } from "@fz/core/records";
 import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
 import {
   HOPS_MS,
@@ -71,6 +72,17 @@ describe("hitsOf", () => {
         volume: 1,
       },
     ]);
+  });
+
+  it("opens a cage as the blast that reaches it does, to its sound", () => {
+    const play = firstWaveOf(MOVE_FIXTURES.cageOpened);
+    const reach = itemAt(reachesOf(play.wave, play.hopsMs, FEEL), 0);
+
+    expect(
+      hitsTimeline(MOVE_FIXTURES.cageOpened).sounds.flatMap(
+        ({ atMs, sound }) => (sound === "cage" ? [atMs] : []),
+      ),
+    ).toEqual([reach.reachMs(1)]);
   });
 
   it("sweeps the dust off each square of a bunch a moment after it hops off", () => {
