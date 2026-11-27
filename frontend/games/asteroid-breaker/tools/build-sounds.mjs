@@ -43,7 +43,12 @@ import {
   wav,
   wavSamples,
 } from "@fz/dev/synth";
-import { encodeSprite, packSoundSprite, takeNames } from "@fz/dev/sounds";
+import {
+  encodeSprite,
+  endedByGap,
+  packSoundSprite,
+  takeNames,
+} from "@fz/dev/sounds";
 import {
   CONSOLE,
   isStop,
@@ -393,22 +398,6 @@ function lengthsJson(sounds) {
 }
 
 /**
- * Returns the sprite's WAV, ended by a gap as the kit's encoder ended it,
- * which keeps the last take clear of what a lossy encoder pads at the end,
- * so ffmpeg is handed the file the kit handed it.
- *
- * @param {Signal} samples
- * @returns {Buffer}
- */
-function spriteWav(samples) {
-  const padded = new Float64Array(
-    samples.length + Math.round(SPRITE_LAYOUT.gap * SPRITE_LAYOUT.sampleRate),
-  );
-  padded.set(samples);
-  return wav(padded);
-}
-
-/**
  * Builds the sounds a command line asks for, or prints its usage, and
  * returns the code to exit with: 0, or 2 for a command line it can't read,
  * built nothing. It throws where an encode fails, having changed none of
@@ -457,7 +446,12 @@ export async function run(
   const sounds = spriteSoundsOf(rendered);
   const sprite = packSoundSprite(sounds, SPRITE_LAYOUT);
   const lengths = lengthsJson(sounds);
-  await writeFile(join(wavFolder, "sprite.wav"), spriteWav(sprite.samples));
+  // Ended by a gap, as the kit's encoder ended it, so ffmpeg is handed the
+  // file the kit handed it.
+  await writeFile(
+    join(wavFolder, "sprite.wav"),
+    wav(endedByGap(sprite.samples, SPRITE_LAYOUT)),
+  );
   await writeFile(join(wavFolder, "sprite.json"), sprite.json);
   await writeFile(join(wavFolder, "sprite_lengths.json"), lengths);
   const takes = Object.keys(sprite.spritemap).length;

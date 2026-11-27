@@ -377,6 +377,21 @@ export function packSoundSprite(
 }
 
 /**
+ * Returns a sprite's samples with one more gap of silence after its last
+ * take, at its layout's rate, as a sprite is handed to a lossy encoder,
+ * which pads the end of what it is handed: the gap keeps the last take
+ * clear of it.
+ */
+export function endedByGap(
+  samples: Float64Array,
+  { sampleRate = SAMPLE_RATE, gap = GAP_S }: SpriteLayout = {},
+): Float64Array {
+  const ended = new Float64Array(samples.length + Math.round(gap * sampleRate));
+  ended.set(samples);
+  return ended;
+}
+
+/**
  * Renders sounds into one sprite, in order, with a gap of silence between
  * two, so one never runs into the next. It throws for no sounds, two of one
  * name, or one that can't be scaled to its peak.

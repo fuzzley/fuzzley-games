@@ -66,7 +66,8 @@ without knowing of it, changes its line in the same change, as
   a bed and the layers over it. A game's `tools/build-sounds.mjs` makes its
   sprite with `@fz/dev/sounds`, and ships it, and its beds, as Ogg and AAC
   with its `encodeSprite()`, which runs ffmpeg, or in a spec its
-  `fakeFfmpeg` or `missingFfmpeg`; a sprite may give its own `encoding`.
+  `fakeFfmpeg` or `missingFfmpeg`; a sprite may give its own `encoding`,
+  and `endedByGap()` ends it with the gap an encoder needs.
 - **`shapes` is what a game's art is drawn in:** each shape of a frame as
   plain data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser, and `scene`'s `atlasFrameOf()` plays a frame into `bakeAtlas()`. A

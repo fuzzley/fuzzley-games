@@ -15,6 +15,7 @@ import {
   type SpriteToEncode,
   arpeggio,
   encodeSprite,
+  endedByGap,
   fakeFfmpeg,
   envelope,
   glide,
@@ -464,6 +465,23 @@ describe("spritemapOf", () => {
 
   it("refuses no sounds", () => {
     expect(() => spritemapOf([])).toThrow("A sprite needs a sound.");
+  });
+});
+
+describe("endedByGap", () => {
+  /** Two samples of a sprite, to end. */
+  const SAMPLES = Float64Array.of(0.5, -0.5);
+
+  it("ends a sprite's samples with one more gap of silence, at its layout's rate", () => {
+    const ended = endedByGap(SAMPLES, { sampleRate: 10, gap: 0.3 });
+
+    expect(Array.from(ended)).toEqual([0.5, -0.5, 0, 0, 0]);
+  });
+
+  it("ends them with the gap of this module's sprites unless given a layout: a tenth of a second", () => {
+    const ended = endedByGap(SAMPLES);
+
+    expect(ended.length).toBe(2 + SAMPLE_RATE / 10);
   });
 });
 
