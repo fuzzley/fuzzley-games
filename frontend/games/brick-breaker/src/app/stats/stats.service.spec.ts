@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
+import { levelsOf } from "@fz/core/levels";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
-import { levelsOf } from "../../rules/levels/levels";
+import type { LevelSetData } from "../../rules/levels/levels";
 import type { EndedRun } from "../../rules/run/stats";
 import type { Speed } from "../../rules/speed";
 import { provideSpecLevels } from "../../testing/play";
@@ -131,7 +132,7 @@ describe("StatsService", () => {
   });
 
   it("stores the layout a level's points were made on", () => {
-    const redrawn = levelsOf([
+    const redrawn = levelsOf<LevelSetData>([
       {
         id: "set",
         name: "Set",

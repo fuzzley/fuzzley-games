@@ -1,4 +1,5 @@
-import { type LevelData, levelsOf } from "../levels/levels";
+import { levelsOf } from "@fz/core/levels";
+import type { LevelData, LevelSetData } from "../levels/levels";
 import type { Speed } from "../speed";
 import {
   type EndedRun,
@@ -24,7 +25,7 @@ const FIRST = levelOf("first");
 const REDRAWN: LevelData = { ...levelOf("redrawn"), layout: 2 };
 
 /** The levels the stats are read for: two as first drawn, and one redrawn. */
-const LEVELS = levelsOf([
+const LEVELS = levelsOf<LevelSetData>([
   {
     id: "set",
     name: "Set",

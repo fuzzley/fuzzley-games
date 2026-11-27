@@ -1,11 +1,12 @@
 import { TestBed } from "@angular/core/testing";
+import { levelsOf } from "@fz/core/levels";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import type { LevelSetData } from "../../rules/levels/levels";
 import { FEW_BRICKS } from "../../rules/run/describe";
 import { STAR } from "../../rules/run/stars";
-import { levelsOf } from "../../rules/levels/levels";
 import type { FieldMoment } from "../../rules/run/report_state";
 import { type TakenUp, restoreGame } from "../../rules/run/saved_game";
 import { STEP_MS } from "../../rules/stepper";
@@ -44,7 +45,7 @@ import { GAME_LEVELS } from "../tokens";
  * Two levels: six rows of blast bricks, which a hit clears for more points
  * than the first extra life needs, then a row of them to finish on.
  */
-const RICH_LEVELS = levelsOf([
+const RICH_LEVELS = levelsOf<LevelSetData>([
   {
     id: "rich",
     name: "Rich",
@@ -73,7 +74,7 @@ const RICH_LEVELS = levelsOf([
  * A level whose two keys, at the ends of a row of blast bricks a hit sets
  * off, open the gate between them and the row the level needs.
  */
-const GATE_LEVELS = levelsOf([
+const GATE_LEVELS = levelsOf<LevelSetData>([
   {
     id: "gates",
     name: "Gates",
@@ -166,7 +167,7 @@ async function servingAgainAt(level: number): Promise<GameService> {
 }
 
 /** A level whose bricks let a wide paddle or a narrow one fall, at a chance of a half. */
-const MIXED_POOL = levelsOf([
+const MIXED_POOL = levelsOf<LevelSetData>([
   {
     id: "mixed",
     name: "Mixed",

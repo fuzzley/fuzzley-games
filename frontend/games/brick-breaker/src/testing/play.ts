@@ -1,13 +1,13 @@
 import type { Provider } from "@angular/core";
+import { levelsOf } from "@fz/core/levels";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import type { GameService } from "../app/play/game.service";
 import { GAME_LEVELS } from "../app/tokens";
-import {
-  type LevelData,
-  type LevelEntry,
-  type LevelSetData,
-  levelsOf,
+import type {
+  LevelData,
+  LevelEntry,
+  LevelSetData,
 } from "../rules/levels/levels";
 import { FIELD_WIDTH } from "../rules/tuning";
 import type { PlayerSteer } from "../view/steering/steering";
@@ -102,7 +102,7 @@ const SET: LevelSetData = {
 export const SPEC_LEVELS: readonly LevelEntry[] = levelsOf([SET]);
 
 /** Two sets, of two levels and then one, each cleared at a hit. */
-export const TWO_SETS: readonly LevelEntry[] = levelsOf([
+export const TWO_SETS: readonly LevelEntry[] = levelsOf<LevelSetData>([
   {
     id: "first",
     name: "First",
@@ -114,7 +114,7 @@ export const TWO_SETS: readonly LevelEntry[] = levelsOf([
 ]);
 
 /** Two sets of a level each, in two places: the playroom, then the workshop. */
-export const TWO_PLACES: readonly LevelEntry[] = levelsOf([
+export const TWO_PLACES: readonly LevelEntry[] = levelsOf<LevelSetData>([
   { id: "near", name: "Near", place: "playroom", drops: 0, levels: [BLASTS] },
   { id: "far", name: "Far", place: "workshop", drops: 0, levels: [LAST] },
 ]);

@@ -1,3 +1,4 @@
+import { levelsOf } from "@fz/core/levels";
 import { playWithoutBall, stepTimes } from "../../testing/field_picture";
 import { type Brick, hitBrick } from "../bricks/bricks";
 import { catchCapsule } from "../bricks/capsules";
@@ -11,7 +12,7 @@ import {
   stepField,
 } from "../field/field";
 import { CELLS, cellIndex } from "../grid";
-import { levelsOf, parseLevel } from "../levels/levels";
+import { type LevelSetData, parseLevel } from "../levels/levels";
 import { stepsIn } from "../stepper";
 import {
   FIELD_WIDTH,
@@ -35,7 +36,7 @@ import {
  * bricks the ball sets off at once, too many to clear in a few seconds, a
  * key between two gates under them, and two trains of sliders under those.
  */
-const LEVELS = levelsOf([
+const LEVELS = levelsOf<LevelSetData>([
   {
     id: "set",
     name: "Set",
@@ -606,7 +607,7 @@ describe("restoreGame", () => {
 
 describe("a level's keys and gates", () => {
   /** A level of two keys, a gate and a plain brick. */
-  const GATE_LEVELS = levelsOf([
+  const GATE_LEVELS = levelsOf<LevelSetData>([
     {
       id: "gates",
       name: "Gates",
@@ -691,7 +692,7 @@ describe("a level's keys and gates", () => {
 
 describe("a level's sliders", () => {
   /** A level of a train of two sliders before a plain brick, and a regrowing brick under them. */
-  const SLIDER_LEVELS = levelsOf([
+  const SLIDER_LEVELS = levelsOf<LevelSetData>([
     {
       id: "sliders",
       name: "Sliders",

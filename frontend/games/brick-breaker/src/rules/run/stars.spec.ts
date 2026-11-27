@@ -1,3 +1,4 @@
+import { levelsOf } from "@fz/core/levels";
 import {
   brickAt,
   fieldFrom,
@@ -6,7 +7,7 @@ import {
 } from "../../testing/field_picture";
 import { hitBrick } from "../bricks/bricks";
 import type { Field } from "../field/field";
-import { type LevelData, levelsOf } from "../levels/levels";
+import type { LevelData, LevelSetData } from "../levels/levels";
 import {
   STAR,
   STAR_IDS,
@@ -24,7 +25,7 @@ function levelOf(id: string): LevelData {
 }
 
 /** Three levels: the first, the second, and the third, redrawn on a second layout with a new mark. */
-const LEVELS = levelsOf([
+const LEVELS = levelsOf<LevelSetData>([
   {
     id: "set",
     name: "Set",

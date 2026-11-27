@@ -1,4 +1,5 @@
 import { unknownKey } from "@fz/core/json";
+import { type NumberedLevel, levelsOf } from "@fz/core/levels";
 import { isOneOf } from "@fz/core/records";
 import { brickKind, hasTrait, isBrickKindId } from "../catalog/bricks";
 import {
@@ -95,13 +96,8 @@ export interface LevelSetData {
   readonly levels: readonly LevelData[];
 }
 
-/** Describes a level of the game: its data, its set, and its number. */
-export interface LevelEntry {
-  /** Its number in the order played, from 1. */
-  readonly number: number;
-  readonly set: LevelSetData;
-  readonly data: LevelData;
-}
+/** Describes a level of the game: its place in the game, from 1, its set, and its data. */
+export type LevelEntry = NumberedLevel<LevelSetData, LevelData>;
 
 /** Every set of levels, in the order they are played. */
 export const LEVEL_SETS: readonly LevelSetData[] = [
@@ -111,13 +107,6 @@ export const LEVEL_SETS: readonly LevelSetData[] = [
   friends,
   machines,
 ];
-
-/** Returns the levels of sets, in the order played, numbered from 1. */
-export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {
-  return sets
-    .flatMap((set) => set.levels.map((data) => ({ set, data })))
-    .map((entry, i) => ({ ...entry, number: i + 1 }));
-}
 
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);

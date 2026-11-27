@@ -8,7 +8,6 @@ import {
   LEVEL_SETS,
   type LevelData,
   type LevelSetData,
-  levelsOf,
   parseLevel,
   placeOf,
 } from "./levels";
@@ -680,38 +679,5 @@ describe("placeOf", () => {
     expect(() => placeOf({ ...SET, place: "fun fair" })).toThrow(
       `Set "spec": its place, "fun fair", is no place.`,
     );
-  });
-});
-
-describe("levelsOf", () => {
-  /** Returns a set of levels of one brick each, named by their ids. */
-  function setOf(id: string, levelIds: readonly string[]): LevelSetData {
-    return {
-      id,
-      name: id,
-      place: "playroom",
-      drops: 0,
-      levels: levelIds.map((levelId) => ({
-        id: levelId,
-        name: levelId,
-        mark: 5,
-        capsules: [],
-        bricks: ["o"],
-      })),
-    };
-  }
-
-  it("numbers the levels of every set in order, from 1, each with its set", () => {
-    const sets = [setOf("first", ["a", "b"]), setOf("second", ["c"])];
-
-    const levels = levelsOf(sets);
-
-    expect(
-      levels.map(({ number, set, data }) => [number, set.id, data.id]),
-    ).toEqual([
-      [1, "first", "a"],
-      [2, "first", "b"],
-      [3, "second", "c"],
-    ]);
   });
 });

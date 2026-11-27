@@ -1,9 +1,10 @@
+import { levelsOf } from "@fz/core/levels";
 import { cssHex } from "@fz/phaser/color";
 import { render, screen, within } from "@testing-library/angular";
 import { createBrick } from "../../rules/bricks/bricks";
 import {
   type LevelEntry,
-  levelsOf,
+  type LevelSetData,
   parseLevel,
 } from "../../rules/levels/levels";
 import type { StarId } from "../../rules/run/stars";
@@ -71,7 +72,7 @@ function bricksIn(panel: HTMLElement): readonly SVGRectElement[] {
  * A level that holds a plain brick in its first cell and a ghost, hidden as
  * it starts, in the third column of the second row.
  */
-const HAUNTED = levelsOf([
+const HAUNTED = levelsOf<LevelSetData>([
   {
     id: "haunted",
     name: "Haunted",

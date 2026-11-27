@@ -1,3 +1,4 @@
+import { levelsOf } from "@fz/core/levels";
 import {
   KEEPER,
   fieldFrom,
@@ -14,7 +15,7 @@ import {
   steerField,
   stepField,
 } from "../field/field";
-import { levelsOf, parseLevel } from "../levels/levels";
+import { type LevelSetData, parseLevel } from "../levels/levels";
 import { fireBolts } from "../paddle/bolts";
 import type { Steer } from "../paddle/paddle";
 import { FIELD_WIDTH } from "../tuning";
@@ -34,7 +35,7 @@ import { restoreGame, saveGame, takeUpField } from "./saved_game";
  * ball, two pairs of portals, bumpers, a row of blast bricks that sets off
  * a streak, and two trains of sliders.
  */
-const LEVELS = levelsOf([
+const LEVELS = levelsOf<LevelSetData>([
   {
     id: "moments",
     name: "Moments",
@@ -503,7 +504,7 @@ describe("readMoment", () => {
 });
 
 /** Two levels of three plain bricks, the second after the first. */
-const PAIR = levelsOf([
+const PAIR = levelsOf<LevelSetData>([
   {
     id: "pair",
     name: "Pair",
