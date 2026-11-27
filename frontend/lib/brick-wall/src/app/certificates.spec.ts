@@ -8,7 +8,7 @@ import {
 import { TestBed } from "@angular/core/testing";
 import { isCount } from "@fz/core/json";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
-import { loadsSettled } from "../testing/settled";
+import { loadsSettled } from "@fz/ui/testing";
 import {
   type CertificateFiles,
   type CertifiedGame,

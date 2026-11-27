@@ -4,3 +4,4 @@ export { figure, figureValue, figures } from "./figures";
 export { type HeldLoad, OFFLINE, heldLoad } from "./held_load";
 export { MemoryStorage, provideMemoryStorage } from "./memory_storage";
 export { setPageVisibility } from "./page_visibility";
+export { type Stabilizing, loadsSettled } from "./settled";

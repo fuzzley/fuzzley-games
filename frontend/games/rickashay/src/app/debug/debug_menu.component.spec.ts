@@ -1,10 +1,10 @@
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
 import type { CertificateFiles } from "@fz/brick-wall/app/certificates";
-import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { FRAME_MS } from "@fz/core/testing";
 import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
+import { loadsSettled } from "@fz/ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { filesHolding } from "../../testing/lines";

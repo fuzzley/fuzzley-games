@@ -1,6 +1,5 @@
 import { TestBed } from "@angular/core/testing";
 import type { CertificateFiles } from "@fz/brick-wall/app/certificates";
-import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
@@ -11,6 +10,7 @@ import {
   MemoryStorage,
   OFFLINE,
   heldLoad,
+  loadsSettled,
   provideMemoryStorage,
 } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";

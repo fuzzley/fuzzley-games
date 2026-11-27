@@ -104,7 +104,10 @@ above:
   `figureValue()` and `figures()` read a bar's or a card's figures by their
   terms, and throw when a term is missing. `heldLoad()` holds a load
   `onDemand()` takes until the spec lets it `arrive()`, or `fail()` with
-  `OFFLINE`, as a slow or a lost connection would.
+  `OFFLINE`, as a slow or a lost connection would. `loadsSettled()` waits
+  for a fixture or the app to settle, for a load no pending task holds,
+  such as the files a debug menu loads once it is there, and for it to
+  settle again.
 - **`@fz/game-ui/testing`:** `barChoice()`, `chooseInBar()` and
   `openBarMenu()` drive the bar's choice and overflow menus as a player
   does.

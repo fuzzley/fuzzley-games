@@ -1,6 +1,5 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { formatPoints } from "@fz/core/format";
 import { FRAME_MS } from "@fz/core/testing";
@@ -21,6 +20,7 @@ import {
   figure,
   figureValue,
   heldLoad,
+  loadsSettled,
   provideMemoryStorage,
   setPageVisibility,
 } from "@fz/ui/testing";

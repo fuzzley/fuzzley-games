@@ -129,7 +129,7 @@ and certified again.
   pressing How to play, a spec awaits `whenStable()` before looking in it.
   The menu loads its certificates from the game's `CERTIFICATE_FILES`, which
   a spec hands a file of its own. No pending task holds that load, so a
-  spec waits for the menu and its certificates with `src/testing/settled.ts`'s
+  spec waits for the menu and its certificates with `@fz/ui/testing`'s
   `loadsSettled()`, and for the game's own files, a dynamic import, with
   `vi.waitFor()`.
 - **Hold a load to see what shows meanwhile,** or once a chunk can't be

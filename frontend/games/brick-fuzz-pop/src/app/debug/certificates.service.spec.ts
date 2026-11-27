@@ -5,10 +5,10 @@ import {
   readCertificates,
 } from "@fz/brick-wall/app/certificates";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
-import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
+import { loadsSettled } from "@fz/ui/testing";
 import { LEVEL_SETS, LEVELS } from "../../rules/levels/levels";
 import { readCertifiedShot } from "../../rules/levels/certificate";
 import { playRound } from "../../rules/round/round";
