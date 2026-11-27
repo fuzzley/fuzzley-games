@@ -70,8 +70,6 @@ describe("atlasFrames", () => {
       FRAMES.button,
       FRAMES.cage,
       FRAMES.cageBar,
-      FRAMES.burr,
-      FRAMES.burrTuft,
       FRAMES.gustLine,
     ]);
   });

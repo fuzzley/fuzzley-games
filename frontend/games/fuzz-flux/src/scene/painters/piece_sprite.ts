@@ -94,8 +94,9 @@ export class PieceSprite {
     pose.depth = look.depth;
     pose.breath = breath;
     this.show(this.behind, look.behind, 0, 1, breath.behindTurn);
-    this.show(this.body, look.body, 1, breath.scale, breath.turn);
-    this.show(this.second, look.second, 2, breath.scale, breath.turn);
+    const bodyScale = breath.scale * look.bodyScale;
+    this.show(this.body, look.body, 1, bodyScale, breath.turn);
+    this.show(this.second, look.second, 2, bodyScale, breath.turn);
     if (this.show(this.eyes, look.eyes, 3, 1, 0)) {
       this.eyes
         .setPosition(
@@ -116,7 +117,13 @@ export class PieceSprite {
     if (glow.frame === null || glow.alpha <= 0) return false;
     tintIn(image, palette.flare);
     const { scale, turn } = this.pose.breath;
-    return this.show(image, glow, GLOW_PLACE, scale, turn);
+    return this.show(
+      image,
+      glow,
+      GLOW_PLACE,
+      scale * this.look.bodyScale,
+      turn,
+    );
   }
 
   /** Hides every image of the piece. */

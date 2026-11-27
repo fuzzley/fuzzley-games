@@ -29,12 +29,15 @@ import { atlasFrames } from "../view/art/frames";
 import {
   behindFrameOf,
   bodyFrameOf,
+  bodyScaleOf,
   eyesFrameOf,
   eyesSeatOn,
   furOf,
   overFrameOf,
 } from "../view/art/piece_frames";
 import type { BoardPalette } from "../view/colors/palette";
+import { restingFace } from "../view/timeline/looks";
+import type { Faces } from "../view/timeline/timeline";
 
 /** Returns the name of a picture's frame in the atlas. */
 function pictureOf<What extends string>(what: What): `picture-${What}` {
@@ -97,17 +100,29 @@ function fuzzballOf(kind: KindId, change: Partial<Fuzzball> = {}): Fuzzball {
   };
 }
 
-/** Returns a picture of a piece as it rests on the board: what it wears behind it, its body, its eyes where they sit, and what it wears over them. */
-function restingPiece(name: string, piece: Piece): Picture {
+/** The burred fuzzball How to play shows, which rests looking cross. */
+const BURRED = fuzzballOf(WORN_ON, { burred: true });
+
+/** Returns a picture of a piece as it rests on the board: what it wears behind it, its body as large as it is drawn, its eyes where they sit, in a face, and what it wears over them. */
+function restingPiece(
+  name: string,
+  piece: Piece,
+  face: Faces["face"] = "rest",
+): Picture {
   const fur = furOf(piece);
-  const eyes = eyesFrameOf(piece, "rest");
-  const seated = (frame: FrameName | null): readonly Seated[] =>
-    frame === null ? [] : [{ frame, seat: AT_MIDDLE }];
+  const eyes = eyesFrameOf(piece, face);
+  const seated = (
+    frame: FrameName | null,
+    seat: EyesSeat = AT_MIDDLE,
+  ): readonly Seated[] => (frame === null ? [] : [{ frame, seat }]);
   return {
     name,
     images: [
       ...seated(behindFrameOf(piece)),
-      ...seated(bodyFrameOf(piece, fur, "rest")),
+      ...seated(bodyFrameOf(piece, fur, "rest"), {
+        ...AT_MIDDLE,
+        scale: bodyScaleOf(piece),
+      }),
       ...(eyes === null ? [] : [{ frame: eyes, seat: eyesSeatOn(piece, fur) }]),
       ...seated(overFrameOf(piece)),
     ],
@@ -128,7 +143,7 @@ const PICTURES: readonly Picture[] = [
   restingPiece(PICTURE_FRAMES.frizzball, { what: "frizzball", id: 0 }),
   restingPiece(PICTURE_FRAMES.sleepyhead, { what: "sleepyhead", id: 0 }),
   restingPiece(PICTURE_FRAMES.caged, fuzzballOf(WORN_ON, { caged: true })),
-  restingPiece(PICTURE_FRAMES.burred, fuzzballOf(WORN_ON, { burred: true })),
+  restingPiece(PICTURE_FRAMES.burred, BURRED, restingFace(BURRED)),
   ...DUSTY.map((layers, at) => ({
     name: itemAt(DUST_PICTURES, at),
     images: [

@@ -1,10 +1,12 @@
 import { lookOffset, restingLook } from "@fz/style/fuzzball";
 import type { Fuzzball, Piece } from "../../rules/catalog/pieces";
+import { BURRED_SCALE } from "./elements/burr";
 import { EYES_GRID, EYES_LOOK, eyesSeatOf } from "./eyes";
 import { FRIZZBALL_EYES_SEAT } from "./frizzball";
 import {
   behindFrameOf,
   bodyFrameOf,
+  bodyScaleOf,
   eyesFrameOf,
   eyesSeatOn,
   eyesShiftOf,
@@ -72,6 +74,26 @@ describe("a piece's frames", () => {
       eyesSeatOn(fuzzball(), "wisp"),
       eyesSeatOn(FRIZZBALL, "plain"),
     ]).toEqual([eyesSeatOf("red", "wisp"), FRIZZBALL_EYES_SEAT]);
+  });
+
+  it("draws a burred fuzzball's body smaller, inside its ring, and any other piece's whole", () => {
+    expect([
+      bodyScaleOf(fuzzball({ burred: true })),
+      bodyScaleOf(fuzzball({ caged: true })),
+      bodyScaleOf(FRIZZBALL),
+    ]).toEqual([BURRED_SCALE, 1, 1]);
+  });
+
+  it("sits a burred amber fuzzball's eyes, low on its body, as much nearer its square's middle and as much smaller as its body is drawn", () => {
+    const plain = eyesSeatOf("amber", "plain");
+
+    expect(
+      eyesSeatOn(fuzzball({ kind: "amber", burred: true }), "plain"),
+    ).toEqual({
+      x: plain.x * BURRED_SCALE,
+      y: plain.y * BURRED_SCALE,
+      scale: plain.scale * BURRED_SCALE,
+    });
   });
 
   it("sits a sleepyhead's eyes at its square's middle, at a fuzzball's size", () => {

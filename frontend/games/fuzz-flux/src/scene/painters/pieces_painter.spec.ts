@@ -12,6 +12,7 @@ import {
   startBoard,
   stillTrackOf,
 } from "../../testing/scene_shell";
+import { BURRED_SCALE } from "../../view/art/elements/burr";
 import { FRAMES } from "../../view/art/frame_names";
 import { DIM_DEPTH, PieceLook } from "../../view/art/piece_look";
 import { blinkAt } from "../../view/idle/blinks";
@@ -115,6 +116,28 @@ describe("PiecesPainter", () => {
 
     expect([body.scaleX, body.scaleY, body.rotation]).toEqual([
       1.25, 0.75, 0.5,
+    ]);
+  });
+
+  it("draws a burred fuzzball's bodies and its glow as much smaller as the view's look has them, and its ring of thorns whole", async () => {
+    const board = await boardOf(
+      stillTrackOf(fuzzball({ burred: true }), {
+        scaleX: 1.25,
+        lift: 0.5,
+        glow: 1,
+      }),
+    );
+    const { behind, body, second } = spriteAt(board, 0);
+
+    expect(
+      [behind, body, second, board.scene.pieces.glow].map(
+        ({ scaleX }) => scaleX,
+      ),
+    ).toEqual([
+      1.25,
+      expect.closeTo(1.25 * BURRED_SCALE, 9),
+      expect.closeTo(1.25 * BURRED_SCALE, 9),
+      expect.closeTo(1.25 * BURRED_SCALE, 9),
     ]);
   });
 

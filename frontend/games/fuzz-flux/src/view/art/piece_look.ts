@@ -1,7 +1,7 @@
 // How a piece is drawn at a moment, as a move's timeline samples it: the
-// frame of each of its images and how opaque each shows, where its eyes
-// sit on its body, its glow, and how deep it draws among the board's other
-// pieces and its dimming.
+// frame of each of its images and how opaque each shows, how large its
+// body is drawn, where its eyes sit on it, its glow, and how deep it draws
+// among the board's other pieces and its dimming.
 
 import { clamp, lerp } from "@fz/core/math";
 import type { FuzzballFace } from "@fz/style/fuzzball";
@@ -11,6 +11,7 @@ import type { FrameName, Fur, Lift } from "./frame_names";
 import {
   behindFrameOf,
   bodyFrameOf,
+  bodyScaleOf,
   eyesFrameOf,
   type EyesShift,
   eyesSeatOn,
@@ -87,6 +88,8 @@ export class PieceLook {
   readonly over: ImageLook = { frame: null, alpha: 0 };
   /** Its glow, its body's frame lit over all the rest. */
   readonly glow: ImageLook = { frame: null, alpha: 0 };
+  /** How large its body, a second body over it and its glow are drawn, as a share of the piece's size: a burred fuzzball's smaller, inside its ring. */
+  bodyScale = 1;
   /** How far across from the piece's place its eyes' middle lies, in squares, squashed, stretched and turned with it. */
   eyesX = 0;
   /** How far down from the piece's place its eyes' middle lies, in squares, squashed, stretched and turned with it. */
@@ -108,6 +111,7 @@ export class PieceLook {
     const grown = fur === "plain" ? 1 : clamp(sampled.furIn, 0, 1);
     const lifted = standsOnEnd(piece) ? clamp(sampled.lift, 0, 1) : 0;
     show(this.behind, behindFrameOf(piece), alpha);
+    this.bodyScale = bodyScaleOf(piece);
     if (grown < 1) {
       const lift: Lift = lifted >= HALF_ON_END ? "on-end" : "rest";
       show(this.body, bodyFrameOf(piece, "plain", lift), alpha);

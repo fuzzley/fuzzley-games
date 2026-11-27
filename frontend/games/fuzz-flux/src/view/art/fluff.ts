@@ -37,7 +37,7 @@ const WHITE = 0xffffff;
 const TUFT = { length: 18, width: 9.5, control: 0.4 } as const;
 
 /** Returns a tuft of fur in an ink, a curved strand round at its ends, about its middle. */
-function tuftOf(ink: number): readonly DrawCommand[] {
+export function tuftOf(ink: number): readonly DrawCommand[] {
   const { length, width, control } = TUFT;
   const from = { x: -length / 2, y: 0 };
   return stroke(

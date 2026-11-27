@@ -90,4 +90,14 @@ describe("pieceInks", () => {
 
     expect(palettes.map(({ cage }) => cage.bars)).toEqual([0x14171b, 0x14171b]);
   });
+
+  it("edges a burr's thorns in a darker ink in every palette, as the design draws them", () => {
+    const palettes = [pieceInks("light"), pieceInks("dark")];
+
+    expect(
+      palettes.map(
+        ({ burr, burrEdge }) => lightness(burrEdge) < lightness(burr),
+      ),
+    ).toEqual([true, true]);
+  });
 });

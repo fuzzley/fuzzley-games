@@ -1,11 +1,12 @@
 // The inks the board's pieces are drawn in, the same in every palette of a
 // mode, as no palette's role gives them: each kind's, from the house's
 // fuzzball inks, and a special's second fur; a brick's cushions, a cage's
-// steel, a burr's thorns and the sleepyhead. Each keeps 3:1 against what
-// it lies on in every palette of its mode, the squares, dust and thick
-// dust, or for a cage's bars every kind they cross, so several stand
-// further off the board than the design's art, its colors sampled from
-// pictures, drew them.
+// steel, a burr's thorns and their edges, and the sleepyhead. Each keeps
+// 3:1 against what it lies on in every palette of its mode, the squares,
+// dust and thick dust, or for a cage's bars every kind they cross, so
+// several stand further off the board than the design's art, its colors
+// sampled from pictures, drew them. Only a burr's edges keep less, on a
+// dark palette, where they outline the thorns that keep it.
 
 import { itemAt, recordOf } from "@fz/core/records";
 import { FUZZBALL_INKS, colorNumber, mixColors } from "@fz/phaser/color";
@@ -41,6 +42,12 @@ interface ElementInks {
   readonly cage: CageInks;
   /** A burr's ring of thorns. */
   readonly burr: number;
+  /**
+   * The edges either side of a burr's thorns, darker, as the design draws
+   * them: on a dark palette darker than the squares too, so there the
+   * thorns between them keep 3:1, and they only outline them.
+   */
+  readonly burrEdge: number;
   readonly sleepyhead: SleepyheadInks;
 }
 
@@ -98,12 +105,14 @@ const ELEMENT_INKS: Readonly<Record<ColorMode, ElementInks>> = {
     cushions: { 1: 0x90704c, 2: 0x7c5b42, 3: 0x67483a, 4: 0x513531 },
     cage: { bars: CAGE_BARS, frame: 0x535a64 },
     burr: 0x7a5c22,
+    burrEdge: 0x4f3b14,
     sleepyhead: { body: 0x66738a, nightcap: 0x4b5566 },
   },
   dark: {
     cushions: { 1: 0xe2d0ad, 2: 0xccb39b, 3: 0xb59a8d, 4: 0x9d8481 },
     cage: { bars: CAGE_BARS, frame: 0xa4aebd },
     burr: 0xb8944f,
+    burrEdge: 0x6f5628,
     sleepyhead: { body: 0x9fb0c9, nightcap: 0x8193ad },
   },
 };

@@ -4,6 +4,7 @@ import { type ArtFrame, type ArtScale, centered } from "@fz/phaser/shapes";
 import { BRICK_LAYERS } from "../../rules/catalog/elements";
 import type { BoardPalette } from "../colors/palette";
 import { bodyFrames } from "./bodies";
+import { burrFrames } from "./elements/burr";
 import { dustFrames } from "./elements/dust";
 import { eyesFrames } from "./eyes";
 import { fluffFrames } from "./fluff";
@@ -39,8 +40,6 @@ const STAND_INS: readonly FrameName[] = [
   FRAMES.button,
   FRAMES.cage,
   FRAMES.cageBar,
-  FRAMES.burr,
-  FRAMES.burrTuft,
   FRAMES.gustLine,
 ];
 
@@ -55,6 +54,7 @@ export function atlasFrames(
     ...eyesFrames(scale),
     wellFrame(palette, scale),
     ...dustFrames(palette, scale),
+    ...burrFrames(palette, scale),
     ...fluffFrames(palette, scale),
     ...markFrames(palette, scale),
     ...STAND_INS.map((name) => centered(name, [])),

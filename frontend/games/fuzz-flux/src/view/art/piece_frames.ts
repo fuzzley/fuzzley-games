@@ -3,8 +3,11 @@
 // where they sit on it and how far they shift as it looks, and what it
 // wears behind it and over it.
 
+import { recordOf } from "@fz/core/records";
 import { type FuzzballFace, lookOffset, restingLook } from "@fz/style/fuzzball";
+import { KIND_IDS } from "../../rules/catalog/kinds";
 import type { Piece } from "../../rules/catalog/pieces";
+import { BURRED_SCALE } from "./elements/burr";
 import { EYES_GRID, EYES_LOOK, type EyesSeat, eyesSeatOf } from "./eyes";
 import { FRAMES, type FrameName, type Fur, type Lift } from "./frame_names";
 import { FRIZZBALL_EYES_SEAT } from "./frizzball";
@@ -56,11 +59,40 @@ export function eyesFrameOf(
   }
 }
 
+/**
+ * Where each kind's eyes sit on a burred fuzzball, which is never special,
+ * drawn smaller about its square's middle, made once so finding them makes
+ * nothing.
+ */
+const BURRED_EYES_SEATS = recordOf(KIND_IDS, (kind): EyesSeat => {
+  const { x, y, scale } = eyesSeatOf(kind, "plain");
+  return {
+    x: x * BURRED_SCALE,
+    y: y * BURRED_SCALE,
+    scale: scale * BURRED_SCALE,
+  };
+});
+
+/**
+ * Returns how large a piece's body is drawn, as a share of its size: a
+ * burred fuzzball's smaller, inside its ring of thorns, and any other's
+ * whole.
+ *
+ * A burred fuzzball is never special, as the rules keep it: a burr spreads
+ * only to a plain fuzzball, and a special's fur brushes it off, so this
+ * scale never meets a special's own.
+ */
+export function bodyScaleOf(piece: Piece): number {
+  return piece.what === "fuzzball" && piece.burred ? BURRED_SCALE : 1;
+}
+
 /** Returns where a piece's eyes sit on its body in a fur, and how large they are drawn there. */
 export function eyesSeatOn(piece: Piece, fur: Fur): EyesSeat {
   switch (piece.what) {
     case "fuzzball":
-      return eyesSeatOf(piece.kind, fur);
+      return piece.burred
+        ? BURRED_EYES_SEATS[piece.kind]
+        : eyesSeatOf(piece.kind, fur);
     case "frizzball":
       return FRIZZBALL_EYES_SEAT;
     case "sleepyhead":

@@ -61,6 +61,11 @@ const EYES = colorNumber(FUZZBALL.ink);
 // nightcap against its body: the cap is told by its outline against the
 // square, and the sleepyhead from a fuzzball by its gray-blue, which no
 // kind wears, and its shut eyes.
+//
+// A burr's edges, darker than its thorns as the design draws them, keep
+// 3:1 against the grounds in a light palette alone. In a dark one they are
+// darker than the squares too, and only outline the thorns between them,
+// which keep it.
 describe("the board's contrast", () => {
   holdContrast(({ id, mode }) => {
     const palette = boardPalette(PALETTES.rolesIn(id, BOARD_ROLES), mode);
@@ -74,6 +79,8 @@ describe("the board's contrast", () => {
       ["square", palette.square],
       ...dusts,
     ];
+    const burrEdges: readonly Named[] =
+      mode === "light" ? [["burr's edges", palette.burrEdge]] : [];
     const kinds = KIND_IDS.map((kind): Named => [
       `${kind} fuzzball`,
       palette.kinds[kind],
@@ -90,6 +97,7 @@ describe("the board's contrast", () => {
       ]),
       ["cage's frame", palette.cage.frame],
       ["burr", palette.burr],
+      ...burrEdges,
       ["sleepyhead", palette.sleepyhead.body],
       ["sleepyhead's nightcap", palette.sleepyhead.nightcap],
       ["frizzball", palette.frizzball.body],

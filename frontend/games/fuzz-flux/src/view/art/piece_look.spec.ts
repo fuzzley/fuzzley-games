@@ -1,6 +1,7 @@
 import type { Fuzzball, Piece } from "../../rules/catalog/pieces";
 import { lookAt } from "../timeline/looks";
 import type { Sampled } from "../timeline/timeline";
+import { BURRED_SCALE } from "./elements/burr";
 import { eyesSeatOf } from "./eyes";
 import { FRAMES } from "./frame_names";
 import { eyesShiftOf } from "./piece_frames";
@@ -94,6 +95,15 @@ describe("PieceLook", () => {
       { frame: FRAMES.burr, alpha: 0.5 },
       { frame: FRAMES.cage, alpha: 0.5 },
     ]);
+  });
+
+  it("draws a burred fuzzball's body smaller, and the same piece's whole once its burr is off", () => {
+    const look = new PieceLook();
+
+    const burred = look.of(sampled(), fuzzball({ burred: true })).bodyScale;
+    const bare = look.of(sampled(), fuzzball()).bodyScale;
+
+    expect([burred, bare]).toEqual([BURRED_SCALE, 1]);
   });
 
   it("shows nothing behind or over a piece that wears neither", () => {

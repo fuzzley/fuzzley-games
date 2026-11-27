@@ -9,6 +9,7 @@ import type { Fuzzball } from "../rules/catalog/pieces";
 import { ART_PALETTE, ART_SCALE, billionths } from "../testing/art_frames";
 import { MOVE_FIXTURES } from "../testing/move_fixtures";
 import { DARK, startBoard } from "../testing/scene_shell";
+import { BURRED_SCALE } from "../view/art/elements/burr";
 import { DUSTY, FRAMES } from "../view/art/frame_names";
 import { atlasFrames, bakedScale } from "../view/art/frames";
 import { eyesSeatOn } from "../view/art/piece_frames";
@@ -115,6 +116,31 @@ describe("pictureFrames", () => {
         own.width * seat.scale,
       ].map(billionths),
     );
+  });
+
+  it("pictures a burred fuzzball in its ring of thorns, its body as much smaller as it is drawn and its eyes cross", () => {
+    const ring = frameNamed(FRAMES_DRAWN, FRAMES.burr);
+    const body = frameNamed(FRAMES_DRAWN, FRAMES.body("blue", "plain", "rest"));
+    const eyes = frameNamed(FRAMES_DRAWN, FRAMES.eyes("cross"));
+
+    const picture = frameNamed(
+      pictureFrames(FRAMES_DRAWN, ART_SCALE),
+      PICTURE_FRAMES.burred,
+    );
+    const drawnBody = picture.commands.slice(
+      ring.commands.length,
+      ring.commands.length + body.commands.length,
+    );
+
+    expect({
+      kinds: picture.commands.map(({ kind }) => kind),
+      bodyWidth: billionths(spanOf(drawnBody).width),
+    }).toEqual({
+      kinds: [...ring.commands, ...body.commands, ...eyes.commands].map(
+        ({ kind }) => kind,
+      ),
+      bodyWidth: billionths(spanOf(body.commands).width * BURRED_SCALE),
+    });
   });
 
   it("draws each layer of dust over a square's well", () => {
