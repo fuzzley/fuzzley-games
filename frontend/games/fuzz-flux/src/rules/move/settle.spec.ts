@@ -1,0 +1,260 @@
+import {
+  type BoardPicture,
+  type GameOptions,
+  gameFrom,
+  pictureOf,
+} from "../../testing/board_picture";
+import { DESIGN_HOLDS, NO_PART } from "../../testing/made_up_rules";
+import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
+import type { Game } from "../board/board";
+import { onScreen, turnFrame } from "../board/orientation";
+import { refillKind } from "./refill";
+import { type Settled, settle } from "./settle";
+
+/** The moves played by hand whose first wave only gathers, so what falls after it is the board's settling alone. */
+const GATHERING = [
+  "bunch",
+  "dasherAcrossMade",
+  "dasherDownMade",
+  "pufferMade",
+  "wispMade",
+  "twoWaves",
+  "rollAndRefill",
+  "dustSwept",
+  "cageBunched",
+  "burrBrushedOff",
+] as const satisfies readonly (keyof typeof MOVE_FIXTURES)[];
+
+/**
+ * Returns a move played by hand's game as its first wave leaves the board
+ * to fall: its swap made, and each square of its bunches emptied but the
+ * one a bunch leaves something on.
+ */
+function gatheredBy({ picture, options, record }: MoveFixture): Game {
+  const game = gameFrom(picture, options);
+  const pieces = [...game.board.pieces];
+  const { from, to } = record.swap;
+  [pieces[from], pieces[to]] = [pieces[to] ?? null, pieces[from] ?? null];
+  for (const { squares, makes } of record.waves[0]?.bunches ?? []) {
+    for (const square of squares.filter((each) => each !== makes?.square)) {
+      pieces[square] = null;
+    }
+  }
+  return { ...game, board: { ...game.board, pieces } };
+}
+
+/** Returns how a board drawn as a picture settles, and its pieces' picture once it rests, by the rules given. */
+function settled(
+  picture: BoardPicture | readonly string[],
+  options: GameOptions & { readonly movesPlayed?: number } = {},
+  rules = DESIGN_HOLDS,
+): Settled & { readonly pieces: readonly string[] } {
+  const { movesPlayed = 0, ...gameOptions } = options;
+  const result = settle(
+    { ...gameFrom(picture, gameOptions), movesPlayed },
+    rules,
+  );
+  return { ...result, pieces: pictureOf(result.game.board).pieces };
+}
+
+describe("settle", () => {
+  it.each(GATHERING)(
+    "lets everything fall as the sketch did after the bunch, in %s",
+    (name) => {
+      const fixture = MOVE_FIXTURES[name];
+
+      const { falls } = settle(gatheredBy(fixture), DESIGN_HOLDS);
+
+      expect(falls).toEqual(fixture.record.waves[0].falls);
+    },
+  );
+
+  it("lets a piece fall straight down its column, to the bottom", () => {
+    const { pieces, falls } = settled(["r", " ", " "], {
+      kinds: ["red", "blue"],
+    });
+
+    expect({ bottom: pieces[2], fall: falls[0] }).toEqual({
+      bottom: "r",
+      fall: { piece: 1, kind: "red", from: 0, path: [2], lane: 0 },
+    });
+  });
+
+  it("lets a piece fall past a gap", () => {
+    const { falls } = settled(["r", "_", " "]);
+
+    expect(falls[0]).toEqual({
+      piece: 1,
+      kind: "red",
+      from: 0,
+      path: [2],
+      lane: 0,
+    });
+  });
+
+  it("lets the frizzball, a sleepyhead and a brick no rule holds fall, with no kind", () => {
+    const { falls } = settled(["fz1", "   "], {}, NO_PART);
+
+    expect(falls.filter(({ from }) => from !== null)).toEqual([
+      { piece: 1, kind: null, from: 0, path: [3], lane: 0 },
+      { piece: 2, kind: null, from: 1, path: [4], lane: 1 },
+      { piece: 3, kind: null, from: 2, path: [5], lane: 2 },
+    ]);
+  });
+
+  it("lets a piece an element's rule holds stand, and nothing through it", () => {
+    const { pieces, falls } = settled(["b", "1", " "]);
+
+    expect({ pieces, falls }).toEqual({ pieces: ["b", "1", " "], falls: [] });
+  });
+
+  it("fills each square nothing falls into from its lane, the lowest first", () => {
+    const game = gameFrom(["  ", "r "], { seed: 5 });
+
+    const { falls } = settle(game, DESIGN_HOLDS);
+
+    expect(falls).toEqual([
+      {
+        piece: 2,
+        kind: refillKind(game, 0, 0),
+        from: null,
+        path: [0],
+        lane: 0,
+      },
+      {
+        piece: 3,
+        kind: refillKind(game, 1, 0),
+        from: null,
+        path: [3],
+        lane: 1,
+      },
+      {
+        piece: 4,
+        kind: refillKind(game, 1, 1),
+        from: null,
+        path: [1],
+        lane: 1,
+      },
+    ]);
+  });
+
+  it("counts what each lane of the frame lets in, and the pieces made", () => {
+    const { game } = settled(["  ", "r "]);
+
+    expect({ lanes: game.lanes, nextPieceId: game.nextPieceId }).toEqual({
+      lanes: [
+        [1, 2],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+      ],
+      nextPieceId: 5,
+    });
+  });
+
+  it("rolls the fuzzball diagonally above into a square a piece held holds up", () => {
+    const { pieces, falls } = settled(["a1g", "r r"], {
+      kinds: ["amber", "green", "red"],
+    });
+
+    expect({ below: pieces[1], roll: falls[0] }).toEqual({
+      below: "rar",
+      roll: { piece: 1, kind: "amber", from: 0, path: [4], lane: 1 },
+    });
+  });
+
+  it("rolls from the right first on every other move", () => {
+    const { falls } = settled(["a1g", "r r"], { movesPlayed: 1 });
+
+    expect(falls[0]).toEqual({
+      piece: 3,
+      kind: "green",
+      from: 2,
+      path: [4],
+      lane: 1,
+    });
+  });
+
+  it("rolls no piece an element's rule holds", () => {
+    const { falls } = settled(["A1g", "r r"]);
+
+    expect(falls[0]).toEqual({
+      piece: 3,
+      kind: "green",
+      from: 2,
+      path: [4],
+      lane: 1,
+    });
+  });
+
+  it("rolls into the leftmost square of a row first", () => {
+    const { falls } = settled(["1a1", " 1 "]);
+
+    expect(falls[0]).toEqual({
+      piece: 2,
+      kind: "amber",
+      from: 1,
+      path: [3],
+      lane: 0,
+    });
+  });
+
+  it("rolls into the lowest row first", () => {
+    const { falls } = settled(["1a.", " r1", "gb "]);
+
+    expect(falls[0]).toEqual({
+      piece: 4,
+      kind: "red",
+      from: 4,
+      path: [8],
+      lane: 2,
+    });
+  });
+
+  it("lets a fuzzball fall on after it rolls, its way down one", () => {
+    const { falls } = settled(["1a", " 1", "  "]);
+
+    expect(falls[0]).toEqual({
+      piece: 2,
+      kind: "amber",
+      from: 1,
+      path: [2, 4],
+      lane: 0,
+    });
+  });
+
+  it("lets a lane of a frame turned fill from that frame's lanes", () => {
+    const game = turnFrame(gameFrom(["_2_", "a a", "arg"], { seed: 2 }), 1);
+    const screen = (square: number): number => onScreen(game, square);
+
+    const { falls } = settle(game, DESIGN_HOLDS);
+
+    expect(
+      falls.map(({ from, path, kind, lane }) => ({
+        kind,
+        from: from === null ? null : screen(from),
+        path: path.map(screen),
+        lane,
+      })),
+    ).toEqual(
+      MOVE_FIXTURES.windTurns.record.gust.waves[0].falls.map(
+        ({ piece: _, ...fall }) => fall,
+      ),
+    );
+  });
+
+  it("moves nothing on a board at rest", () => {
+    const game = gameFrom(["bg", "rv"]);
+
+    expect(settle(game, DESIGN_HOLDS)).toEqual({ game, falls: [] });
+  });
+
+  it("leaves the game it is handed as it was", () => {
+    const game = gameFrom(["a1g", "r  "]);
+    const before = structuredClone(game);
+
+    settle(game, DESIGN_HOLDS);
+
+    expect(game).toEqual(before);
+  });
+});
