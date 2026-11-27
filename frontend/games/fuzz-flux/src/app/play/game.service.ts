@@ -4,6 +4,7 @@ import { itemAt } from "@fz/core/records";
 import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import type { ConfirmRequest } from "@fz/ui/confirm";
+import type { Game } from "../../rules/board/board";
 import { type Square, indexOf, squareOf } from "../../rules/board/cells";
 import { fromScreen } from "../../rules/board/orientation";
 import type { Hint } from "../../rules/levels/level";
@@ -12,6 +13,12 @@ import type { MoveRecord } from "../../rules/move/record";
 import { encore } from "../../rules/move/encore";
 import { carefulMove } from "../../rules/move/hint";
 import { bunchMatesOf, canSwap, goesOff } from "../../rules/move/swap";
+import {
+  describeCleared,
+  describeLevelBegun,
+  describeMove,
+  describeOver,
+} from "../../rules/run/describe";
 import {
   type LevelInPlay,
   type Move,
@@ -130,6 +137,10 @@ function shapeOf({ width, height, squares }: GridShown): BoardShape {
  * played by the rules once each and handed to the board to play out on the
  * scene's clock, and what the bar, the card and the grid over the board
  * show of it, kept to the beats of that clock.
+ *
+ * The announcer says a level begun, each move as it is made, and the card
+ * at the level's end as it shows; a level taken up as the page loads goes
+ * unsaid, since the page is read then.
  *
  * Nothing pauses: with no clock to stop, looking away lands the move in
  * play at once and puts down the fuzzball held, and coming back finds the
@@ -361,9 +372,9 @@ export class GameService extends RunLifecycle {
     return true;
   }
 
-  /** Takes up a level in play a saved game kept, at rest on the board after its last move. */
+  /** Takes up a level in play a saved game kept, at rest on the board after its last move, without saying it. */
   takeUp(inPlay: LevelInPlay): void {
-    this.begin(inPlay);
+    this.putInPlay(inPlay);
   }
 
   /** Plays the level after the one just cleared, on its next deal, where there is one. */
@@ -377,8 +388,14 @@ export class GameService extends RunLifecycle {
     return levelDealt(level, this.records.nextDeal(level.data), this.rules);
   }
 
-  /** Puts a level in play, at rest on the board, and counts it begun. */
+  /** Puts a level in play, at rest on the board, counts it begun, and says so. */
   private begin(inPlay: LevelInPlay): void {
+    this.putInPlay(inPlay);
+    this.announcer.say(describeLevelBegun(this.state()));
+  }
+
+  /** Puts a level in play, at rest on the board, and counts it begun. */
+  private putInPlay(inPlay: LevelInPlay): void {
     this.inPlayState.set(inPlay);
     this.beatsState.set(this.beatsAtRest(inPlay));
     if (this.board !== null) this.layOnBoard(this.board.kit);
@@ -483,11 +500,11 @@ export class GameService extends RunLifecycle {
   }
 
   /**
-   * Plays a move once, by the rules, and hands the board its timeline, a
-   * fuzzball put down in the same frame put down as it starts: a move the
-   * rules refuse costs nothing and shakes its fuzzballs' heads; a move made
-   * uses up the level's deal if it is its first, stops the hint's clock,
-   * and takes the hand away.
+   * Plays a move once, by the rules, says what it did, and hands the board
+   * its timeline, a fuzzball put down in the same frame put down as it
+   * starts: a move the rules refuse costs nothing and shakes its fuzzballs'
+   * heads; a move made uses up the level's deal if it is its first, stops
+   * the hint's clock, and takes the hand away.
    */
   private playMove(board: LevelBoard, move: Move): void {
     const before = this.inPlayState();
@@ -495,6 +512,7 @@ export class GameService extends RunLifecycle {
     const { inPlay, record } = movePlayed(before, move, this.rules);
     const made = !record.swap.refused;
     const { cleared, card } = made ? this.endingOf(inPlay) : PLAYS_ON;
+    this.sayMove(record, before.game, inPlay.game, card);
     const start: MoveStart = {
       grid,
       wind: windOf(before.level, before.game),
@@ -546,7 +564,7 @@ export class GameService extends RunLifecycle {
     }
   }
 
-  /** Keeps the bar's counts and the card to where a move on the board stands on its timeline. */
+  /** Keeps the bar's counts and the card to where a move on the board stands on its timeline, saying the card as it shows. */
   private keepBeats(
     timeline: Timeline,
     move: MoveOnBoard,
@@ -557,6 +575,50 @@ export class GameService extends RunLifecycle {
     const card = cardAt(timeline, move.card, playedMs);
     if (sameCounts(goalsLeft, beats.goalsLeft) && card === beats.card) return;
     this.beatsState.set({ ...beats, goalsLeft, card });
+    if (card !== null && beats.card === null) this.sayCard(card);
+  }
+
+  /**
+   * Says a move as it is made, from the game before it to the game it
+   * leaves and the card that ends the level, if any: the moves left among
+   * it where it brings them low, as the sound at its rest does.
+   */
+  private sayMove(
+    record: MoveRecord,
+    before: Game,
+    after: Game,
+    card: Card | null,
+  ): void {
+    const { movesLeft } = after;
+    const low = lowMovesCue(
+      before.movesLeft,
+      { movesLeft, card },
+      this.nowMs,
+      FEEL,
+    );
+    this.announcer.say(
+      describeMove(
+        record,
+        goalsOf(before.goals, before.goalsLeft),
+        goalsOf(after.goals, after.goalsLeft),
+        low === null ? null : movesLeft,
+      ),
+    );
+  }
+
+  /** Says the card at the level's end, as it shows. */
+  private sayCard(card: Card): void {
+    const { level, game } = this.inPlayState();
+    switch (card.what) {
+      case "cleared":
+        this.announcer.say(
+          describeCleared(level.number, card.stars, card.spare),
+        );
+        return;
+      case "over":
+        this.announcer.say(describeOver(goalsOf(game.goals, game.goalsLeft)));
+        return;
+    }
   }
 
   /**

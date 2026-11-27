@@ -1,13 +1,14 @@
 import { TestBed } from "@angular/core/testing";
 import { itemAt } from "@fz/core/records";
 import { installFakeViewport } from "@fz/game-ui/testing";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { type Square, squareOf } from "../../rules/board/cells";
 import { onScreen } from "../../rules/board/orientation";
-import { ELEMENT_RULES } from "../../rules/elements/element_rules";
+import { ELEMENT_RULES, WIND_RULE } from "../../rules/elements/element_rules";
 import type { LevelEntry } from "../../rules/levels/levels";
 import { legalMoves } from "../../rules/move/swap";
-import type { Move } from "../../rules/run/saved_game";
+import { type Move, levelDealt } from "../../rules/run/saved_game";
 import { BoardFrames } from "../../testing/board_frames";
 import {
   BLUE_LINE,
@@ -522,6 +523,71 @@ describe("GameService", () => {
       played.frames.playOut();
 
       expect(played.game.state().card).toEqual({ what: "over" });
+    });
+  });
+
+  describe("the announcer", () => {
+    /** Returns what the announcer says now. */
+    function saying(): string {
+      return TestBed.inject(AnnouncerService).message();
+    }
+
+    it("says a level as it begins", async () => {
+      await startGame(3);
+
+      expect(saying()).toBe("Level 3, Show me. 20 blue and 20 red. 6 moves.");
+    });
+
+    it("says nothing of a level taken up as the page loads", async () => {
+      const { game } = await startGame();
+      const rules = { elements: ELEMENT_RULES, wind: WIND_RULE };
+
+      game.takeUp(levelDealt(itemAt(SMALL_LEVELS, 2), 1, rules));
+
+      expect(saying()).toBe("");
+    });
+
+    it("says a move as it is made", async () => {
+      const played = await startGame(3);
+
+      swap(played, BLUE_LINE);
+
+      expect(saying()).toBe("Bunch of 3, blue. 17 blue left. 5 moves left.");
+    });
+
+    it("says a swap refused", async () => {
+      const played = await startGame(3);
+
+      swap(played, REFUSED);
+
+      expect(saying()).toBe("That swap makes no bunch.");
+    });
+
+    it("says the move that clears a level until the card shows", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+
+      played.frames.frame();
+
+      expect(saying()).toBe("Bunch of 3, blue. Blue done.");
+    });
+
+    it("says the Cleared card as it shows", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+
+      played.frames.playOut();
+
+      expect(saying()).toBe("Level 1 cleared. 3 stars. 4 moves to spare.");
+    });
+
+    it("says the Out of moves card as it shows", async () => {
+      const played = await startGame(2);
+      swap(played, BLUE_LINE);
+
+      played.frames.playOut();
+
+      expect(saying()).toBe("Out of moves. 17 blue left.");
     });
   });
 
