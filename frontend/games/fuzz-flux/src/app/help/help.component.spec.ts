@@ -177,6 +177,7 @@ describe("HelpComponent", () => {
     expect(entriesOf("On the board").map(([text]) => text)).toEqual([
       "Gap. Has no square. Fuzzballs fall past it.",
       "Dust. Covers a square up to 2 layers deep. A layer comes off when a bunch or a special clears the square.",
+      "Sleepyhead. Can't be swapped. Falls when you clear what's under it, and goes to bed at the bottom.",
       "Burr. Keeps you from swapping a fuzzball. Line up 3 next to a burr to brush it off, or burrs spread.",
     ]);
   });
@@ -200,12 +201,13 @@ describe("HelpComponent", () => {
     ]);
   });
 
-  it("shows dust's picture as the bar shows its goal's, a burr on its fuzzball, and none for a gap", async () => {
+  it("shows each thing's picture as the bar shows its goal's, and none for a gap", async () => {
     await renderHelp(PICTURES);
 
     expect(entriesOf("On the board").map(([, picture]) => picture)).toEqual([
       null,
       PICTURES.dust[0],
+      PICTURES.sleepyhead,
       PICTURES.burred,
     ]);
   });

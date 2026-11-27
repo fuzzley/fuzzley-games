@@ -61,6 +61,9 @@ export const WISP_BURR_WORTH = 60;
 /** What a dusty square is worth to a wisp while the dust's goal is open, and a layer more for each layer on it. */
 export const WISP_DUST_WORTH = 50;
 
+/** What a square that holds a sleepyhead up is worth to a wisp while the sleepyheads' goal is open. */
+export const WISP_SLEEPYHEAD_WORTH = 70;
+
 /**
  * What the careful player weighs a game by, in the sketch's own decimals:
  * a cleared game by its moves left, and any other by the goals' work left,

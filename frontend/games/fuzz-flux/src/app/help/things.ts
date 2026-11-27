@@ -12,6 +12,7 @@ import { type CatalogHelp, catalogEntries } from "./catalog_entries";
 import { BURR_HELP } from "./entries/burr";
 import { DUST_HELP } from "./entries/dust";
 import { GAP_HELP } from "./entries/gap";
+import { SLEEPYHEAD_HELP } from "./entries/sleepyhead";
 
 /** A thing How to play lists: a gap, or an element whose rule is in play. */
 type ThingId = "gap" | Exclude<ElementId, (typeof STAND_INS)[number]>;
@@ -20,6 +21,7 @@ type ThingId = "gap" | Exclude<ElementId, (typeof STAND_INS)[number]>;
 const HELP_THINGS = {
   gap: GAP_HELP,
   dust: DUST_HELP,
+  sleepyhead: SLEEPYHEAD_HELP,
   burr: BURR_HELP,
 } as const satisfies Readonly<Record<ThingId, CatalogHelp>>;
 

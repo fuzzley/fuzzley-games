@@ -9,6 +9,7 @@ import type { ElementId } from "../catalog/elements";
 import { BURR_RULE } from "./burr";
 import { DUST_RULE } from "./dust";
 import type { ElementRule, WindRule } from "./element_rule";
+import { SLEEPYHEAD_RULE } from "./sleepyhead";
 
 /** The rule of an element still to be brought in, which takes no part in any moment of a move. */
 const STAND_IN: ElementRule = {};
@@ -17,7 +18,6 @@ const STAND_IN: ElementRule = {};
 export const STAND_INS = [
   "brick",
   "cage",
-  "sleepyhead",
 ] as const satisfies readonly ElementId[];
 
 /** Each element's rule, by its id. */
@@ -25,7 +25,7 @@ export const ELEMENT_RULES = {
   dust: DUST_RULE,
   brick: STAND_IN,
   cage: STAND_IN,
-  sleepyhead: STAND_IN,
+  sleepyhead: SLEEPYHEAD_RULE,
   burr: BURR_RULE,
 } as const satisfies Readonly<Record<ElementId, ElementRule>>;
 

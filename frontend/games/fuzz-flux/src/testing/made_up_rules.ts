@@ -12,6 +12,7 @@ import {
 } from "../rules/catalog/elements";
 import { BURR_RULE } from "../rules/elements/burr";
 import { DUST_RULE } from "../rules/elements/dust";
+import { SLEEPYHEAD_RULE } from "../rules/elements/sleepyhead";
 import { WISP_RANKS } from "../rules/tuning";
 import type {
   Change,
@@ -36,9 +37,7 @@ export const DESIGN_HOLDS: Readonly<Record<ElementId, ElementRule>> = {
   dust: {},
   brick: { holdsSwap: isBrick, holdsFall: isBrick },
   cage: { holdsSwap: isCaged, holdsFall: isCaged },
-  sleepyhead: {
-    holdsSwap: ({ piece }) => piece?.what === "sleepyhead",
-  },
+  sleepyhead: pick(SLEEPYHEAD_RULE, ["holdsSwap"]),
   burr: pick(BURR_RULE, ["holdsSwap"]),
 };
 
@@ -58,25 +57,18 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
       ...DESIGN_HOLDS.cage,
       goal: { id: "cage", countOn: (board) => countOf(board, isCaged) },
     },
-    sleepyhead: {
-      ...DESIGN_HOLDS.sleepyhead,
-      goal: {
-        id: "sleepyhead",
-        countOn: (board) =>
-          countOf(board, ({ piece }) => piece?.what === "sleepyhead"),
-      },
-    },
+    sleepyhead: pick(SLEEPYHEAD_RULE, ["holdsSwap", "goal"]),
     burr: DESIGN_HOLDS.burr,
   };
 
 /**
  * Every element's rule holding and counting what
  * `DESIGN_HOLDS_AND_GOALS` does, and taking the part the design's sketch
- * gives it as a wave strikes, dust and burrs by their own rules: a bunch opens a cage
- * and brushes off a burr
- * on each fuzzball it takes in, and knocks a brick or brushes off a burr
- * beside it; a blast knocks a brick, ruffles a sleepyhead, opens a cage or
- * brushes off a burr rather than gathering; a layer of dust is swept from
+ * gives it as a wave strikes, dust, the sleepyhead and burrs by their own
+ * rules: a bunch opens a cage and brushes off a burr on each fuzzball it
+ * takes in, and knocks a brick or brushes off a burr beside it; a blast
+ * knocks a brick, ruffles a sleepyhead, opens a cage or brushes off a burr
+ * rather than gathering; a layer of dust is swept from
  * under each fuzzball gathered or made special and each square struck
  * bare; a caged fuzzball takes no fur the frizzball gives, and a burred
  * one loses its burr as it takes it; a wisp weighs a caged fuzzball, a
@@ -118,22 +110,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
       },
     },
   },
-  sleepyhead: {
-    ...DESIGN_HOLDS_AND_GOALS.sleepyhead,
-    blasted: (square) =>
-      square.piece?.what === "sleepyhead"
-        ? { square, hit: "ruffled", counts: false }
-        : null,
-    settled: ({ piece, dust }, bed) =>
-      bed && piece?.what === "sleepyhead"
-        ? { square: { piece: null, dust }, hit: "bedded", counts: true }
-        : null,
-    wisp: {
-      rank: WISP_RANKS.sleepyhead,
-      worth: (board, square, goalOpen) =>
-        goalOpen && holdsSleepyheadUp(board, square) ? 70 : null,
-    },
-  },
+  sleepyhead: SLEEPYHEAD_RULE,
   burr: BURR_RULE,
 };
 
@@ -148,20 +125,6 @@ export const DESIGN_WIND: WindRule = {
       ? { wind: { ...wind, wait: wind.wait - 1 }, quarters: 0 }
       : { wind: { ...wind, wait: wind.every }, quarters: wind.quarters },
 };
-
-/** Returns whether a square holds up a sleepyhead: the nearest piece above it, past gaps and empty squares, is one. */
-function holdsSleepyheadUp(board: Board, square: number): boolean {
-  if (itemAt(board.pieces, square) === null) {
-    return false;
-  }
-  for (let above = square - board.width; above >= 0; above -= board.width) {
-    const piece = itemAt(board.pieces, above);
-    if (itemAt(board.open, above) && piece !== null) {
-      return piece.what === "sleepyhead";
-    }
-  }
-  return false;
-}
 
 /** The layers a brick has left once knocked, by the layers it had. */
 const LAYERS_LEFT = { 2: 1, 3: 2, 4: 3 } as const satisfies Readonly<

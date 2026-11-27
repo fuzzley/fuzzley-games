@@ -24,6 +24,10 @@ describe("PLAYABLE_LEVELS", () => {
     ]);
   });
 
+  it("lets in the levels of Bedtime whose elements, the sleepyhead and the burr, have their rules", () => {
+    expect(playableIn("bedtime")).toEqual(["19", "22", "25"]);
+  });
+
   it("lets in the levels whose wind blows one way and never turns", () => {
     expect(playableIn("windy-days")).toEqual(
       expect.arrayContaining(["28", "31"]),
