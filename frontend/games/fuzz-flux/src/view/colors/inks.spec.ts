@@ -43,11 +43,11 @@ describe("pieceInks", () => {
     },
   );
 
-  it("mixes a special's second fur from its kind's ink, 0.64 of the way to black in a light palette and half way to white in a dark one", () => {
+  it("mixes a special's second fur from its kind's ink as the design's art does, 0.38 of the way to black in a light palette and half way to white in a dark one", () => {
     const furs = [pieceInks("light"), pieceInks("dark")];
 
     expect(furs.map(({ secondFurs }) => secondFurs.blue)).toEqual([
-      0x10294d, 0xb9d6ff,
+      0x1b4785, 0xb9d6ff,
     ]);
   });
 

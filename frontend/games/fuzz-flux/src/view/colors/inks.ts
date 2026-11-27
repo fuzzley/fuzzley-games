@@ -51,7 +51,8 @@ export interface PieceInks extends ElementInks {
   /**
    * The second fur a special of each kind wears behind its own: its ink
    * mixed toward white in a dark palette and toward black in a light one,
-   * as `SECOND_FUR` says, so it stands off its kind and the square alike.
+   * as `SECOND_FUR` says, so it stands off the square, and off its kind
+   * across the rim in the square's color between them.
    */
   readonly secondFurs: Readonly<Record<KindId, number>>;
 }
@@ -72,15 +73,16 @@ const KIND_INK_PLACES = {
 
 /**
  * What a special's second fur is mixed from its kind's ink toward, and how
- * far, in each mode: in a light palette, far enough toward black that every
- * kind keeps 3:1 against its fur; in a dark one, where no fur could keep
- * 3:1 against the kinds' light inks, half way to white, as the design's art
- * mixes it.
+ * far, in each mode, as the design's art mixes it: 0.38 of the way to black
+ * in a light palette, and half way to white in a dark one.
+ *
+ * Neither keeps its kind 3:1 against it, so the rim in the square's color
+ * that lies between the two tells them apart.
  */
 const SECOND_FUR: Readonly<
   Record<ColorMode, { readonly toward: number; readonly share: number }>
 > = {
-  light: { toward: 0x000000, share: 0.64 },
+  light: { toward: 0x000000, share: 0.38 },
   dark: { toward: 0xffffff, share: 0.5 },
 };
 

@@ -29,26 +29,30 @@ const EYES = colorNumber(FUZZBALL.ink);
 // are on, in the text, as Minesweeper's and Sudoku's squares are ringed.
 // The eyes keep it against each kind and the sleepyhead, and the
 // frizzball's against the frizzball; a cage's bars against each kind they
-// cross; dust's specks against dust and thick dust; and, in a light
-// palette, each kind against its second fur, which it lies on. The hint's
-// hand and a wave's mark, which lie over the pieces, keep it against the
-// grounds; the page among them is the color of the rim each wears, which
-// every piece keeps 3:1 against, so either reads over any piece. A tuft of
-// fluff takes its kind's ink, and is held as its kind is, or the
-// frizzball's. The effects' white, a ring's, a streak's and a flash's
-// light, keeps it against the grounds it spreads over.
+// cross; and dust's specks against dust and thick dust. The hint's hand and
+// a wave's mark, which lie over the pieces, keep it against the grounds;
+// the page among them is the color of the rim each wears, which every piece
+// keeps 3:1 against, so either reads over any piece. A tuft of fluff takes
+// its kind's ink, and is held as its kind is, or the frizzball's. The
+// effects' white, a ring's, a streak's and a flash's light, keeps it
+// against the grounds it spreads over.
 //
-// Some pairs keep less, as no ink could keep them at 3:1. A kind against
-// its second fur in a dark palette: not even white keeps 3:1 against the
-// kinds' inks, 1.6:1 against gold, so the fur is told by its outline
-// against the square. A brick's cushion against the one beneath: 4
-// cushions each 3:1 from the next would span 27:1, more than black and
-// white, so they step about 1.3:1 in lightness, each keeping 3:1 against
-// the square. Dust against a clean square: no fill 3:1 off the square
-// would keep every kind 3:1 against it, so dust is told by its specks, and
-// thick dust by more and larger ones. And a cage's bars against the square
-// between its fuzzball and its frame, as no ink keeps 3:1 against both a
-// dark palette's square and every kind: the frame tells the cage there.
+// A kind keeps less against its second fur, about 2:1 in a light palette
+// and as little as 1.25:1 in a dark one, as the design's art mixes the fur:
+// not even white keeps 3:1 against a dark palette's gold, and a light
+// palette's fur dark enough for it reads as an outline, not as a darker
+// shade of its kind. A rim in the square's color lies between the two, and
+// each keeps 3:1 against the square.
+//
+// Some pairs keep less, as no ink could keep them at 3:1. A brick's cushion
+// against the one beneath: 4 cushions each 3:1 from the next would span
+// 27:1, more than black and white, so they step about 1.3:1 in lightness,
+// each keeping 3:1 against the square. Dust against a clean square: no fill
+// 3:1 off the square would keep every kind 3:1 against it, so dust is told
+// by its specks, and thick dust by more and larger ones. And a cage's bars
+// against the square between its fuzzball and its frame, as no ink keeps
+// 3:1 against both a dark palette's square and every kind: the frame tells
+// the cage there.
 //
 // Two more keep less, which a player needn't tell apart. A kind against
 // its burr: the ring of thorns stands round its fuzzball, off it, as the
@@ -109,13 +113,6 @@ describe("the board's contrast", () => {
       ...dusts.flatMap(([dust, color]) =>
         against(dust, color, [["specks", palette.specks]]),
       ),
-      ...(mode === "light"
-        ? KIND_IDS.flatMap((kind) =>
-            against(`${kind} special's second fur`, palette.secondFurs[kind], [
-              [`${kind} fuzzball`, palette.kinds[kind]],
-            ]),
-          )
-        : []),
     ];
   });
 });
