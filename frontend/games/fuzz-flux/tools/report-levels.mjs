@@ -37,16 +37,10 @@ import {
 } from "node:worker_threads";
 import { waitForTurn, waitedWords, waitingWords } from "@fz/dev/queue";
 import { middleAndMost } from "@fz/dev/report";
-import {
-  CONSOLE,
-  importThroughVite,
-  isStop,
-  misread,
-  readArgs,
-  stopWith,
-} from "@fz/dev/script";
+import { CONSOLE, importThroughVite, isStop, stopWith } from "@fz/dev/script";
+import { levelsOfSet, readSetOption } from "./set_option.mjs";
 
-/** @import { Printer, Stop } from "@fz/dev/script" */
+/** @import { Printer } from "@fz/dev/script" */
 
 /**
  * A level, so far as the report reads it: its place in the game, from 1,
@@ -136,13 +130,6 @@ import {
  */
 
 /**
- * What a command line asks the report for: a set's levels, or every one.
- *
- * @typedef {object} Request
- * @property {string | undefined} set
- */
-
-/**
  * Says what the report loads, how it plays the levels, how it waits its
  * turn and where it prints, each its own unless a spec hands it another.
  *
@@ -211,22 +198,6 @@ stars or deals than its games set.
 
   --set <id>      Play only the levels of a set
   -h, --help      Show this message`;
-
-/**
- * Returns what a command line asks the report for, or, for `--help` or one
- * the report can't read, what to print and the code to exit with.
- *
- * @param {readonly string[]} args
- * @returns {Request | Stop}
- */
-export function readCommandLine(args) {
-  const read = readArgs(args, {
-    options: { set: { type: "string" } },
-    usage: USAGE,
-  });
-  if (isStop(read)) return read;
-  return { set: read.values.set };
-}
 
 /**
  * Returns what the report plays, `REPORT_API`, loaded through Vite, or
@@ -500,28 +471,6 @@ export function differencesOf({ number, data }, figures) {
 }
 
 /**
- * Returns the levels a request plays, in the order played, or, for a set
- * the game doesn't have, what to print and the code to exit with.
- *
- * @param {ReportApi} api
- * @param {Request} request
- * @returns {ReadonlyArray<ReportLevel> | Stop}
- */
-function levelsOf(api, { set }) {
-  const sets = [...new Set(api.levels.map((level) => level.set.id))];
-  if (set !== undefined && !sets.includes(set)) {
-    const offered = new Intl.ListFormat("en-GB", { type: "disjunction" });
-    return misread(
-      `--set takes ${offered.format(sets.map((id) => `"${id}"`))}, not "${set}".`,
-      USAGE,
-    );
-  }
-  return api.levels.filter(
-    (level) => set === undefined || level.set.id === set,
-  );
-}
-
-/**
  * Plays each level on a worker thread of its own, as many at once as the
  * machine runs, each running this script, which loads the game's
  * `REPORT_API` through Vite; and returns their figures in the order of the
@@ -640,10 +589,10 @@ export async function run(
 ) {
   /** @type {Printer} */
   const printer = { print, printError };
-  const request = readCommandLine(args);
+  const request = readSetOption(args, USAGE);
   if (isStop(request)) return stopWith(request, printer);
   const api = await load();
-  const levels = levelsOf(api, request);
+  const levels = levelsOfSet(api.levels, request, USAGE);
   if (isStop(levels)) return stopWith(levels, printer);
   const joined = now();
   /** @type {number[]} */
