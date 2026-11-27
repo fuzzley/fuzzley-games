@@ -25,7 +25,12 @@ import {
 } from "../view/timeline/build";
 import { FEEL } from "../view/timeline/feel";
 import { lookAt } from "../view/timeline/looks";
-import type { Look, PieceTrack, Timeline } from "../view/timeline/timeline";
+import type {
+  Look,
+  PieceTrack,
+  SoundCue,
+  Timeline,
+} from "../view/timeline/timeline";
 import { ART_PALETTE } from "./art_frames";
 import type { MoveFixture } from "./move_fixtures";
 import { moveStartOf } from "./shown_board";
@@ -141,6 +146,10 @@ export class FakeShell implements FuzzFluxSceneOptions {
   goalRects: readonly CssRect[] = [];
   /** The hand's timeline the board shows, or null for none. */
   handShown: Timeline | null = null;
+  /** Whether the player wants sound. */
+  wantsSound = true;
+  /** The shell's own cues. */
+  shellCues: readonly SoundCue[] = [];
   readonly ticks: Tick[] = [];
   readonly layouts: BoardMetrics[] = [];
 
@@ -159,6 +168,8 @@ export class FakeShell implements FuzzFluxSceneOptions {
   };
   readonly goals = (): readonly CssRect[] => this.goalRects;
   readonly hand = (): Timeline | null => this.handShown;
+  readonly sound = (): boolean => this.wantsSound;
+  readonly cues = (): readonly SoundCue[] => this.shellCues;
 }
 
 /** Describes the scene run for a shell. */

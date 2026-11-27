@@ -83,6 +83,17 @@ describe("PlayClock", () => {
     expect(clock.starts(BUNCH.timeline.restMs)).toBe(false);
   });
 
+  it("takes the moments of the scene's own time from its time the frame before, up to its time now", () => {
+    const clock = advanced([16, 20]);
+
+    expect([15, 16, 35, 36].map((atMs) => clock.reaches(atMs))).toEqual([
+      false,
+      true,
+      true,
+      false,
+    ]);
+  });
+
   it("finds a moment of the play's timeline on the scene's clock", () => {
     const clock = advanced([16, 16], REFUSED, runningClock());
 

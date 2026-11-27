@@ -14,8 +14,9 @@ import { type BoardMetrics, boardMetrics } from "../view/board/metrics";
 import type { BoardPalette } from "../view/colors/palette";
 import type { GridShown } from "../view/run_state";
 import { type Frame, frameFor, sampleAt } from "../view/timeline/sample";
-import type { Timeline } from "../view/timeline/timeline";
+import type { SoundCue, Timeline } from "../view/timeline/timeline";
 import { BoardAtlas } from "./atlas";
+import { BoardSounds } from "./board_sounds";
 import { DISC } from "./disc";
 import { LAYERS, type Layer } from "./layers";
 import { BoardPainter } from "./painters/board_painter";
@@ -36,7 +37,8 @@ export interface FuzzFluxSceneOptions {
    * Takes the scene's clock as each frame starts, in milliseconds, and how
    * far into its timeline the play last handed over stands on it, by which
    * the shell keeps its beats: the board at rest, each goal's count, the
-   * card at a level's end and each star lit on it.
+   * card at a level's end and each star lit on it. A beat falls in the
+   * first frame that stands past it, as a cue at the same moment plays.
    */
   readonly tick: (nowMs: number, playedMs: number) => void;
   /**
@@ -61,12 +63,23 @@ export interface FuzzFluxSceneOptions {
    * value the frame has met plays on.
    */
   readonly hand: () => Timeline | null;
+  /** Returns whether the player wants sound, as the Sound setting says. */
+  readonly sound: () => boolean;
+  /**
+   * Returns the shell's own cues, such as the low sound's and the card's
+   * button's, each at its moment of the scene's clock as the tick hands it,
+   * which plays in the frame the clock first stands past it, as the
+   * timeline's do as the play passes theirs, so one before the last tick's
+   * never plays; asked each frame, so the same array until a cue is added.
+   */
+  readonly cues: () => readonly SoundCue[];
 }
 
 /**
  * Plays a level of Fuzz Flux on the board: keeps the one clock a level
  * plays by, standing the play the shell hands it on it, hands the clock to
- * the shell each frame, and draws the play's timeline as it samples at the
+ * the shell each frame, plays the timeline's sounds and the shell's as the
+ * clock reaches them, and draws the play's timeline as it samples at the
  * moment the play stands at: the squares and their dust, the pieces, the
  * effects, the waves' marks, what flies loose and the copies flying to the
  * goals, the board dimmed and shaken as the timeline has it, and its life
@@ -108,6 +121,8 @@ export class FuzzFluxScene extends Scene {
   flights!: FlightsPainter;
   /** Draws the hint's hand. */
   hand!: HandPainter;
+  /** Plays the board's sounds. */
+  sounds!: BoardSounds;
   /** Every painter, back to front, which each frame draws. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
@@ -168,6 +183,7 @@ export class FuzzFluxScene extends Scene {
       goals: options.goals(),
       hand: options.hand(),
     };
+    this.sounds = new BoardSounds(this);
     options.onLayout(this.metrics);
     onFirstFrame(this, () => {
       this.surroundings.ready();
@@ -178,10 +194,13 @@ export class FuzzFluxScene extends Scene {
    * Moves the clock on by the time the frame took, with the play the shell
    * hands it, lays the board out again where the canvas, the chrome or the
    * board changed, bakes the atlas again where the palette or the square
-   * changed, hands the shell the clock, and draws the play as it stands.
+   * changed, hands the shell the clock, plays the sounds whose moments come
+   * in the frame, and draws the play as it stands.
    *
    * It makes nothing but on a new play, whose timeline's records it makes
-   * once, a new layout or a new palette.
+   * once, a new layout or a new palette; the sound player makes a voice
+   * for a sound the first times its plays overlap, and Phaser a buffer
+   * source for each sound it plays, as Web Audio starts each only once.
    */
   override update(_time: number, deltaMs: number): void {
     const { options, clock } = this;
@@ -190,6 +209,7 @@ export class FuzzFluxScene extends Scene {
     this.atlas.bakeFor(options.palette(), this.square);
     clock.advance(play, deltaMs);
     options.tick(clock.nowMs, clock.playedMs);
+    this.sounds.play(options.sound(), play, options.cues(), clock);
     this.draw(play);
   }
 

@@ -34,6 +34,7 @@ const LANDED_MS = Number.MAX_SAFE_INTEGER;
  */
 export class PlayClock {
   #nowMs = 0;
+  #thenMs = 0;
   #playedMs = 0;
   #sinceMs = 0;
   /** The play the clock last moved on with, or null before the first. */
@@ -65,6 +66,11 @@ export class PlayClock {
     return this.#sinceMs <= atMs && atMs < this.#playedMs;
   }
 
+  /** Returns whether a moment of the scene's own time comes in the frame: from its time the frame before, up to its time now. */
+  reaches(atMs: number): boolean {
+    return this.#thenMs <= atMs && atMs < this.#nowMs;
+  }
+
   /** Returns when a moment of the play's timeline comes on the scene's clock. */
   nowOf(atMs: number): number {
     return this.#nowMs - (this.#playedMs - atMs);
@@ -77,6 +83,7 @@ export class PlayClock {
       this.#startMs = this.#nowMs;
       this.#playedMs = 0;
     }
+    this.#thenMs = this.#nowMs;
     this.#nowMs += deltaMs;
     this.#sinceMs = play.landed ? LANDED_MS : this.#playedMs;
     this.#playedMs = play.landed ? LANDED_MS : this.#nowMs - this.#startMs;
