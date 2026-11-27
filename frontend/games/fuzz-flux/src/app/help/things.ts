@@ -9,6 +9,7 @@ import type { ElementId } from "../../rules/catalog/elements";
 import type { STAND_INS } from "../../rules/elements/element_rules";
 import type { Pictures } from "../../scene/pictures";
 import { type CatalogHelp, catalogEntries } from "./catalog_entries";
+import { BRICK_HELP } from "./entries/brick";
 import { BURR_HELP } from "./entries/burr";
 import { DUST_HELP } from "./entries/dust";
 import { GAP_HELP } from "./entries/gap";
@@ -21,6 +22,7 @@ type ThingId = "gap" | Exclude<ElementId, (typeof STAND_INS)[number]>;
 const HELP_THINGS = {
   gap: GAP_HELP,
   dust: DUST_HELP,
+  brick: BRICK_HELP,
   sleepyhead: SLEEPYHEAD_HELP,
   burr: BURR_HELP,
 } as const satisfies Readonly<Record<ThingId, CatalogHelp>>;

@@ -24,13 +24,23 @@ describe("PLAYABLE_LEVELS", () => {
     ]);
   });
 
-  it("lets in the levels of Bedtime whose elements, the sleepyhead and the burr, have their rules", () => {
-    expect(playableIn("bedtime")).toEqual(["19", "22", "25"]);
+  it("lets in each level of Bricks and bars that holds no cage", () => {
+    expect(playableIn("bricks-and-bars")).toEqual([
+      "10",
+      "11",
+      "12",
+      "14",
+      "16",
+    ]);
+  });
+
+  it("lets in each level of Bedtime that holds no cage", () => {
+    expect(playableIn("bedtime")).toEqual(["19", "20", "22", "24", "25", "26"]);
   });
 
   it("lets in the levels whose wind blows one way and never turns", () => {
     expect(playableIn("windy-days")).toEqual(
-      expect.arrayContaining(["28", "31"]),
+      expect.arrayContaining(["28", "29", "31"]),
     );
   });
 

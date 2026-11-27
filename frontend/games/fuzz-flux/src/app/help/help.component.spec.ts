@@ -177,6 +177,7 @@ describe("HelpComponent", () => {
     expect(entriesOf("On the board").map(([text]) => text)).toEqual([
       "Gap. Has no square. Fuzzballs fall past it.",
       "Dust. Covers a square up to 2 layers deep. A layer comes off when a bunch or a special clears the square.",
+      "Brick. Has 1 to 4 layers. A bunch next to it or a special knocks a layer off.",
       "Sleepyhead. Can't be swapped. Falls when you clear what's under it, and goes to bed at the bottom.",
       "Burr. Keeps you from swapping a fuzzball. Line up 3 next to a burr to brush it off, or burrs spread.",
     ]);
@@ -207,6 +208,7 @@ describe("HelpComponent", () => {
     expect(entriesOf("On the board").map(([, picture]) => picture)).toEqual([
       null,
       PICTURES.dust[0],
+      PICTURES.brick,
       PICTURES.sleepyhead,
       PICTURES.burred,
     ]);

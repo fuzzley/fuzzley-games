@@ -6,6 +6,7 @@
 // its rule here the same way.
 
 import type { ElementId } from "../catalog/elements";
+import { BRICK_RULE } from "./brick";
 import { BURR_RULE } from "./burr";
 import { DUST_RULE } from "./dust";
 import type { ElementRule, WindRule } from "./element_rule";
@@ -15,15 +16,12 @@ import { SLEEPYHEAD_RULE } from "./sleepyhead";
 const STAND_IN: ElementRule = {};
 
 /** Every element that plays by the stand-in, its rule still to be brought in. */
-export const STAND_INS = [
-  "brick",
-  "cage",
-] as const satisfies readonly ElementId[];
+export const STAND_INS = ["cage"] as const satisfies readonly ElementId[];
 
 /** Each element's rule, by its id. */
 export const ELEMENT_RULES = {
   dust: DUST_RULE,
-  brick: STAND_IN,
+  brick: BRICK_RULE,
   cage: STAND_IN,
   sleepyhead: SLEEPYHEAD_RULE,
   burr: BURR_RULE,
