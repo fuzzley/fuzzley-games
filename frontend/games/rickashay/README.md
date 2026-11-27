@@ -1,13 +1,14 @@
 # Rickaashay
 
 Aim the fuzzball, and it bounces off every wall and brick. The more bricks a
-shot hits, the more you score.
+shot hits, the more you score. Play it at
+https://fuzzley.games/play/rickashay/.
 
-Rickaashay is still being built. It is an [Angular](https://angular.dev/) app
-on the Fuzzley Games shared libraries (`frontend/lib/`), among them
-`@fz/brick-wall`, which it shares with Brick Fuzz Pop, its field drawn by
-[Phaser](https://phaser.io/) through `@fz/phaser`, built with
-[Vite](https://vite.dev/) and tested with [Vitest](https://vitest.dev/).
+It is an [Angular](https://angular.dev/) app on the Fuzzley Games shared
+libraries (`frontend/lib/`), among them `@fz/brick-wall`, which it shares with
+Brick Fuzz Pop, its field drawn by [Phaser](https://phaser.io/) through
+`@fz/phaser`, built with [Vite](https://vite.dev/) and tested with
+[Vitest](https://vitest.dev/).
 
 ## Development
 

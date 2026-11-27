@@ -350,7 +350,6 @@ export const GAMES: readonly Game[] = [
     players: SOLO,
     minutes: 10,
     play: { build: "rickashay" },
-    inDevelopment: true,
   },
   {
     slug: "brick-breaker",
