@@ -7,6 +7,7 @@ import { type RunProgram, fakeFfmpeg, missingFfmpeg } from "@fz/dev/sounds";
 import {
   SR,
   type Signal,
+  centsOf,
   loudness,
   measure,
   osc,
@@ -15,6 +16,7 @@ import {
 } from "@fz/dev/synth";
 import shipped from "../src/scene/sounds/sprite.json";
 import { designText } from "../src/testing/design_files";
+import { LADDER_CENTS } from "../src/view/effects/ladder";
 import { SOUNDS } from "../src/view/effects/sounds";
 import {
   RECIPES,
@@ -26,43 +28,13 @@ import {
   run,
   spriteOf,
 } from "./build-sounds.mjs";
+import { type DesignSound, designSounds } from "./sounds/measures.mjs";
 
-/** Describes a sound as the design's table of measures gives it. */
-interface Measures {
-  /** Its length, in milliseconds. */
-  readonly ms: number;
-  /** Its loudest sample, in dB below full scale. */
-  readonly peak: number;
-  /** Its level over its whole length, in dB below full scale. */
-  readonly average: number;
-  /** Where its energy centers, in Hz. */
-  readonly centroid: number;
-}
+/** Describes a sound by the measures the design's table gives it. */
+type Measures = Omit<DesignSound, "when">;
 
 /** The design's measures of its sounds, by name, from its table. */
-const DESIGN: ReadonlyMap<string, Measures> = new Map(
-  designText("sound/measures.md")
-    .split("\n")
-    .flatMap((line) => {
-      const row =
-        /^\| `([\w-]+)` \|[^|]+\| (\d+) \| (-?[\d.]+) \| (-?[\d.]+) \| (\d+) \|$/.exec(
-          line,
-        );
-      if (row === null) return [];
-      const [, name = "", ms, peak, average, centroid] = row;
-      return [
-        [
-          name,
-          {
-            ms: Number(ms),
-            peak: Number(peak),
-            average: Number(average),
-            centroid: Number(centroid),
-          },
-        ],
-      ];
-    }),
-);
+const DESIGN = designSounds(designText("sound/measures.md"));
 
 /** How long each frame a sound's spectrum is read over is, in samples, as the design read its sounds. */
 const FRAME = 1024;
@@ -155,6 +127,14 @@ const SPRITE_BUDGET = 300 * 1024;
 describe("the recipes", () => {
   it("are named by the view's sounds, in the order the sprite holds them", () => {
     expect(RECIPES.map(({ name }) => name)).toEqual(SOUNDS);
+  });
+});
+
+describe("the ladder", () => {
+  it("raises the sprite's notes, made at its foot, C5, by the steps of the key the recipes climb, to A6", () => {
+    expect(LADDER_CENTS).toEqual(
+      Array.from({ length: 10 }, (_, step) => centsOf(step)),
+    );
   });
 });
 
