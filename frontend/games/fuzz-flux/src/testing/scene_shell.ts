@@ -1,7 +1,7 @@
 // The shell's part, played for the scene's specs: what the board plays,
-// made of a move played by hand or of a board standing still, and a shell
-// that hands the scene each and keeps what the scene tells it, the scene
-// run for it.
+// made of a move played by hand or of a board standing still, a dark
+// palette beside the art's light one, and a shell that hands the scene
+// each and keeps what the scene tells it, the scene run for it.
 
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
@@ -12,6 +12,7 @@ import {
 } from "../scene/fuzz_flux_scene";
 import type { BoardPlay } from "../scene/play_clock";
 import type { BoardMetrics } from "../view/board/metrics";
+import { type BoardPalette, boardPalette } from "../view/colors/palette";
 import type { GridShown } from "../view/run_state";
 import {
   type PlaySettings,
@@ -19,11 +20,24 @@ import {
   timelineOf,
 } from "../view/timeline/build";
 import { FEEL } from "../view/timeline/feel";
+import { ART_PALETTE } from "./art_frames";
 import type { MoveFixture } from "./move_fixtures";
 import { moveStartOf } from "./shown_board";
 
 /** How the player has set moves to play, unless a spec says: at Normal speed, in full motion. */
 const NORMAL: PlaySettings = { speed: "normal", motion: "full" };
+
+/** A dark palette, its roles each a color no other role takes, as the art's light one's are. */
+export const DARK: BoardPalette = boardPalette(
+  {
+    page: "#15181d",
+    panel: "#20252c",
+    text: "#eef1f5",
+    muted: "#a7b0bc",
+    warning: "#ffb35c",
+  },
+  "dark",
+);
 
 /** Returns the play of a move played by hand, on its board, at the design's feel, as the player has set moves to play. */
 export function playOf(
@@ -66,6 +80,8 @@ export class FakeShell implements FuzzFluxSceneOptions {
   shown: BoardPlay;
   /** The chrome over the canvas. */
   chrome: Insets = NO_INSETS;
+  /** The palette the board is drawn in. */
+  colors: BoardPalette = ART_PALETTE;
   readonly ticks: Tick[] = [];
   readonly layouts: BoardMetrics[] = [];
 
@@ -78,6 +94,7 @@ export class FakeShell implements FuzzFluxSceneOptions {
     this.ticks.push({ nowMs, playedMs });
   };
   readonly play = (): BoardPlay => this.shown;
+  readonly palette = (): BoardPalette => this.colors;
   readonly onLayout = (metrics: BoardMetrics): void => {
     this.layouts.push(metrics);
   };

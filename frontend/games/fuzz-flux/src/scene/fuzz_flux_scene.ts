@@ -6,9 +6,12 @@ import {
   uniqueSceneKey,
   viewportOf,
 } from "@fz/phaser/scene";
+import type { ArtScale } from "@fz/phaser/shapes";
 import { Scene } from "phaser";
 import { type BoardMetrics, boardMetrics } from "../view/board/metrics";
+import type { BoardPalette } from "../view/colors/palette";
 import type { GridShown } from "../view/run_state";
+import { BoardAtlas } from "./atlas";
 import { type BoardPlay, PlayClock } from "./play_clock";
 
 /** What the scene asks of the shell, and tells it. */
@@ -25,6 +28,8 @@ export interface FuzzFluxSceneOptions {
    * frame does, and a value the frame has met plays on.
    */
   readonly play: () => BoardPlay;
+  /** Returns the colors the board is drawn in; a new value bakes the atlas again. */
+  readonly palette: () => BoardPalette;
   /** Takes where the board now lies on the canvas, and the panels beside it. */
   readonly onLayout: (metrics: BoardMetrics) => void;
 }
@@ -32,7 +37,8 @@ export interface FuzzFluxSceneOptions {
 /**
  * Plays a level of Fuzz Flux on the board: keeps the one clock a level
  * plays by, standing the play the shell hands it on it, hands the clock to
- * the shell each frame, and lays the board out to the canvas.
+ * the shell each frame, and lays the board out to the canvas, its art
+ * baked for it.
  */
 export class FuzzFluxScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -48,6 +54,10 @@ export class FuzzFluxScene extends Scene {
   private down = 0;
   /** Where the board lies on the canvas, as it was last laid out. */
   private metrics!: BoardMetrics;
+  /** A square's side, and the pixel ratio, as the board was last laid out, which the atlas bakes for. */
+  private square!: ArtScale;
+  /** Bakes the board's art, in its palette and for its square. */
+  private atlas!: BoardAtlas;
 
   constructor(
     private readonly options: FuzzFluxSceneOptions,
@@ -58,10 +68,15 @@ export class FuzzFluxScene extends Scene {
     this.key = key;
   }
 
-  /** Lays the board out for the play the shell hands it first, and says it is ready once it has drawn. */
+  /**
+   * Lays the board out for the play the shell hands it first, bakes the
+   * atlas for it, and says it is ready once it has drawn.
+   */
   create(): void {
-    this.measure(this.options.play().grid);
-    this.options.onLayout(this.metrics);
+    const { options } = this;
+    this.measure(options.play().grid);
+    this.atlas = new BoardAtlas(this, options.palette(), this.square);
+    options.onLayout(this.metrics);
     onFirstFrame(this, () => {
       this.surroundings.ready();
     });
@@ -70,12 +85,14 @@ export class FuzzFluxScene extends Scene {
   /**
    * Moves the clock on by the time the frame took, with the play the shell
    * hands it, lays the board out again where the canvas, the chrome or the
-   * board changed, and hands the shell the clock.
+   * board changed, bakes the atlas again where the palette or the square
+   * changed, and hands the shell the clock.
    */
   override update(_time: number, deltaMs: number): void {
     const { options, clock } = this;
     const play = options.play();
     this.fit(play.grid);
+    this.atlas.bakeFor(options.palette(), this.square);
     clock.advance(play, deltaMs);
     options.tick(clock.nowMs, clock.playedMs);
   }
@@ -107,6 +124,10 @@ export class FuzzFluxScene extends Scene {
     const room = roomInside(this.viewport);
     if (!first && (room.width <= 0 || room.height <= 0)) return false;
     this.metrics = boardMetrics(this.viewport, grid.width, grid.height);
+    this.square = {
+      unit: this.metrics.square,
+      pixelRatio: this.viewport.pixelRatio,
+    };
     return true;
   }
 }
