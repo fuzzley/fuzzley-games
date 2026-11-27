@@ -5,12 +5,12 @@ import {
   atlasSize,
   extentOf,
 } from "@fz/phaser/shapes";
-import type { Fuzzball } from "../rules/catalog/pieces";
+import type { Fuzzball, Piece } from "../rules/catalog/pieces";
 import { ART_PALETTE, ART_SCALE, billionths } from "../testing/art_frames";
 import { MOVE_FIXTURES } from "../testing/move_fixtures";
 import { DARK, startBoard } from "../testing/scene_shell";
 import { BURRED_SCALE } from "../view/art/elements/burr";
-import { DUSTY, FRAMES } from "../view/art/frame_names";
+import { DUSTY, FRAMES, type FrameName } from "../view/art/frame_names";
 import { atlasFrames, bakedScale } from "../view/art/frames";
 import { eyesSeatOn } from "../view/art/piece_frames";
 import { PICTURE_FRAMES, atlasWithPictures, pictureFrames } from "./pictures";
@@ -47,6 +47,20 @@ function spanOf(commands: readonly DrawCommand[]): {
     y: (top + bottom) / 2,
     width: right - left,
   };
+}
+
+/** Returns a command's kind, color and size, its size at a scale undone, as a picture draws a frame scaled. */
+function shapeOf(
+  command: DrawCommand,
+  scale: number,
+): readonly (string | number)[] {
+  const { width, height } = extentOf(command);
+  return [
+    command.kind,
+    command.color,
+    billionths(width / scale),
+    billionths(height / scale),
+  ];
 }
 
 /** A wisp of the first kind, which a picture shows a special's fur on. */
@@ -93,6 +107,52 @@ describe("pictureFrames", () => {
       [...body.commands, ...eyes.commands].map(({ kind }) => kind),
     );
   });
+
+  it("draws a caged fuzzball's picture as its body at rest, its eyes sleepy as it looks out, then its cage over them", () => {
+    const body = frameNamed(FRAMES_DRAWN, FRAMES.body("blue", "plain", "rest"));
+    const eyes = frameNamed(FRAMES_DRAWN, FRAMES.eyes("sleepy"));
+    const cage = frameNamed(FRAMES_DRAWN, FRAMES.cage);
+
+    const picture = frameNamed(
+      pictureFrames(FRAMES_DRAWN, ART_SCALE),
+      PICTURE_FRAMES.caged,
+    );
+
+    expect(picture.commands.map(({ kind, color }) => [kind, color])).toEqual(
+      [...body.commands, ...eyes.commands, ...cage.commands].map(
+        ({ kind, color }) => [kind, color],
+      ),
+    );
+  });
+
+  it.each<[string, string, Piece, FrameName]>([
+    [
+      "the frizzball's",
+      PICTURE_FRAMES.frizzball,
+      { what: "frizzball", id: 0 },
+      FRAMES.frizzballEyes("eep"),
+    ],
+    [
+      "a burred fuzzball's",
+      PICTURE_FRAMES.burred,
+      { ...WISP, special: null, burred: true },
+      FRAMES.eyes("cross"),
+    ],
+  ])(
+    "draws %s picture with its eyes last, in the face it rests with on the board",
+    (_, name, piece, eyesFrame) => {
+      const eyes = frameNamed(FRAMES_DRAWN, eyesFrame);
+      const { scale } = eyesSeatOn(piece, "plain");
+
+      const picture = frameNamed(pictureFrames(FRAMES_DRAWN, ART_SCALE), name);
+
+      expect(
+        picture.commands
+          .slice(-eyes.commands.length)
+          .map((command) => shapeOf(command, scale)),
+      ).toEqual(eyes.commands.map((command) => shapeOf(command, 1)));
+    },
+  );
 
   it("sits a special's eyes where they sit on its fur, as large as they are drawn there, about its square's middle", () => {
     const eyes = frameNamed(FRAMES_DRAWN, FRAMES.eyes("rest"));

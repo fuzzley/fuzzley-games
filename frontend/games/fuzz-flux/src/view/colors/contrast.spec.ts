@@ -36,7 +36,8 @@ const EYES = colorNumber(FUZZBALL.ink);
 // either reads over any piece. A tuft of fluff takes its kind's ink, and is
 // held as its kind is, or the frizzball's. The effects' white, a ring's, a
 // streak's and a flash's light, keeps it against the grounds it spreads
-// over.
+// over. A cage's bar flying off as it opens is its frame's steel, which
+// keeps it against the grounds it flies over, as the bars' ink would not.
 //
 // A kind keeps less against its second fur, about 2:1 in a light palette
 // and as little as 1.25:1 in a dark one, as the design's art mixes the fur:
@@ -112,6 +113,7 @@ describe("the board's contrast", () => {
         palette.cushions[place],
       ]),
       ["cage's frame", palette.cage.frame],
+      ["cage's bar flying", palette.cage.frame],
       ["burr", palette.burr],
       ...burrEdges,
       ["sleepyhead", palette.sleepyhead.body],

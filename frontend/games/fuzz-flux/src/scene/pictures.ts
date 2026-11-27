@@ -37,7 +37,6 @@ import {
 } from "../view/art/piece_frames";
 import type { BoardPalette } from "../view/colors/palette";
 import { restingFace } from "../view/timeline/looks";
-import type { Faces } from "../view/timeline/timeline";
 
 /** Returns the name of a picture's frame in the atlas. */
 function pictureOf<What extends string>(what: What): `picture-${What}` {
@@ -101,17 +100,10 @@ function fuzzballOf(kind: KindId, change: Partial<Fuzzball> = {}): Fuzzball {
   };
 }
 
-/** The burred fuzzball How to play shows, which rests looking cross. */
-const BURRED = fuzzballOf(WORN_ON, { burred: true });
-
-/** Returns a picture of a piece as it rests on the board: what it wears behind it, its body as large as it is drawn, its eyes where they sit, in a face, and what it wears over them. */
-function restingPiece(
-  name: string,
-  piece: Piece,
-  face: Faces["face"] = "rest",
-): Picture {
+/** Returns a picture of a piece as it rests on the board: what it wears behind it, its body as large as it is drawn, its eyes where they sit in the face it rests with, and what it wears over them. */
+function restingPiece(name: string, piece: Piece): Picture {
   const fur = furOf(piece);
-  const eyes = eyesFrameOf(piece, face);
+  const eyes = eyesFrameOf(piece, restingFace(piece));
   const seated = (
     frame: FrameName | null,
     seat: EyesSeat = AT_MIDDLE,
@@ -144,7 +136,7 @@ const PICTURES: readonly Picture[] = [
   restingPiece(PICTURE_FRAMES.frizzball, { what: "frizzball", id: 0 }),
   restingPiece(PICTURE_FRAMES.sleepyhead, { what: "sleepyhead", id: 0 }),
   restingPiece(PICTURE_FRAMES.caged, fuzzballOf(WORN_ON, { caged: true })),
-  restingPiece(PICTURE_FRAMES.burred, BURRED, restingFace(BURRED)),
+  restingPiece(PICTURE_FRAMES.burred, fuzzballOf(WORN_ON, { burred: true })),
   ...DUSTY.map((layers, at) => ({
     name: itemAt(DUST_PICTURES, at),
     images: [

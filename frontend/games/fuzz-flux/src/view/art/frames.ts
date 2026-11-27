@@ -5,6 +5,7 @@ import type { BoardPalette } from "../colors/palette";
 import { bodyFrames } from "./bodies";
 import { brickFrames } from "./elements/brick";
 import { burrFrames } from "./elements/burr";
+import { cageFrames } from "./elements/cage";
 import { dustFrames } from "./elements/dust";
 import { sleepyheadFrame } from "./elements/sleepyhead";
 import { eyesFrames } from "./eyes";
@@ -33,11 +34,7 @@ export function bakedScale(square: ArtScale): ArtScale {
 }
 
 /** The frames an element's own package draws, each an empty stand-in until that package removes it from this list. */
-const STAND_INS: readonly FrameName[] = [
-  FRAMES.cage,
-  FRAMES.cageBar,
-  FRAMES.gustLine,
-];
+const STAND_INS: readonly FrameName[] = [FRAMES.gustLine];
 
 /** Returns every frame the atlas holds, in a palette at a scale. */
 export function atlasFrames(
@@ -52,6 +49,7 @@ export function atlasFrames(
     wellFrame(palette, scale),
     ...dustFrames(palette, scale),
     ...brickFrames(palette, scale),
+    ...cageFrames(palette, scale),
     ...burrFrames(palette, scale),
     ...fluffFrames(palette, scale),
     ...markFrames(palette, scale),

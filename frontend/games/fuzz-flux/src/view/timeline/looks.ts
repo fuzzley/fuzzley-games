@@ -32,15 +32,17 @@ export function lookAt({ x, y }: Place): Look {
 }
 
 /**
- * Returns the face a piece rests with: the frizzball's wide, a burred
- * fuzzball's cross, and any other's at rest, as a sleepyhead's and a
- * brick's are, which no face draws.
+ * Returns the face a piece rests with: the frizzball's wide, a caged
+ * fuzzball's sleepy as it looks out, a burred one's cross, and any
+ * other's at rest, as a sleepyhead's and a brick's are, which no face
+ * draws.
  */
 export function restingFace(piece: Piece): FuzzballFace {
   switch (piece.what) {
     case "frizzball":
       return "eep";
     case "fuzzball":
+      if (piece.caged) return "sleepy";
       return piece.burred ? "cross" : "rest";
     case "sleepyhead":
     case "brick":

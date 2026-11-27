@@ -49,6 +49,18 @@ describe("restingFace", () => {
       },
       "cross",
     ],
+    [
+      "a caged fuzzball",
+      {
+        what: "fuzzball",
+        id: 1,
+        kind: "red",
+        special: null,
+        caged: true,
+        burred: false,
+      },
+      "sleepy",
+    ],
     ["the frizzball", { what: "frizzball", id: 1 }, "eep"],
     ["a sleepyhead", { what: "sleepyhead", id: 1 }, "rest"],
     ["a brick", { what: "brick", id: 1, layers: 2 }, "rest"],

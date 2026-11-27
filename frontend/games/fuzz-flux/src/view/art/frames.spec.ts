@@ -61,7 +61,7 @@ describe("atlasFrames", () => {
       .filter(({ commands }) => commands.length === 0)
       .map(({ name }) => name);
 
-    expect(empty).toEqual([FRAMES.cage, FRAMES.cageBar, FRAMES.gustLine]);
+    expect(empty).toEqual([FRAMES.gustLine]);
   });
 
   it(`fits the atlas at its largest, at a pixel ratio of 3, in the room of ${String(PAGES)} pages of ${String(PAGE)} × ${String(PAGE)}`, () => {
