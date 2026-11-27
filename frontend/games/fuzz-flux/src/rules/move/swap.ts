@@ -82,16 +82,33 @@ export function legalMoves(
   board: Board,
   rules: Readonly<Record<ElementId, ElementRule>>,
 ): readonly Pick<Swap, "from" | "to">[] {
+  return [...movesOn(board, rules)];
+}
+
+/** Returns whether a board allows a move, looking no further than the first `legalMoves()` finds. */
+export function hasLegalMove(
+  board: Board,
+  rules: Readonly<Record<ElementId, ElementRule>>,
+): boolean {
+  return movesOn(board, rules).next().done !== true;
+}
+
+/** Yields every move a board allows, in `legalMoves()`' order. */
+function* movesOn(
+  board: Board,
+  rules: Readonly<Record<ElementId, ElementRule>>,
+): Generator<Pick<Swap, "from" | "to">> {
   const free = board.pieces.map((_, square) => canSwap(board, square, rules));
-  return free.flatMap((canPick, from) =>
-    canPick
-      ? neighborsOf(from, board)
-          .filter(
-            (to) => to > from && itemAt(free, to) && swapWorks(board, from, to),
-          )
-          .map((to) => ({ from, to }))
-      : [],
-  );
+  for (const [from, canPick] of free.entries()) {
+    if (!canPick) {
+      continue;
+    }
+    for (const to of neighborsOf(from, board)) {
+      if (to > from && itemAt(free, to) && swapWorks(board, from, to)) {
+        yield { from, to };
+      }
+    }
+  }
 }
 
 /**

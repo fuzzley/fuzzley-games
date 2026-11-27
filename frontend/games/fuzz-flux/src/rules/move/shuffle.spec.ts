@@ -16,9 +16,9 @@ const KINDS: readonly KindId[] = ["blue", "red", "amber", "green"];
 /** A board with no move to make, as a move left the sketch's own. */
 const STUCK: BoardPicture = { pieces: ["aar", "rgr", "aga"] };
 
-/** Returns a game of a board drawn as a picture, with the kinds here. */
-function gameOf(picture: BoardPicture): Game {
-  return gameFrom(picture, { kinds: KINDS, seed: 15 });
+/** Returns a game of a board drawn as a picture, with the kinds here, dealt from a seed: 15 unless given. */
+function gameOf(picture: BoardPicture, seed = 15): Game {
+  return gameFrom(picture, { kinds: KINDS, seed });
 }
 
 describe("shuffle", () => {
@@ -29,6 +29,15 @@ describe("shuffle", () => {
       legalMoves(game.board, DESIGN_HOLDS).length > 0,
       findBunches(game.board, null),
     ]).toEqual([true, []]);
+  });
+
+  it("passes over an order that leaves a bunch standing", () => {
+    // From this seed the first order tried leaves a bunch, and a move.
+    const game = gameOf(STUCK, 4);
+
+    const { game: shuffled } = shuffle(game, DESIGN_HOLDS);
+
+    expect(findBunches(shuffled.board, null)).toEqual([]);
   });
 
   it("writes each plain fuzzball's trade, in the board's order, where it was and where it went", () => {

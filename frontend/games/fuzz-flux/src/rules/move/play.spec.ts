@@ -1,3 +1,4 @@
+import { keysOf } from "@fz/core/records";
 import {
   type BoardPicture,
   type GameOptions,
@@ -11,7 +12,8 @@ import {
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import type { Game } from "../board/board";
 import { turnFrame } from "../board/orientation";
-import type { WindRule } from "../elements/element_rule";
+import type { ElementId } from "../catalog/elements";
+import type { ElementRule, WindRule } from "../elements/element_rule";
 import { type Played, play } from "./play";
 
 /** The name of a move played by hand. */
@@ -27,6 +29,21 @@ const PLAYING: GameOptions = {
 
 /** A wind that turns after every move, a quarter at a time. */
 const EVERY_MOVE = { every: 1, quarters: 1, wait: 1 };
+
+/**
+ * A board on which swapping 7 and 10 bunches greens, and the wind's turn
+ * then lets in the ambers that bunch in the square, 4, that the brick held
+ * open.
+ */
+const HELD_OPEN: BoardPicture = { pieces: ["_2_", "aag", "rga", "gag"] };
+
+/** A game of `HELD_OPEN` whose one goal its ambers meet, the wind turning after every move. */
+const HELD_OPEN_LEVEL: GameOptions = {
+  kinds: ["blue", "red", "amber", "green"],
+  goals: [{ what: "gather", kind: "amber", count: 4 }],
+  seed: 11,
+  wind: EVERY_MOVE,
+};
 
 /** Returns a move played by hand played again by `play()`, on its game and its swap. */
 function replayed(name: FixtureName, wind: WindRule = DESIGN_WIND): Played {
@@ -88,46 +105,36 @@ describe("play", () => {
     const game = gameFrom(BLUES_ACROSS, PLAYING);
 
     expect(() => play(game, square, 4, DESIGN_PARTS, DESIGN_WIND)).toThrow(
-      RangeError,
+      new RangeError(`Square ${String(square)} is off the board.`),
     );
   });
 
-  it.each(["bunch", "twoWaves", "dasherSetsOffPuffer"] as const)(
-    "plays each wave to rest as the sketch did, in %s",
-    (name) => {
-      const { record } = replayed(name);
+  it.each(keysOf(MOVE_FIXTURES))("plays %s as the sketch did", (name) => {
+    const { record } = replayed(name);
 
-      expect(record).toEqual(MOVE_FIXTURES[name].record);
-    },
-  );
+    expect(record).toEqual(MOVE_FIXTURES[name].record);
+  });
 
   it("counts the move, a move less left and one more played", () => {
-    const { game } = bunchedAcross({ ...PLAYING, movesLeft: 5 });
+    const { game } = bunchedAcross({ ...PLAYING, movesLeft: 2 });
 
     expect([game.movesLeft, game.movesPlayed, game.outcome]).toEqual([
-      4,
+      1,
       1,
       "playing",
     ]);
   });
 
   it("clears the level on a move that leaves every goal met", () => {
-    const { game, record } = replayed("cleared");
+    const { game } = replayed("cleared");
 
-    expect([record, game.outcome]).toEqual([
-      MOVE_FIXTURES.cleared.record,
-      "cleared",
-    ]);
+    expect(game.outcome).toBe("cleared");
   });
 
   it("ends the game on its last move where a goal is still open", () => {
-    const { game, record } = replayed("outOfMoves");
+    const { game } = replayed("outOfMoves");
 
-    expect([record, game.outcome, game.movesLeft]).toEqual([
-      MOVE_FIXTURES.outOfMoves.record,
-      "over",
-      0,
-    ]);
+    expect([game.outcome, game.movesLeft]).toEqual(["over", 0]);
   });
 
   it("clears the level on its last move where that move meets every goal", () => {
@@ -139,22 +146,12 @@ describe("play", () => {
     expect(game.outcome).toBe("cleared");
   });
 
-  it.each(["sleepyheadBedded", "burrBrushedOff"] as const)(
-    "plays each element's part as the sketch did, in %s",
-    (name) => {
-      const { record } = replayed(name);
+  it("puts the burr it spreads on the fuzzball it spreads to", () => {
+    const { game } = replayed("burrSpreads");
 
-      expect(record).toEqual(MOVE_FIXTURES[name].record);
-    },
-  );
-
-  it("spreads a burr after a move that brushed none off, as the sketch does", () => {
-    const { game, record } = replayed("burrSpreads");
-
-    expect([record, game.board.pieces[3]]).toEqual([
-      MOVE_FIXTURES.burrSpreads.record,
+    expect(game.board.pieces[3]).toEqual(
       expect.objectContaining({ id: 4, burred: true }),
-    ]);
+    );
   });
 
   it("spreads no burr after a move that brushed one off, though another could spread", () => {
@@ -217,12 +214,6 @@ describe("play", () => {
     );
   });
 
-  it("shuffles a board a move leaves with no move, as the sketch does", () => {
-    const { record } = replayed("shuffle");
-
-    expect(record).toEqual(MOVE_FIXTURES.shuffle.record);
-  });
-
   it("shuffles no board after the level's last move", () => {
     const { picture, options } = MOVE_FIXTURES.shuffle;
     const game = gameFrom(picture, { ...options, movesLeft: 1 });
@@ -254,14 +245,10 @@ describe("play", () => {
     });
   });
 
-  it("turns the wind after a move, as the sketch does, everything falling the new way", () => {
-    const { game, record } = replayed("windTurns");
+  it("turns the board's frame when the wind turns, and its wait starts again", () => {
+    const { game } = replayed("windTurns");
 
-    expect([record, game.turns, game.wind]).toEqual([
-      MOVE_FIXTURES.windTurns.record,
-      1,
-      EVERY_MOVE,
-    ]);
+    expect([game.turns, game.wind]).toEqual([1, EVERY_MOVE]);
   });
 
   it("counts a turning wind's wait down where it isn't yet due", () => {
@@ -296,14 +283,7 @@ describe("play", () => {
   });
 
   it("clears the level where the wind's turn meets the last goal", () => {
-    // The move bunches greens; turned, the board lets in the ambers that
-    // bunch in the square the brick held open.
-    const game = gameFrom(["_2_", "aag", "rga", "gag"], {
-      kinds: ["blue", "red", "amber", "green"],
-      goals: [{ what: "gather", kind: "amber", count: 4 }],
-      seed: 11,
-      wind: EVERY_MOVE,
-    });
+    const game = gameFrom(HELD_OPEN, HELD_OPEN_LEVEL);
 
     const { record } = play(game, 7, 10, DESIGN_PARTS, DESIGN_WIND);
 
@@ -314,6 +294,31 @@ describe("play", () => {
       ),
       record.outcome,
     ]).toEqual([["green"], ["amber"], "cleared"]);
+  });
+
+  it("writes the fall the wind's turn starts as it leaves the board: what its rest did, and what each goal then still needs", () => {
+    // Dust lies on the square the brick held open, which a made-up rule
+    // sweeps from under whatever comes to rest on it.
+    const rules: Readonly<Record<ElementId, ElementRule>> = {
+      ...DESIGN_PARTS,
+      dust: {
+        settled: ({ piece, dust }) =>
+          piece !== null && dust > 0
+            ? { square: { piece, dust: 0 }, hit: "dusted", counts: false }
+            : null,
+      },
+    };
+    const game = gameFrom(
+      { ...HELD_OPEN, dust: ["000", "010", "000", "000"] },
+      HELD_OPEN_LEVEL,
+    );
+
+    const { record } = play(game, 7, 10, rules, DESIGN_WIND);
+
+    expect([
+      record.gust?.waves[0]?.hits.map(({ what, square }) => [what, square]),
+      record.gust?.waves.map(({ goalsLeft }) => goalsLeft),
+    ]).toEqual([[["dusted", 4]], [[4], [0]]]);
   });
 
   it("takes the move in, and hands its record back, in the screen's frame", () => {

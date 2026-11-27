@@ -12,7 +12,7 @@ import { SALTS } from "../draws";
 import type { ElementRule } from "../elements/element_rule";
 import { SHUFFLE_TRIES } from "../tuning";
 import type { Shuffled } from "./record";
-import { legalMoves, plainFuzzballs } from "./swap";
+import { hasLegalMove, plainFuzzballs } from "./swap";
 
 /** Describes a game whose plain fuzzballs have traded places, and how. */
 export interface ShuffledGame {
@@ -46,7 +46,7 @@ export function shuffle(
     shuffled = { ...board, pieces };
     if (
       findBunches(shuffled, null).length === 0 &&
-      legalMoves(shuffled, rules).length > 0
+      hasLegalMove(shuffled, rules)
     ) {
       break;
     }

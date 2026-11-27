@@ -5,6 +5,7 @@ import type { SquareState } from "../elements/element_rule";
 import {
   bunchMatesOf,
   canSwap,
+  hasLegalMove,
   legalMoves,
   plainFuzzballs,
   swapWorks,
@@ -129,6 +130,21 @@ describe("legalMoves", () => {
       { from: 3, to: 4 },
       { from: 4, to: 5 },
     ]);
+  });
+});
+
+describe("hasLegalMove", () => {
+  it.each([
+    ["a move", ["bbrb", "grgr"], true],
+    ["none", ["aar", "rgr", "aga"], false],
+  ])("says a board with %s has one or not", (_, pieces, has) => {
+    expect(hasLegalMove(boardFrom(pieces), NO_PART)).toBe(has);
+  });
+
+  it("finds no move in a swap of a piece an element's rule holds", () => {
+    const picture = { pieces: ["bbrb", "grgr"], marks: ["..**", "...."] };
+
+    expect(hasLegalMove(boardFrom(picture), DESIGN_HOLDS)).toBe(false);
   });
 });
 

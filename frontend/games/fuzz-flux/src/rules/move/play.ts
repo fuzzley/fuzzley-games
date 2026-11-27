@@ -16,7 +16,7 @@ import { waveOnScreen } from "./on_screen";
 import type { BurrSpread, Gust, MoveRecord, Shuffle, Wave } from "./record";
 import { settle } from "./settle";
 import { shuffle } from "./shuffle";
-import { legalMoves } from "./swap";
+import { hasLegalMove } from "./swap";
 import { playSwap } from "./swapped";
 import { playToRest } from "./wave";
 
@@ -209,7 +209,7 @@ function shuffledIfStuck(
   game: Game,
   rules: Readonly<Record<ElementId, ElementRule>>,
 ): Reshuffled {
-  if (legalMoves(game.board, rules).length > 0) {
+  if (hasLegalMove(game.board, rules)) {
     return { game, shuffle: null };
   }
   const shuffled = shuffle(game, rules);

@@ -74,6 +74,9 @@ export function findBunches(
       shape: "squaresOfFour" as const,
     })),
   ];
+  if (parts.length === 0) {
+    return [];
+  }
   return bunchesOf(parts, kinds.length).map((bunch) => {
     const shape = shapeOf(bunch);
     return {

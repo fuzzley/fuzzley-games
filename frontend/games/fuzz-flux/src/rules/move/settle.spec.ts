@@ -360,6 +360,28 @@ describe("settle", () => {
     ]);
   });
 
+  it("asks the board at rest again after a change to its dust alone", () => {
+    // Dust that comes off at rest a layer at a time.
+    const rules: Readonly<Record<ElementId, ElementRule>> = {
+      ...NO_PART,
+      dust: {
+        settled: ({ piece, dust }) =>
+          dust === 0
+            ? null
+            : {
+                square: { piece, dust: dust === 2 ? 1 : 0 },
+                hit: null,
+                counts: true,
+              },
+      },
+    };
+    const game = gameFrom({ pieces: ["b"], dust: ["2"] });
+
+    const { game: rested, counted } = settle(game, rules);
+
+    expect([rested.board.dust, counted.dust]).toEqual([[0], 2]);
+  });
+
   it("comes to rest where a change at rest leaves its square as it was", () => {
     const rules: Readonly<Record<ElementId, ElementRule>> = {
       ...NO_PART,

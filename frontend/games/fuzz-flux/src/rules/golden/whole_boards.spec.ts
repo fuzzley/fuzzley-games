@@ -2,13 +2,11 @@ import { createRandom } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
 import { SIM_TIMEOUT_MS } from "@fz/core/testing";
 import { PLAYABLE_LEVELS } from "../../testing/playable_levels";
+import { randomGame } from "../../testing/random_games";
 import type { Game } from "../board/board";
-import { deal } from "../board/deal";
-import { onScreen } from "../board/orientation";
 import { findBunches } from "../bunches/find";
 import { ELEMENT_RULES, WIND_RULE } from "../elements/element_rules";
 import type { Level } from "../levels/level";
-import { play } from "../move/play";
 import { settle } from "../move/settle";
 import { legalMoves } from "../move/swap";
 
@@ -44,8 +42,8 @@ describe(
 
 /**
  * Returns what is wrong with the boards that random moves leave, as many as
- * asked, played on a level's deals in turn, a game each until it ends: a
- * line for each board, saying which deal and which move left it.
+ * asked, played on a level's deals in turn, a game each: a line for each
+ * board, saying which deal and which move left it.
  */
 function randomMoves(
   level: Level,
@@ -53,36 +51,22 @@ function randomMoves(
   random: () => number,
 ): readonly string[] {
   const problems: string[] = [];
-  let played = 0;
-  for (let round = 0; played < moves; round++) {
+  let checked = 0;
+  for (let round = 0; checked < moves; round++) {
     const seed = itemAt(level.deals, round % level.deals.length);
-    let game = deal(level, seed, ELEMENT_RULES);
-    for (let move = 1; game.outcome === "playing" && played < moves; move++) {
-      const legal = legalMoves(game.board, ELEMENT_RULES);
-      if (legal.length === 0) {
-        // The move before left it so, which its problems say.
-        break;
-      }
-      const { from, to } = itemAt(legal, Math.floor(random() * legal.length));
-      const { game: next, record } = play(
-        game,
-        onScreen(game, from),
-        onScreen(game, to),
-        ELEMENT_RULES,
-        WIND_RULE,
-      );
+    const game = randomGame(level, seed, random, ELEMENT_RULES, WIND_RULE);
+    for (const [move, { played }] of game.slice(0, moves - checked).entries()) {
       const wrong = [
-        ...(record.swap.refused ? ["its legal move was refused"] : []),
-        ...wholeBoardProblems(next),
+        ...(played.record.swap.refused ? ["its legal move was refused"] : []),
+        ...wholeBoardProblems(played.game),
       ];
       problems.push(
         ...wrong.map(
           (problem) =>
-            `Deal ${String(seed)}, move ${String(move)}: ${problem}.`,
+            `Deal ${String(seed)}, move ${String(move + 1)}: ${problem}.`,
         ),
       );
-      game = next;
-      played++;
+      checked++;
     }
   }
   return problems;
