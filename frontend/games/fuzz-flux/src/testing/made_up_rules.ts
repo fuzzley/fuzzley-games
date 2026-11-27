@@ -3,23 +3,19 @@
 // elements' own rules have been brought in; and the wind's, made up the
 // same way.
 
-import { hashOf } from "@fz/core/random";
 import { itemAt, pick, recordOf } from "@fz/core/records";
 import type { Board } from "../rules/board/board";
-import { neighborsOf } from "../rules/board/cells";
 import {
   type BrickLayers,
   ELEMENT_IDS,
   type ElementId,
 } from "../rules/catalog/elements";
-import { SALTS } from "../rules/draws";
+import { BURR_RULE } from "../rules/elements/burr";
 import { DUST_RULE } from "../rules/elements/dust";
 import { WISP_RANKS } from "../rules/tuning";
 import type {
   Change,
   ElementRule,
-  MoveEnd,
-  Spread,
   SquareState,
   WindRule,
 } from "../rules/elements/element_rule";
@@ -43,9 +39,7 @@ export const DESIGN_HOLDS: Readonly<Record<ElementId, ElementRule>> = {
   sleepyhead: {
     holdsSwap: ({ piece }) => piece?.what === "sleepyhead",
   },
-  burr: {
-    holdsSwap: ({ piece }) => piece?.what === "fuzzball" && piece.burred,
-  },
+  burr: pick(BURR_RULE, ["holdsSwap"]),
 };
 
 /**
@@ -78,7 +72,7 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
 /**
  * Every element's rule holding and counting what
  * `DESIGN_HOLDS_AND_GOALS` does, and taking the part the design's sketch
- * gives it as a wave strikes, dust by its own rule: a bunch opens a cage
+ * gives it as a wave strikes, dust and burrs by their own rules: a bunch opens a cage
  * and brushes off a burr
  * on each fuzzball it takes in, and knocks a brick or brushes off a burr
  * beside it; a blast knocks a brick, ruffles a sleepyhead, opens a cage or
@@ -140,21 +134,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
         goalOpen && holdsSleepyheadUp(board, square) ? 70 : null,
     },
   },
-  burr: {
-    ...DESIGN_HOLDS_AND_GOALS.burr,
-    inBunch: (square) => unburred(square, null),
-    besideBunch: (square) => unburred(square, "unburred"),
-    blasted: (square) => unburred(square, "unburred"),
-    givenFur: (square) => unburred(square, null)?.square ?? square,
-    moveEnded: burrSpread,
-    wisp: {
-      rank: WISP_RANKS.burr,
-      worth: ({ pieces }, square) => {
-        const piece = itemAt(pieces, square);
-        return piece?.what === "fuzzball" && piece.burred ? 60 : null;
-      },
-    },
-  },
+  burr: BURR_RULE,
 };
 
 /**
@@ -168,41 +148,6 @@ export const DESIGN_WIND: WindRule = {
       ? { wind: { ...wind, wait: wind.wait - 1 }, quarters: 0 }
       : { wind: { ...wind, wait: wind.every }, quarters: wind.quarters },
 };
-
-/**
- * Returns the burr's spread at the end of a move that brushed none off: to
- * a plain fuzzball, neither caged nor burred, beside a burred one, the
- * ways it can by the burred one's square and then right, left, down and
- * up, one drawn from the deal's seed and the moves played; or null where
- * none can.
- */
-function burrSpread({ game, counted }: MoveEnd): Spread | null {
-  if (counted > 0) {
-    return null;
-  }
-  const { board } = game;
-  const isPlain = (square: number): boolean => {
-    const piece = itemAt(board.pieces, square);
-    return (
-      piece?.what === "fuzzball" &&
-      piece.special === null &&
-      !piece.caged &&
-      !piece.burred
-    );
-  };
-  const ways = board.pieces.flatMap((piece, from) =>
-    piece?.what === "fuzzball" && piece.burred
-      ? neighborsOf(from, board)
-          .filter(isPlain)
-          .map((to) => ({ from, to }))
-      : [],
-  );
-  if (ways.length === 0) {
-    return null;
-  }
-  const draw = hashOf(game.seed, game.movesPlayed, ways.length, SALTS.burr);
-  return itemAt(ways, draw % ways.length);
-}
 
 /** Returns whether a square holds up a sleepyhead: the nearest piece above it, past gaps and empty squares, is one. */
 function holdsSleepyheadUp(board: Board, square: number): boolean {
@@ -247,20 +192,6 @@ function uncaged(
 ): Change | null {
   return piece?.what === "fuzzball" && piece.caged
     ? { square: { piece: { ...piece, caged: false }, dust }, hit, counts: true }
-    : null;
-}
-
-/** Returns a burred fuzzball on a square brushed off, which counts, with the hit given. */
-function unburred(
-  { piece, dust }: SquareState,
-  hit: "unburred" | null,
-): Change | null {
-  return piece?.what === "fuzzball" && piece.burred
-    ? {
-        square: { piece: { ...piece, burred: false }, dust },
-        hit,
-        counts: true,
-      }
     : null;
 }
 

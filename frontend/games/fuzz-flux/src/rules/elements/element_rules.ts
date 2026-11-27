@@ -6,6 +6,7 @@
 // its rule here the same way.
 
 import type { ElementId } from "../catalog/elements";
+import { BURR_RULE } from "./burr";
 import { DUST_RULE } from "./dust";
 import type { ElementRule, WindRule } from "./element_rule";
 
@@ -17,7 +18,6 @@ export const STAND_INS = [
   "brick",
   "cage",
   "sleepyhead",
-  "burr",
 ] as const satisfies readonly ElementId[];
 
 /** Each element's rule, by its id. */
@@ -26,7 +26,7 @@ export const ELEMENT_RULES = {
   brick: STAND_IN,
   cage: STAND_IN,
   sleepyhead: STAND_IN,
-  burr: STAND_IN,
+  burr: BURR_RULE,
 } as const satisfies Readonly<Record<ElementId, ElementRule>>;
 
 /** The wind's rule, the stand-in until its package brings it in: a wind that turns waits for good. */
