@@ -1,7 +1,7 @@
 {
   "name": "@fz/brick-wall",
   "version": "0.0.0",
-  "description": "What the wall games share, laid out in a game's own layers, each entry taken by the same layer of a game or one above it: the rules, among them the kinds of brick a test holds for; the view, among them when a blinking cue shows; the scene, among them a cue blinking; the shell, among them a cue held steady for a player who asks for less motion; and the specs' helpers.",
+  "description": "What the wall games share, laid out in a game's own layers, each entry taken by the same layer of a game or one above it: the rules, among them the kinds of brick a test holds for; the view, among them how a player aims; the scene, among them a cue blinking; the shell, among them a cue held steady for a player who asks for less motion; and the specs' helpers.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",

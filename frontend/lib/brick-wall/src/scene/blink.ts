@@ -1,5 +1,5 @@
+import { blinkShows } from "@fz/core/motion";
 import { type GameObjects, type Scene, Scenes } from "phaser";
-import { blinkShows } from "../view/blink";
 
 /**
  * Blinks a game object in a scene from now, on each of the scene's frames

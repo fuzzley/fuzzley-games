@@ -3,7 +3,7 @@ import { runBareScene } from "@fz/phaser/testing";
 import type { Cameras } from "phaser";
 import { madeUpField } from "../testing/made_up/field";
 import { type FieldMetrics, frameBounds } from "../view/field_metrics";
-import { SHAKE_MS } from "../view/timing";
+import { SHAKE_CSS_PX, SHAKE_MS } from "../view/timing";
 import { FieldCamera } from "./camera";
 
 /** A field on a canvas of 400 × 400 CSS pixels at a pixel to one. */
@@ -24,15 +24,15 @@ function restingOn(
   return { ...frame, scrollX: frame.x, scrollY: frame.y };
 }
 
-/** Returns a scene's main camera, framed on {@link FIELD}, and the field camera over it, in a scene running till the test finishes. */
-async function framedCamera() {
+/** Returns a scene's main camera, framed on a field, {@link FIELD} unless given, and the field camera over it, in a scene running till the test finishes. */
+async function framedCamera(on = FIELD) {
   const run = await runBareScene();
   onTestFinished(() => {
     run.destroy();
   });
   const main = run.scene.cameras.main;
   const field = new FieldCamera(main);
-  field.fit(FIELD.metrics, FIELD.shape);
+  field.fit(on.metrics, on.shape);
   return { main, field };
 }
 
@@ -93,6 +93,28 @@ describe("FieldCamera", () => {
       size: [rest.width, rest.height],
       scrolled: [rest.scrollX, rest.scrollY],
     });
+  });
+
+  it("shakes the field as far as the wall's shake at the pixel ratio, dying away in a straight line", async () => {
+    const sharp = madeUpField(400, 400, 2);
+    const { main, field } = await framedCamera(sharp);
+    const rest = cameraOf(main);
+    field.shake(1000);
+
+    const strays = Array.from({ length: SHAKE_MS }, (_, ms) => {
+      drawAt(field, 1000 + ms, sharp.metrics);
+      return Math.max(Math.abs(main.x - rest.x), Math.abs(main.y - rest.y));
+    });
+
+    const third = SHAKE_MS / 3;
+    const farthest = Math.max(...strays);
+    expect({
+      within: farthest <= SHAKE_CSS_PX * 2,
+      byTheRatio: farthest > SHAKE_CSS_PX,
+      dyingAway:
+        Math.max(...strays.slice(2 * third)) <
+        Math.max(...strays.slice(0, third)) / 2,
+    }).toEqual({ within: true, byTheRatio: true, dyingAway: true });
   });
 
   it("stills the field once the shake is over, the viewport back at rest", async () => {

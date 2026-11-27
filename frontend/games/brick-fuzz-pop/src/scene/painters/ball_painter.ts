@@ -1,10 +1,10 @@
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import { ATLAS } from "@fz/brick-wall/scene/atlas";
-import { flareScale } from "@fz/brick-wall/view/easing";
 import { type Place, toCanvas } from "@fz/brick-wall/view/field_metrics";
 import { FLARE_MS } from "@fz/brick-wall/view/timing";
 import { shareDone } from "@fz/core/math";
+import { flareScale } from "@fz/core/motion";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
 import type { FlightEvent } from "../../rules/flight/events";

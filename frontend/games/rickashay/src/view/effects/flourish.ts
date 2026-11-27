@@ -2,8 +2,8 @@
 // draws: a ramp's flash along its long face, the streak behind the
 // fuzzball dashing home, a spent floor bounce's spring kicking, a portal's
 // swirl, the rally's number popping into its next look, and its fire
-// flickering. A flourish every wall game plays moves by
-// `@fz/brick-wall/view/easing`'s curves.
+// flickering. A flourish every wall game plays moves by `@fz/core/motion`'s
+// curves.
 
 import {
   CEILINGWARD,
@@ -11,8 +11,8 @@ import {
   columnOf,
   fieldRowOf,
 } from "@fz/brick-wall/rules/grid";
-import { easeOutBack } from "@fz/brick-wall/view/easing";
 import { easeOutCubic, lerp } from "@fz/core/math";
+import { easeOutBack } from "@fz/core/motion";
 import type { Wall } from "../../rules/catalog/kinds";
 import type { BallView } from "../run_state";
 import { FLICKER_MS, STREAK } from "./timing";

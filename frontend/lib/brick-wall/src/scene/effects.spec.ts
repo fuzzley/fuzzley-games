@@ -1,3 +1,4 @@
+import { RING_FROM } from "@fz/core/motion";
 import { Turns } from "@fz/core/turns";
 import type { HostedScene } from "@fz/phaser/host";
 import { type SceneRun, runBareScene } from "@fz/phaser/testing";
@@ -8,7 +9,6 @@ import {
   madeUpField,
   madeUpFrames,
 } from "../testing/made_up/field";
-import { RING_FROM } from "../view/easing";
 import { toCanvas } from "../view/field_metrics";
 import { FLASH_MS, RING_MS, SHARDS } from "../view/timing";
 import { ATLAS, MOST_BAKED_UNIT, WallAtlas } from "./atlas";

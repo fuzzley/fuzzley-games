@@ -1,5 +1,4 @@
 import { ATLAS } from "@fz/brick-wall/scene/atlas";
-import { flareScale } from "@fz/brick-wall/view/easing";
 import {
   type FieldMetrics,
   type Place,
@@ -7,6 +6,7 @@ import {
 } from "@fz/brick-wall/view/field_metrics";
 import { FLARE_MS } from "@fz/brick-wall/view/timing";
 import { shareDone } from "@fz/core/math";
+import { flareScale } from "@fz/core/motion";
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_FRAMES } from "../../view/art/effect_frames";
 import { FRAMES } from "../../view/art/frames";

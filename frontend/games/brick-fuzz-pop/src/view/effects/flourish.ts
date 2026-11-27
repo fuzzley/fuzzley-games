@@ -1,6 +1,6 @@
 // How a freed friend hops down from its cage, Brick Fuzz Pop's own
 // flourish. The curves every wall game's flourishes move by are
-// `@fz/brick-wall/view/easing`'s.
+// `@fz/core/motion`'s.
 
 import { RADIUS } from "@fz/brick-wall/rules/field";
 

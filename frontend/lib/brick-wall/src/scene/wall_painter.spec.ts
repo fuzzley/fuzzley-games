@@ -1,3 +1,4 @@
+import { SWELL } from "@fz/core/motion";
 import type { HostedScene } from "@fz/phaser/host";
 import type { PixelRect } from "@fz/phaser/layout";
 import { dynamicTexture } from "@fz/phaser/scene";
@@ -26,7 +27,6 @@ import {
   MADE_UP_RULES,
   type MadeUpKind,
 } from "../testing/made_up/wall";
-import { SWELL } from "../view/easing";
 import { type Place, toCanvas } from "../view/field_metrics";
 import type { WallPalette } from "../view/palette";
 import { SWELL_MS } from "../view/timing";

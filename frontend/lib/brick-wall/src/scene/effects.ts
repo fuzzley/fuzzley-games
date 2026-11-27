@@ -4,11 +4,11 @@
 // plays one, each made once and played in turn.
 
 import { fadeAlpha, shareDone } from "@fz/core/math";
+import { ringScale } from "@fz/core/motion";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { COLUMNS } from "../rules/field";
 import { thirdsOf } from "../rules/wall";
-import { ringScale } from "../view/easing";
 import {
   type FieldMetrics,
   type FieldShape,

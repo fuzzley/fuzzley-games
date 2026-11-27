@@ -2,7 +2,7 @@
 // those that move reach, in field units. The wall's step and jump, a struck
 // brick's swell, a broken one's shards, a ring, the jump line's flash, the
 // flare and a lost level's shake are `@fz/brick-wall/view/timing`'s, and
-// move by `@fz/brick-wall/view/easing`'s curves.
+// move by `@fz/core/motion`'s curves.
 
 /** How long a ramp's flash takes to run along its long face and fade. */
 export const RAMP_FLASH_MS = 200;

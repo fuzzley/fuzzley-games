@@ -24,7 +24,6 @@ import {
   STRAIGHT_UP,
 } from "@fz/brick-wall/view/aim_settings";
 import { MOST_FINGERS, aimToward } from "@fz/brick-wall/view/aiming";
-import { FLARE_FROM, RING_FROM, SWELL } from "@fz/brick-wall/view/easing";
 import {
   FRAME_CSS_PX,
   type FieldMetrics,
@@ -43,6 +42,7 @@ import {
   SWELL_MS,
 } from "@fz/brick-wall/view/timing";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
+import { FLARE_FROM, RING_FROM, SWELL } from "@fz/core/motion";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";

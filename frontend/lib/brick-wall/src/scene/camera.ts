@@ -1,14 +1,15 @@
 // A wall game's camera, framed on its field and shaken as a level is lost.
 
+import { fadeAlpha } from "@fz/core/math";
+import { type Shift, shakeOf } from "@fz/core/motion";
 import type { PixelRect } from "@fz/phaser/layout";
 import type { Cameras } from "phaser";
-import { type Shift, shakeOf } from "../view/easing";
 import {
   type FieldMetrics,
   type FieldShape,
   frameBounds,
 } from "../view/field_metrics";
-import { SHAKE_MS } from "../view/timing";
+import { SHAKE_CSS_PX, SHAKE_MS } from "../view/timing";
 import type { PaintContext, Painter } from "./painter";
 
 /**
@@ -58,7 +59,13 @@ export class FieldCamera implements Painter<PaintContext<unknown>> {
   }: Readonly<Pick<PaintContext<unknown>, "now" | "metrics">>): void {
     if (!this.shaken) return;
     const since = now - this.shakenAt;
-    const { x, y } = shakeOf(since, metrics.pixelRatio, this.shift);
+    const { x, y } = shakeOf(
+      since,
+      SHAKE_MS,
+      SHAKE_CSS_PX * metrics.pixelRatio,
+      fadeAlpha,
+      this.shift,
+    );
     this.camera.setPosition(
       this.rest.x - Math.round(x),
       this.rest.y - Math.round(y),

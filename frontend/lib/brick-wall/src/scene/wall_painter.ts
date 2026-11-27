@@ -3,6 +3,7 @@
 // losing the level, and the wall eased down its step or its jump.
 
 import { shareDone } from "@fz/core/math";
+import { swellScale } from "@fz/core/motion";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
@@ -15,7 +16,6 @@ import {
   type WallRules,
   dangerCells,
 } from "../rules/wall";
-import { swellScale } from "../view/easing";
 import type { FieldMetrics } from "../view/field_metrics";
 import type { WallPalette } from "../view/palette";
 import { SWELL_MS } from "../view/timing";
