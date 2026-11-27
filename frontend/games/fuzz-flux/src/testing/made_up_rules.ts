@@ -80,9 +80,10 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
  * beside it; a blast knocks a brick, ruffles a sleepyhead, opens a cage or
  * brushes off a burr rather than gathering; a layer of dust is swept from
  * under each fuzzball gathered or made special and each square struck
- * bare; and a wisp weighs a caged fuzzball, a brick, whatever
- * holds a sleepyhead up, a burr and a dusty square, in that order, each
- * worth more where its goal is open.
+ * bare; a caged fuzzball takes no fur the frizzball gives, and a burred
+ * one loses its burr as it takes it; and a wisp weighs a caged fuzzball, a
+ * brick, whatever holds a sleepyhead up, a burr and a dusty square, in
+ * that order, each worth more where its goal is open.
  */
 export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
   dust: {
@@ -128,6 +129,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
     ...DESIGN_HOLDS_AND_GOALS.cage,
     inBunch: (square) => uncaged(square, null),
     blasted: (square) => uncaged(square, "uncaged"),
+    givenFur: (square) => (isCaged(square) ? null : square),
     wisp: {
       rank: 0,
       worth: ({ pieces }, square, goalOpen) => {
@@ -155,6 +157,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
     inBunch: (square) => unburred(square, null),
     besideBunch: (square) => unburred(square, "unburred"),
     blasted: (square) => unburred(square, "unburred"),
+    givenFur: (square) => unburred(square, null)?.square ?? square,
     wisp: {
       rank: 3,
       worth: ({ pieces }, square) => {

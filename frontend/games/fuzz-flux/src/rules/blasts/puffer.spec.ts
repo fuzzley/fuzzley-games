@@ -2,7 +2,7 @@ import { itemAt } from "@fz/core/records";
 import { boardFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import type { Blast } from "../move/record";
-import { PUFFER_REACH } from "../tuning";
+import { PUFFER_REACH, TWO_PUFFERS_REACH } from "../tuning";
 import { pufferStrikes } from "./puffer";
 
 /** A board 7 squares a side, with no gap. */
@@ -29,6 +29,15 @@ describe("pufferStrikes", () => {
       { square: 32, step: 2 },
       { square: 38, step: 2 },
     ]);
+  });
+
+  it("strikes each square within 4 steps for two puffers, on a board 7 squares a side", () => {
+    const strikes = pufferStrikes(BOARD, 24, TWO_PUFFERS_REACH);
+
+    expect({
+      count: strikes.length,
+      farthest: strikes.at(-1)?.step,
+    }).toEqual({ count: 37, farthest: 4 });
   });
 
   it("strikes no square past the board's edge or in a gap", () => {

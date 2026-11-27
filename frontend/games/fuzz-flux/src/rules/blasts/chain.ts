@@ -5,13 +5,16 @@ import type { Board, Game } from "../board/board";
 import type { FoundBunch } from "../bunches/find";
 import { gatherBunch } from "../bunches/gather";
 import type { ElementId } from "../catalog/elements";
+import type { KindId } from "../catalog/kinds";
+import type { SpecialId } from "../catalog/specials";
 import type { ElementRule } from "../elements/element_rule";
 import type { Blast, Bunch, Strike } from "../move/record";
-import { PUFFER_REACH } from "../tuning";
+import { PUFFER_REACH, TWO_PUFFERS_REACH, TWO_WISPS_FLIGHTS } from "../tuning";
 import { dasherStrikes } from "./dasher";
-import { frizzballStrikes } from "./frizzball";
+import { type FurPair, frizzballStrikes, furGiven } from "./frizzball";
 import { pufferStrikes } from "./puffer";
 import { type SetOff, Striking, type StruckBoard } from "./striking";
+import { wholeBoardStrikes } from "./strikes";
 import { wispTarget } from "./wisp";
 
 /** Describes what a wave's bunches and blasts did, and the board as they left it to fall. */
@@ -23,6 +26,12 @@ export interface StruckWave extends StruckBoard {
 
 /** Describes a blast waiting its turn to go off, and what set it off. */
 type Queued = SetOff & Pick<Blast, "setOffBy" | "wait">;
+
+/** Describes the special a wisp swapped with one carries, and the kind it goes off with. */
+interface Carried {
+  readonly what: Exclude<SpecialId, "wisp">;
+  readonly kind: KindId;
+}
 
 /**
  * Returns what a wave's bunches and blasts do to a game's board: each
@@ -95,6 +104,8 @@ class Chain {
     switch (blast.what) {
       case "dasher-across":
       case "dasher-down":
+      case "two-dashers":
+      case "dasher-and-puffer":
         return this.strikeEach(
           dasherStrikes(this.board(), blast.what, blast.square),
           place,
@@ -104,11 +115,42 @@ class Chain {
           pufferStrikes(this.board(), blast.square, PUFFER_REACH),
           place,
         );
+      case "two-puffers":
+        return this.strikeEach(
+          pufferStrikes(this.board(), blast.square, TWO_PUFFERS_REACH),
+          place,
+        );
       case "wisp":
-        return this.fly(blast, place);
+        return this.fly(blast.square, place, 1, null);
+      case "two-wisps":
+        return this.fly(blast.square, place, TWO_WISPS_FLIGHTS, null);
+      case "wisp-and-dasher-across":
+        return this.fly(blast.square, place, 1, {
+          what: "dasher-across",
+          kind: blast.kind,
+        });
+      case "wisp-and-dasher-down":
+        return this.fly(blast.square, place, 1, {
+          what: "dasher-down",
+          kind: blast.kind,
+        });
+      case "wisp-and-puffer":
+        return this.fly(blast.square, place, 1, {
+          what: "puffer",
+          kind: blast.kind,
+        });
       case "frizzball":
         return this.strikeEach(
           frizzballStrikes(this.board(), blast.square, blast.kind),
+          place,
+        );
+      case "frizzball-and-dasher":
+      case "frizzball-and-puffer":
+      case "frizzball-and-wisp":
+        return this.giveFur(blast.what, blast.square, blast.kind, place);
+      case "two-frizzballs":
+        return this.strikeEach(
+          wholeBoardStrikes(this.board(), blast.square),
           place,
         );
     }
@@ -125,34 +167,94 @@ class Chain {
     place: number,
   ): readonly Strike[] {
     for (const strike of strikes) {
-      this.strike(strike, place);
+      this.queueBehind(
+        this.striking.strike(strike.square, { ...strike, blast: place }),
+        strike,
+        place,
+      );
     }
     return strikes;
   }
 
-  /** Strikes a square for a blast, setting off what it gathers to wait behind every blast set off before it. */
-  private strike({ square, step }: Strike, place: number): void {
-    const setOff = this.striking.strike(square, { square, step, blast: place });
+  /** Queues what a blast's strike set off, if anything, to wait behind every blast set off before it. */
+  private queueBehind(
+    setOff: SetOff | null,
+    { step }: Strike,
+    place: number,
+  ): void {
     if (setOff !== null) {
       this.queue.push({ ...setOff, setOffBy: place, wait: step });
     }
   }
 
-  /** Flies a wisp to where it chooses and strikes it there, and returns its square, none where it finds none worth flying to. */
-  private fly(blast: Queued, place: number): readonly Strike[] {
-    const target = wispTarget(
-      this.striking.soFar(),
-      blast.square,
-      (square) =>
-        itemAt(this.flownTo, square) || this.striking.isGathered(square),
-      this.rules,
-    );
-    if (target === null) {
-      return [];
+  /**
+   * Flies a wisp from a square, or so many wisps in turn, each to the
+   * square it chooses, and returns the squares flown to, a step each: each
+   * strikes its square, or sets off there the special it carries, and no
+   * wisp flies once one finds nowhere worth flying to.
+   */
+  private fly(
+    from: number,
+    place: number,
+    flights: number,
+    carried: Carried | null,
+  ): readonly Strike[] {
+    const strikes: Strike[] = [];
+    for (let step = 1; step <= flights; step++) {
+      const target = wispTarget(
+        this.striking.soFar(),
+        from,
+        (square) =>
+          itemAt(this.flownTo, square) || this.striking.isGathered(square),
+        this.rules,
+      );
+      if (target === null) {
+        break;
+      }
+      this.flownTo[target] = true;
+      const strike = { square: target, step };
+      strikes.push(strike);
+      if (carried === null) {
+        this.strikeEach([strike], place);
+      } else {
+        this.queueBehind(
+          { ...carried, square: target, piece: null },
+          strike,
+          place,
+        );
+      }
     }
-    this.flownTo[target] = true;
-    const strike = { square: target, step: 1 };
-    this.strike(strike, place);
-    return [strike];
+    return strikes;
+  }
+
+  /**
+   * Gives each fuzzball of a kind the fur a frizzball's pair gives, nearest
+   * first, then gathers each that took it in that order, setting off its
+   * special: and returns their squares, a step each in turn.
+   */
+  private giveFur(
+    pair: FurPair,
+    from: number,
+    kind: KindId,
+    place: number,
+  ): readonly Strike[] {
+    const takers: number[] = [];
+    for (const { square } of frizzballStrikes(this.board(), from, kind)) {
+      if (this.striking.giveFur(square, furGiven(pair, takers.length))) {
+        takers.push(square);
+      }
+    }
+    const strikes = takers.map((square, taker) => ({
+      square,
+      step: taker + 1,
+    }));
+    for (const strike of strikes) {
+      this.queueBehind(
+        this.striking.gather(strike.square, { ...strike, blast: place }),
+        strike,
+        place,
+      );
+    }
+    return strikes;
   }
 }

@@ -1,6 +1,6 @@
 import { boardFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
-import { commonestKind, frizzballStrikes } from "./frizzball";
+import { commonestKind, frizzballStrikes, furGiven } from "./frizzball";
 
 describe("commonestKind", () => {
   it("takes the kind in play the board holds the most fuzzballs of", () => {
@@ -58,5 +58,23 @@ describe("frizzballStrikes", () => {
     expect(frizzballStrikes(board, blast.square, blast.kind)).toEqual(
       blast.strikes,
     );
+  });
+});
+
+describe("furGiven", () => {
+  it("gives a dasher's fur across and down in turn, the first across", () => {
+    expect(
+      [0, 1, 2, 3].map((place) => furGiven("frizzball-and-dasher", place)),
+    ).toEqual(["dasher-across", "dasher-down", "dasher-across", "dasher-down"]);
+  });
+
+  it.each([
+    ["frizzball-and-puffer", "puffer"],
+    ["frizzball-and-wisp", "wisp"],
+  ] as const)("gives each fuzzball for %s a %s's fur", (pair, special) => {
+    expect([0, 1].map((place) => furGiven(pair, place))).toEqual([
+      special,
+      special,
+    ]);
   });
 });

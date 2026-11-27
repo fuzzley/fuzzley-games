@@ -15,7 +15,7 @@ import {
 } from "../catalog/elements";
 import type { KindId } from "../catalog/kinds";
 import type { Fuzzball, Piece } from "../catalog/pieces";
-import type { MadeId } from "../catalog/specials";
+import type { BlastId, MadeId, SpecialId } from "../catalog/specials";
 import type {
   Change,
   ElementRule,
@@ -35,11 +35,16 @@ export type Struck = Pick<
   "square" | "step" | "blast"
 >;
 
-/** Describes a special or the frizzball set off, and the kind it goes off with, before it is known what set it off. */
-export type SetOff = Pick<Blast, "square" | "piece"> & {
-  readonly what: MadeId;
-  readonly kind: KindId;
-};
+/** Describes what goes off, a special, the frizzball or a pair, and the kind it goes off with: two frizzballs take none. */
+export type GoingOff =
+  | {
+      readonly what: Exclude<BlastId, "two-frizzballs">;
+      readonly kind: KindId;
+    }
+  | { readonly what: "two-frizzballs"; readonly kind: null };
+
+/** Describes a special, the frizzball or a pair set off, before it is known what set it off. */
+export type SetOff = Pick<Blast, "square" | "piece"> & GoingOff;
 
 /** Describes a wave's board once its bunches and blasts have struck it, before it falls. */
 export interface StruckBoard {
@@ -170,6 +175,35 @@ export class Striking {
     return piece.special === null
       ? null
       : { what: piece.special, square, piece: piece.id, kind: piece.kind };
+  }
+
+  /**
+   * Gives the fuzzball on a square a special's fur, as a frizzball swapped
+   * with that special does, readied for it by each element's rule in turn,
+   * as a burr brushed off, and returns whether it took it: never on what
+   * the wave made, nor where an element's rule keeps it from taking it, as
+   * a cage does.
+   *
+   * @throws {Error} for a square that holds no fuzzball.
+   */
+  giveFur(square: number, special: SpecialId): boolean {
+    if (itemAt(this.made, square)) {
+      return false;
+    }
+    let ready = this.stateOf(square);
+    for (const element of ELEMENT_IDS) {
+      const givenFur = this.rules[element].givenFur;
+      if (givenFur !== undefined) {
+        const readied = givenFur(ready);
+        if (readied === null) {
+          return false;
+        }
+        ready = readied;
+      }
+    }
+    this.pieces[square] = { ...this.fuzzballIn(ready, square), special };
+    this.dust[square] = ready.dust;
+    return true;
   }
 
   /**
@@ -313,7 +347,11 @@ export class Striking {
 
   /** Returns the fuzzball on a square, throwing where it holds none. */
   private fuzzballAt(square: number): Fuzzball {
-    const piece = itemAt(this.pieces, square);
+    return this.fuzzballIn(this.stateOf(square), square);
+  }
+
+  /** Returns the fuzzball a square's state holds, throwing where it holds none. */
+  private fuzzballIn({ piece }: SquareState, square: number): Fuzzball {
     if (piece?.what !== "fuzzball") {
       throw new Error(`Square ${String(square)} holds no fuzzball.`);
     }
