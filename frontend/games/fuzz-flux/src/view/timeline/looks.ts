@@ -56,6 +56,8 @@ export function restingFace(piece: Piece): FuzzballFace {
 export const RAISED = {
   /** A fuzzball picked up. */
   held: 1,
-  /** One swapped from, sliding over the other. */
+  /** One on the move as the rest stand still: swapped from, hopping off or running in. */
   moving: 2,
+  /** A special just made. */
+  made: 3,
 } as const satisfies Readonly<Record<string, number>>;

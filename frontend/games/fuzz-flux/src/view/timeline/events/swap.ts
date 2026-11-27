@@ -3,9 +3,9 @@
 // special set off where it stands, after a moment's wait; and a swap
 // refused, as the two lean at each other, shake their heads and go back.
 
-import type { Piece } from "../../../rules/catalog/pieces";
 import type { Swap } from "../../../rules/move/record";
 import type { GridShown } from "../../run_state";
+import { goesOff } from "../board_after";
 import type { FeelTuning } from "../feel";
 import { RAISED, restingFace } from "../looks";
 import { type Part, facing, moves, sets } from "../part";
@@ -64,14 +64,6 @@ function swapped(
       ? []
       : moves(to.piece.id, 0, feel.swapMs, "back", from.at)),
   ];
-}
-
-/** Returns whether a piece is a special or the frizzball, which goes off as it is swapped. */
-function goesOff(piece: Piece): boolean {
-  return (
-    piece.what === "frizzball" ||
-    (piece.what === "fuzzball" && piece.special !== null)
-  );
 }
 
 /**

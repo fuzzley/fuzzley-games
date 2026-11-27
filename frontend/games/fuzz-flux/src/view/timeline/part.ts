@@ -104,3 +104,8 @@ export function sets(
 export function facing(piece: number, atMs: number, face: FuzzballFace): Part {
   return { what: "face", piece, atMs, face };
 }
+
+/** Returns the part that spawns an effect. */
+export function spawns(effect: Effect): Part {
+  return { what: "effect", effect };
+}

@@ -1,10 +1,12 @@
 // A move's timeline, built from its record and the board it was played
-// on, before it plays: the fuzzball picked up put down, then the swap or
-// the swap refused; and the timeline of a tap between moves, which picks a
-// fuzzball up or puts one down.
+// on, before it plays: the fuzzball picked up put down, the swap or the
+// swap refused, then each wave in turn on the board as the one before left
+// it; and the timeline of a tap between moves, which picks a fuzzball up
+// or puts one down.
 
 import type { MoveRecord } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
+import { afterSwap, afterWave } from "./board_after";
 import { Draft } from "./draft";
 import { pickedUp, putDown } from "./events/pick_up";
 import { swapOf } from "./events/swap";
@@ -13,6 +15,7 @@ import { type Pace, pacedFeel } from "./pace";
 import type { Part } from "./part";
 import { standingOn } from "./standing";
 import type { Timeline } from "./timeline";
+import { playWave } from "./wave";
 
 /** Describes the board as a move starts: where every piece stands at the tap, and the fuzzball picked up. */
 export interface MoveStart {
@@ -53,7 +56,12 @@ export function timelineOf(
   const draft = new Draft(start.grid);
   // The swap starts as the put-down does and holds the board for itself.
   draft.add(putDownOn(start.grid, start.held, paced));
-  const restMs = Math.max(0, draft.add(swapOf(record.swap, start.grid, paced)));
+  let restMs = Math.max(0, draft.add(swapOf(record.swap, start.grid, paced)));
+  let grid = afterSwap(start.grid, record.swap);
+  for (const wave of record.waves) {
+    restMs = playWave(draft, wave, grid, restMs, paced);
+    grid = afterWave(grid, wave);
+  }
   return draft.finish(restMs, null, paced);
 }
 

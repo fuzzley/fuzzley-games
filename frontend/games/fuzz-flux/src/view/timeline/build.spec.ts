@@ -30,6 +30,15 @@ describe("timelineOf", () => {
     ]);
   });
 
+  it("huddles the bunch the swap makes once the swap is done", () => {
+    const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, NORMAL);
+
+    expect([
+      pieceAt(timeline, idOn(BUNCH, 0), FEEL.swapMs - 1).face,
+      pieceAt(timeline, idOn(BUNCH, 0), FEEL.swapMs).face,
+    ]).toEqual(["rest", "eep"]);
+  });
+
   it("swaps faster at the Fast pace, by the feel's", () => {
     const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, {
       speed: "fast",
