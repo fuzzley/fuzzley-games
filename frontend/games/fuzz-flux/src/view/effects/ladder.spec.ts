@@ -1,4 +1,53 @@
-import { noteVolumeOf, onRung, takesOf } from "./ladder";
+import { designText } from "../../testing/design_files";
+import {
+  LADDER_CENTS,
+  noteVolumeOf,
+  onRung,
+  rungCentsOf,
+  takesOf,
+} from "./ladder";
+
+/** The design's words, each run of spaces and line breaks one space. */
+const DESIGN = designText("design.md").replaceAll(/\s+/g, " ");
+
+/** How far each note's letter lies above C in its octave, in cents. */
+const NOTE_CENTS: Readonly<Record<string, number>> = {
+  C: 0,
+  D: 200,
+  E: 400,
+  F: 500,
+  G: 700,
+  A: 900,
+  B: 1100,
+};
+
+/** The notes the design's ladder climbs, such as "D5". */
+const [, LADDER_NOTES = ""] =
+  /climbs one step of C major pentatonic: (C5(?:, [A-G]\d)+)\./.exec(DESIGN) ??
+  [];
+
+/** Returns how far a note, such as "E6", lies above C5, in cents. */
+function centsAboveC5(note: string): number {
+  const [letter = "", octave = ""] = note;
+  return (NOTE_CENTS[letter] ?? Number.NaN) + (Number(octave) - 5) * 1200;
+}
+
+describe("LADDER_CENTS", () => {
+  it("climbs the design's notes, C5 to A6, a rung a note", () => {
+    expect(LADDER_CENTS).toEqual(LADDER_NOTES.split(", ").map(centsAboveC5));
+  });
+});
+
+describe("rungCentsOf", () => {
+  it.each([
+    [0, 0],
+    [3, 700],
+    [9, 2100],
+    [14, 2100],
+  ])("tunes rung %i up %i cents", (rung, cents) => {
+    expect(rungCentsOf(rung)).toBe(cents);
+  });
+});
 
 describe("takesOf", () => {
   it("holds a laddered sound at the foot under its own name, and at G5, D6 and A6 under theirs", () => {

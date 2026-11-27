@@ -59,7 +59,7 @@ export interface RungPlay {
 const SOFTER_A_RUNG_DB = 0.4;
 
 /** Returns how far a rung, 0 at the foot, lies above the ladder's foot, in cents: none at the foot or under it, and the top's past the top. */
-function rungCentsOf(rung: number): number {
+export function rungCentsOf(rung: number): number {
   return ladderCentsOf(rung + 1, LADDER_CENTS);
 }
 

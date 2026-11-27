@@ -1,0 +1,68 @@
+// What an event adds to a move's timeline, each a part the builder lays
+// into its tracks and lists: a key, a face or a new look for a piece, a
+// piece shown or gone, a loose sprite, an effect, a glow the flashes'
+// limit may drop, a sound, the board's dimming, and a moment the board
+// waits for before it goes on.
+
+import type { FuzzballFace } from "@fz/style/fuzzball";
+import type { Piece } from "../../rules/catalog/pieces";
+import type { SoundName } from "../effects/sounds";
+import type { Channel, Effect, Key, Look, SpriteTrack } from "./timeline";
+
+/** Describes a part of a move's timeline that an event adds. */
+export type Part =
+  /** A key that moves a number of a piece's look. */
+  | {
+      readonly what: "key";
+      readonly piece: number;
+      readonly channel: Channel;
+      readonly key: Key;
+    }
+  /** A piece's eyes taking a face. */
+  | {
+      readonly what: "face";
+      readonly piece: number;
+      readonly atMs: number;
+      readonly face: FuzzballFace;
+    }
+  /** A piece drawn as another from a moment, as a fuzzball made special is. */
+  | {
+      readonly what: "becomes";
+      readonly piece: number;
+      readonly atMs: number;
+      readonly drawn: Piece;
+    }
+  /** A piece that shows from a moment, with its own look and face, as one let in at the top does. */
+  | {
+      readonly what: "shows";
+      readonly piece: Piece;
+      readonly atMs: number;
+      readonly look: Look;
+      readonly face: FuzzballFace;
+    }
+  /** A piece gone from a moment. */
+  | { readonly what: "leaves"; readonly piece: number; readonly atMs: number }
+  | { readonly what: "sprite"; readonly sprite: SpriteTrack }
+  | { readonly what: "effect"; readonly effect: Effect }
+  /** A piece glowing white for a while, which the flashes' limit counts and may drop. */
+  | {
+      readonly what: "glow";
+      readonly piece: number;
+      readonly atMs: number;
+      readonly ms: number;
+      /** How white it glows as it starts, 1 for all white. */
+      readonly amount: number;
+    }
+  /** A sound, climbing the move's ladder of notes to a rung where it is a note. */
+  | {
+      readonly what: "sound";
+      readonly atMs: number;
+      readonly sound: SoundName;
+      /** Its rung on the ladder, from 0 for the first wave's, or null for a sound that is no note. */
+      readonly rung: number | null;
+      readonly volume: number;
+    }
+  /** A key of how far the board dims. */
+  | { readonly what: "dim"; readonly key: Key }
+  /** A moment the board waits for before it goes on, such as a hop far enough through that it may fall. */
+  | { readonly what: "hold"; readonly atMs: number };
