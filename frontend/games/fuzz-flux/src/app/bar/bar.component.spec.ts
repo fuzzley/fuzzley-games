@@ -24,16 +24,27 @@ function stateOfLevel3(): RunState {
   return runStateOf(inPlay, gridOf(game), beats);
 }
 
-/** Renders the bar over the third of the small levels, beside the board's panels where `panelled` says, the sound on unless `soundOn` says otherwise, and returns what it asks for. */
-async function renderBar(panelled = false, soundOn = true): Promise<string[]> {
+/** Renders the bar over the third of the small levels, beside the board's panels where `panelled` says, the sound on unless `soundOn` says otherwise and How to play loading where `helpLoading` says, and returns what it asks for. */
+async function renderBar(
+  panelled = false,
+  soundOn = true,
+  helpLoading = false,
+): Promise<string[]> {
   const asked: string[] = [];
   await render(BarComponent, {
-    inputs: { state: stateOfLevel3(), pictures: PICTURES, panelled, soundOn },
+    inputs: {
+      state: stateOfLevel3(),
+      pictures: PICTURES,
+      panelled,
+      soundOn,
+      helpLoading,
+    },
     on: {
       hint: () => asked.push("hint"),
       restart: () => asked.push("restart"),
       toggleSound: () => asked.push("toggleSound"),
       chooseLevel: () => asked.push("chooseLevel"),
+      openHelp: () => asked.push("openHelp"),
       openSettings: () => asked.push("openSettings"),
     },
   });
@@ -117,6 +128,7 @@ describe("BarComponent", () => {
   it.each([
     ["the sound", "Sound", "toggleSound"],
     ["Choose a level", "Choose a level", "chooseLevel"],
+    ["How to play", "How to play", "openHelp"],
     ["the settings", "Settings", "openSettings"],
   ])("asks for %s", async (_, name, output) => {
     const asked = await renderBar();
@@ -141,11 +153,24 @@ describe("BarComponent", () => {
     },
   );
 
-  it("keeps Sound and Settings beside the panels", async () => {
+  it.each([
+    [true, "true"],
+    [false, null],
+  ])("shows How to play busy while it loads: %s", async (helpLoading, busy) => {
+    await renderBar(false, true, helpLoading);
+
+    expect(
+      screen
+        .getByRole("button", { name: "How to play" })
+        .getAttribute("aria-busy"),
+    ).toBe(busy);
+  });
+
+  it("keeps Sound, Choose a level, How to play and Settings beside the panels", async () => {
     await renderBar(true);
 
     expect(screen.getAllByRole("button").map((button) => button.title)).toEqual(
-      ["Sound", "Choose a level", "Settings"],
+      ["Sound", "Choose a level", "How to play", "Settings"],
     );
   });
 
@@ -154,12 +179,25 @@ describe("BarComponent", () => {
       installFakeViewport(390, 844);
     });
 
-    it("moves Sound, Choose a level and Settings into the menu", async () => {
+    it("moves Sound, Choose a level, How to play and Settings into the menu", async () => {
       await renderBar();
 
       const items = await openBarMenu(userEvent.setup());
 
-      expect(items).toEqual(["Turn sound off", "Choose a level", "Settings"]);
+      expect(items).toEqual([
+        "Turn sound off",
+        "Choose a level",
+        "How to play",
+        "Settings",
+      ]);
+    });
+
+    it("shows the menu busy while How to play loads", async () => {
+      await renderBar(false, true, true);
+
+      expect(
+        screen.getByRole("button", { name: "More actions" }),
+      ).toHaveAttribute("aria-busy", "true");
     });
 
     it("offers to turn the sound back on from the menu", async () => {
@@ -182,6 +220,7 @@ describe("BarComponent", () => {
     it.each([
       ["the sound", "Turn sound off", "toggleSound"],
       ["Choose a level", "Choose a level", "chooseLevel"],
+      ["How to play", "How to play", "openHelp"],
       ["the settings", "Settings", "openSettings"],
     ])("asks for %s from the menu", async (_, name, output) => {
       const asked = await renderBar();

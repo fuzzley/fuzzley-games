@@ -9,6 +9,7 @@ import {
   provideReportPicture,
 } from "@fz/game-ui/testing";
 import {
+  collectErrors,
   provideFakePhaserCanvas,
   resize,
   watchResizes,
@@ -21,16 +22,23 @@ import {
 import { viewport } from "@fz/phaser/testing/pure";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import { setPageVisibility } from "@fz/ui/testing";
+import {
+  type HeldLoad,
+  OFFLINE,
+  heldLoad,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { squareOf } from "../rules/board/cells";
 import { BoardFrames } from "../testing/board_frames";
 import { BLUE_LINE, SMALL_LEVELS } from "../testing/small_levels";
 import { boardMetrics } from "../view/board/metrics";
-import { AppComponent } from "./app.component";
+import { AppComponent, HELP_FAILED_WORDS } from "./app.component";
 import { BoardComponent } from "./board/board.component";
 import { provideFuzzFluxBugReports } from "./bug_report/fuzz_flux_bug_reports";
+import { HelpComponent } from "./help/help.component";
+import { LOAD_HELP } from "./help/load_help";
 import { GameService } from "./play/game.service";
 import { VIEW_KIT } from "./play/view_kit";
 import { SettingsService } from "./settings/settings.service";
@@ -66,6 +74,34 @@ async function renderApp(...providers: Provider[]): Promise<RenderedApp> {
     canvas: fixture.debugElement.query(By.directive(PhaserCanvasComponent))
       .nativeElement as HTMLElement,
   };
+}
+
+/** Renders the game as `renderApp()` does, How to play's chunk held until the spec lets it arrive or fail, and returns its load. */
+async function renderHeldHelp(): Promise<RenderedApp & { help: HeldLoad }> {
+  const help = heldLoad(HelpComponent);
+  const app = await renderApp({ provide: LOAD_HELP, useValue: help.load });
+  return { ...app, help };
+}
+
+/** Returns the bar's button a name names. */
+function barButton(name: string): HTMLElement {
+  return within(screen.getByRole("banner")).getByRole("button", { name });
+}
+
+/**
+ * Returns every How to play dialog in the page, shut or open. A shut one is
+ * hidden, and Testing Library gives a hidden element no name, so the label
+ * is read off each dialog.
+ */
+function helpDialogs(): HTMLElement[] {
+  return screen
+    .queryAllByRole("dialog", { hidden: true })
+    .filter((dialog) => dialog.getAttribute("aria-label") === "How to play");
+}
+
+/** Returns How to play's dialog where it is open, or null. */
+function openHelp(): HTMLElement | null {
+  return screen.queryByRole("dialog", { name: "How to play" });
 }
 
 /**
@@ -289,6 +325,196 @@ describe("AppComponent", () => {
       kept: TestBed.inject(SettingsService).settings().sound,
       board: board.sound(),
     }).toEqual({ kept: false, board: false });
+  });
+
+  describe("How to play", () => {
+    it("is nowhere in the page until it first opens, as it loads only then", async () => {
+      await renderApp();
+
+      expect(helpDialogs()).toEqual([]);
+    });
+
+    it("opens as the bar's How to play asks", async () => {
+      const { settle } = await renderApp();
+
+      await userEvent.click(barButton("How to play"));
+      await settle();
+
+      expect(openHelp()).toBeVisible();
+    });
+
+    it("closes at Escape", async () => {
+      const { settle } = await renderApp();
+      await userEvent.click(barButton("How to play"));
+      await settle();
+
+      await userEvent.keyboard("{Escape}");
+      await settle();
+
+      expect(openHelp()).not.toBeInTheDocument();
+    });
+
+    it("opens the one it loaded again", async () => {
+      const { settle } = await renderApp();
+      await userEvent.click(barButton("How to play"));
+      await settle();
+      await userEvent.keyboard("{Escape}");
+      await settle();
+
+      await userEvent.click(barButton("How to play"));
+      await settle();
+
+      expect(helpDialogs()).toEqual([openHelp()]);
+    });
+
+    describe("on a slow connection", () => {
+      it("shows its button busy while it loads", async () => {
+        await renderHeldHelp();
+
+        await userEvent.click(barButton("How to play"));
+        // Not settled, as the page settles only once the load is in.
+        TestBed.tick();
+
+        expect(barButton("How to play")).toHaveAttribute("aria-busy", "true");
+      });
+
+      it("opens once it has loaded, its button no longer busy", async () => {
+        const { help, settle } = await renderHeldHelp();
+        await userEvent.click(barButton("How to play"));
+
+        help.arrive();
+        await settle();
+
+        expect({
+          dialog: openHelp(),
+          busy: barButton("How to play").getAttribute("aria-busy"),
+        }).toEqual({ dialog: expect.toBeVisible() as unknown, busy: null });
+      });
+
+      it("drops the opening at Escape, so it doesn't open over the board later", async () => {
+        const { help, settle } = await renderHeldHelp();
+        await userEvent.click(barButton("How to play"));
+
+        await userEvent.keyboard("{Escape}");
+        help.arrive();
+        await settle();
+
+        expect({
+          dialog: openHelp(),
+          busy: barButton("How to play").getAttribute("aria-busy"),
+        }).toEqual({ dialog: null, busy: null });
+      });
+
+      it("drops the opening as the focus leaves the bar", async () => {
+        const { help, settle } = await renderHeldHelp();
+        await userEvent.click(barButton("How to play"));
+
+        screen.getAllByRole("gridcell")[0]!.focus();
+        help.arrive();
+        await settle();
+
+        expect(openHelp()).not.toBeInTheDocument();
+      });
+
+      it("drops the opening at a press outside the bar, where the press moved no focus", async () => {
+        const { help, settle } = await renderHeldHelp();
+        const board = screen.getAllByRole("gridcell")[0]!;
+        board.focus();
+        // A click that focuses no button, as Safari's.
+        fireEvent.click(barButton("How to play"));
+
+        fireEvent.pointerDown(board);
+        help.arrive();
+        await settle();
+
+        expect(openHelp()).not.toBeInTheDocument();
+      });
+
+      it("drops the opening at a key pressed outside the bar, where the press moved no focus", async () => {
+        const { help, settle } = await renderHeldHelp();
+        const board = screen.getAllByRole("gridcell")[0]!;
+        board.focus();
+        fireEvent.click(barButton("How to play"));
+
+        fireEvent.keyDown(board, { key: " ", code: "Space" });
+        help.arrive();
+        await settle();
+
+        expect(openHelp()).not.toBeInTheDocument();
+      });
+
+      it.each(["Tab", "Shift"])(
+        "keeps the opening at %s outside the bar, which moves along the page or modifies a key",
+        async (key) => {
+          const { help, settle } = await renderHeldHelp();
+          fireEvent.click(barButton("How to play"));
+
+          fireEvent.keyDown(screen.getAllByRole("gridcell")[0]!, { key });
+          help.arrive();
+          await settle();
+
+          expect(openHelp()).toBeVisible();
+        },
+      );
+
+      it("keeps the opening at a press in the bar", async () => {
+        const { help, settle } = await renderHeldHelp();
+        fireEvent.click(barButton("How to play"));
+
+        fireEvent.pointerDown(barButton("Choose a level"));
+        help.arrive();
+        await settle();
+
+        expect(openHelp()).toBeVisible();
+      });
+
+      it("says in the page's live region that it couldn't be loaded, as the app's error handler is told why", async () => {
+        const errors = collectErrors();
+        const { help, settle } = await renderHeldHelp();
+        await userEvent.click(barButton("How to play"));
+
+        help.fail();
+        await settle();
+
+        expect({
+          said: TestBed.inject(AnnouncerService).message(),
+          busy: barButton("How to play").getAttribute("aria-busy"),
+          dialogs: helpDialogs(),
+          errors,
+        }).toEqual({
+          said: HELP_FAILED_WORDS,
+          busy: null,
+          dialogs: [],
+          errors: [OFFLINE],
+        });
+      });
+
+      it("says nothing of a load that failed once the opening was dropped", async () => {
+        collectErrors();
+        const { help, settle } = await renderHeldHelp();
+        await userEvent.click(barButton("How to play"));
+
+        await userEvent.keyboard("{Escape}");
+        help.fail();
+        await settle();
+
+        expect(TestBed.inject(AnnouncerService).message()).toBe("");
+      });
+
+      it("loads it again at the next press after a load failed", async () => {
+        collectErrors();
+        const { help, settle } = await renderHeldHelp();
+        await userEvent.click(barButton("How to play"));
+        help.fail();
+        await settle();
+
+        await userEvent.click(barButton("How to play"));
+        help.arrive();
+        await settle();
+
+        expect(openHelp()).toBeVisible();
+      });
+    });
   });
 
   describe("the card at a level's end", () => {

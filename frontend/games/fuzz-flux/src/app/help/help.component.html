@@ -1,0 +1,131 @@
+<fz-help-dialog [open]="open()" (closed)="closed.emit()">
+  <p>
+    Clear each level by meeting its goals before your moves run out. Swap 2
+    fuzzballs side by side or one above the other. When 3 or more of a kind line
+    up, they make a bunch and hop off the board. The fuzzballs above fall into
+    their place, and new ones come in at the top. A swap that makes no bunch
+    goes back and costs no move. If your moves run out first, you lose the
+    level.
+  </p>
+
+  <table aria-label="Controls">
+    <thead>
+      <tr>
+        <td></td>
+        <th scope="col">Touch</th>
+        <th scope="col">Mouse</th>
+        <th scope="col">Keyboard</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Swap</th>
+        <td>Swipe</td>
+        <td>Drag</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th scope="row">Pick up</th>
+        <td>Tap</td>
+        <td>Click</td>
+        <td><kbd>Space</kbd> or <kbd>Enter</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Then swap</th>
+        <td>Tap a neighbor</td>
+        <td>Click a neighbor</td>
+        <td>An arrow key</td>
+      </tr>
+      <tr>
+        <th scope="row">Put down</th>
+        <td>Tap off the board</td>
+        <td>Click off the board</td>
+        <td><kbd>Esc</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Set off a special</th>
+        <td>Tap it twice</td>
+        <td>Click it twice</td>
+        <td><kbd>Space</kbd> or <kbd>Enter</kbd> twice</td>
+      </tr>
+      <tr>
+        <th scope="row">Move the ring</th>
+        <td></td>
+        <td></td>
+        <td>Arrow keys</td>
+      </tr>
+      <tr>
+        <th scope="row">Hint</th>
+        <td>Hint</td>
+        <td>Hint</td>
+        <td><kbd>H</kbd></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Bunches.</strong> 3 or more of a kind in a row or a column make a
+    bunch, and so do 4 in a square. Bunches that touch count as one. A bigger
+    bunch leaves a special fuzzball on the square you swapped into.
+  </p>
+  <table aria-label="Bunches">
+    <thead>
+      <tr>
+        <th scope="col">The bunch</th>
+        <th scope="col">What it leaves</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of bunches; track row.what) {
+        <tr>
+          <th scope="row">{{ row.what }}</th>
+          <td>{{ row.does }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <fz-help-catalog [catalog]="specials()" />
+
+  <p>
+    <strong>Pairs.</strong> Swap 2 specials with each other, and they go off
+    together as something bigger.
+  </p>
+  <table aria-label="Pairs">
+    <thead>
+      <tr>
+        <th scope="col">Swapped together</th>
+        <th scope="col">Does</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of pairs; track row.what) {
+        <tr>
+          <th scope="row">{{ row.what }}</th>
+          <td>{{ row.does }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Goals.</strong> Each goal shows a picture and how many are left:
+    fuzzballs of a kind to gather, or something on the board to clear. A goal
+    met shows a check mark. You clear the level when a move ends with every goal
+    met.
+  </p>
+  <p>
+    <strong>Moves to spare.</strong> When you clear a level, you earn 1 star,
+    and up to {{ mostStars }} if you have enough moves to spare. Each move you
+    have left then turns a fuzzball into a special and sets it off, up to
+    {{ mostEncoreMoves }}. Tap, click or press a key to speed it up.
+  </p>
+  <p>
+    <strong>Deals.</strong> Each level has {{ deals }} deals. A deal is the
+    starting board and every fuzzball that comes in after it. You can clear
+    every deal with the moves you have. Restart plays the same deal again. Try
+    again, Play again and coming back to the level play the next deal.
+  </p>
+
+  <fz-help-catalog [catalog]="things()" />
+</fz-help-dialog>

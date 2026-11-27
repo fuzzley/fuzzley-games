@@ -61,10 +61,12 @@
   [pictures]="pictures()"
   [panelled]="panelled()"
   [soundOn]="soundOn()"
+  [helpLoading]="helpLoading()"
   (hint)="game.hint()"
   (restart)="restart()"
   (toggleSound)="toggleSound()"
   (chooseLevel)="levelsOpen.set(true)"
+  (openHelp)="openHelp()"
   (openSettings)="settingsOpen.set(true)"
 />
 
@@ -72,6 +74,8 @@
 <fz-announcer />
 
 <app-choose-level [open]="levelsOpen()" (closed)="levelsOpen.set(false)" />
+<!-- How to play, loaded as it first opens. -->
+<ng-container #helpHost />
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <fz-confirm-dialog />
 <fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />

@@ -1,0 +1,16 @@
+@use "../styles" as *;
+@include help-text;
+@include help-controls;
+
+// A fuzzball is round, so each picture's room is square.
+fz-help-catalog {
+  --fz-help-picture-width: 40px;
+  --fz-help-picture-height: 40px;
+}
+
+// Paragraphs follow the tables and the specials' catalog too, so each
+// keeps as far from them as from those above it.
+table,
+fz-help-catalog {
+  margin-bottom: var(--fz-space-4);
+}

@@ -9,6 +9,7 @@ import {
 import {
   type BarOverflowItem,
   BarOverflowComponent,
+  HELP_MENU_ACTION,
   SETTINGS_MENU_ACTION,
   withHomeLink,
 } from "@fz/game-ui/bar_overflow";
@@ -22,18 +23,19 @@ import { LevelFiguresComponent } from "./level_figures.component";
 import { LevelTitleComponent } from "./level_title.component";
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "sound" | "levels" | "settings";
+type MenuAction = "sound" | "levels" | "help" | "settings";
 
 /**
  * Shows the game bar (`<fz-game-bar>`): the link home, the page's heading,
  * and, unless a wide window's panels beside the board show them, the
  * level's number and name, its figures, and Hint and Restart; then Sound,
- * Choose a level and Settings, asking the app for each.
+ * Choose a level, How to play and Settings, asking the app for each.
  *
  * A compact bar shows the level's number alone, and a rail, as narrow as
  * a button, neither, each left to the board's name, so the goals and the
- * moves keep their room. There Sound, Choose a level and Settings move
- * into the overflow menu, as on the narrowest the link home does too.
+ * moves keep their room. There Sound, Choose a level, How to play and
+ * Settings move into the overflow menu, as on the narrowest the link home
+ * does too.
  */
 @Component({
   selector: "app-bar",
@@ -67,6 +69,9 @@ export class BarComponent {
   /** Whether the player wants sound. */
   readonly soundOn = input.required<boolean>();
 
+  /** Whether How to play is loading after a press, which shows its button busy. */
+  readonly helpLoading = input(false);
+
   /** Emitted for Hint. */
   readonly hint = output();
 
@@ -79,6 +84,9 @@ export class BarComponent {
   /** Emitted for Choose a level. */
   readonly chooseLevel = output();
 
+  /** Emitted for How to play. */
+  readonly openHelp = output();
+
   /** Emitted for Settings. */
   readonly openSettings = output();
 
@@ -87,6 +95,7 @@ export class BarComponent {
     const actions: readonly BarOverflowItem<MenuAction>[] = [
       soundMenuAction(this.soundOn()),
       { id: "levels", label: "Choose a level", icon: "grid" },
+      HELP_MENU_ACTION,
       SETTINGS_MENU_ACTION,
     ];
     return withHomeLink(actions, this.viewport.barHome());
@@ -103,6 +112,9 @@ export class BarComponent {
         return;
       case "levels":
         this.chooseLevel.emit();
+        return;
+      case "help":
+        this.openHelp.emit();
         return;
       case "settings":
         this.openSettings.emit();
