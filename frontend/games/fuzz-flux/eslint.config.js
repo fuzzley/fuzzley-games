@@ -18,7 +18,11 @@ import { defineConfig } from "eslint/config";
 // holds each at the rules' floor. A file of src/testing/ off this list is
 // held only to the helpers' fence below.
 /** @type {readonly string[]} */
-export const HELD_AS_RULES = [];
+export const HELD_AS_RULES = [
+  "src/testing/dice.ts",
+  "src/testing/play_out.ts",
+  "src/testing/casual.ts",
+];
 
 export default defineConfig(
   typescript({

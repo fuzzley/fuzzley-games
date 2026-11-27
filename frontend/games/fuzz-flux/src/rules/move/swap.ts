@@ -142,7 +142,7 @@ export function bunchMatesOf(
 }
 
 /** Returns whether a piece goes off when it is swapped: a special fuzzball or the frizzball. */
-function goesOff(piece: Piece | null): boolean {
+export function goesOff(piece: Piece | null): boolean {
   return (
     piece?.what === "frizzball" ||
     (piece?.what === "fuzzball" && piece.special !== null)

@@ -5,6 +5,7 @@ import type { SquareState } from "../elements/element_rule";
 import {
   bunchMatesOf,
   canSwap,
+  goesOff,
   hasLegalMove,
   legalMoves,
   plainFuzzballs,
@@ -100,6 +101,21 @@ describe("swapWorks", () => {
       ]).toEqual([false, false]);
     },
   );
+});
+
+describe("goesOff", () => {
+  it("sets off a special and the frizzball, and no plain fuzzball or other piece", () => {
+    const board = boardFrom({ pieces: ["bbf1z "], marks: [".o...."] });
+
+    expect(board.pieces.map(goesOff)).toEqual([
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ]);
+  });
 });
 
 describe("legalMoves", () => {
