@@ -2,9 +2,11 @@
 // down its column of the board's frame, past any gap, and a lane lets a
 // fuzzball in at its top for each square nothing falls into. Where a piece
 // held still stands over an empty square, the fuzzball diagonally above it
-// rolls in, one at a time, and the board falls again.
+// rolls in, one at a time, and the board falls again. Once nothing moves,
+// each element's rule does what the board at rest does, as a sleepyhead on
+// a bed is put to bed, and the board falls again after it.
 
-import { itemAt } from "@fz/core/records";
+import { itemAt, recordOf } from "@fz/core/records";
 import type { Game } from "../board/board";
 import {
   columnsOf,
@@ -13,24 +15,44 @@ import {
   rowsOf,
   squareOf,
 } from "../board/cells";
-import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
+import { hitOf } from "../blasts/striking";
+import {
+  type DustLayers,
+  ELEMENT_IDS,
+  type ElementId,
+} from "../catalog/elements";
 import type { Piece } from "../catalog/pieces";
-import type { ElementRule } from "../elements/element_rule";
-import type { Fall } from "./record";
+import type {
+  Change,
+  ElementRule,
+  SquareState,
+} from "../elements/element_rule";
+import { countedOff } from "./goals";
+import type { Fall, Hit } from "./record";
 import { refillKind } from "./refill";
 
-/** Describes a board come to rest, and how each piece got there. */
+/** Describes a board come to rest, how each piece got there, and what its coming to rest did. */
 export interface Settled {
-  /** The game as it rests: its board, its frame's lanes and the id its next piece takes. */
+  /** The game as it rests: its board, its frame's lanes, what each goal still needs and the id its next piece takes. */
   readonly game: Game;
   /** Each piece's way down, in the board's own frame, in the order each first moved. */
   readonly falls: readonly Fall[];
+  /** What the board coming to rest did, in the order done, as each sleepyhead put to bed. */
+  readonly hits: readonly Hit[];
+  /** How many of each element's changes counted. */
+  readonly counted: Readonly<Record<ElementId, number>>;
 }
 
 /** Describes a piece on its square. */
 interface Standing {
   readonly square: number;
   readonly piece: Piece;
+}
+
+/** Describes an element's part in the board coming to rest. */
+interface AtRest {
+  readonly element: ElementId;
+  readonly settled: NonNullable<ElementRule["settled"]>;
 }
 
 /** Describes a piece's way down so far. */
@@ -48,7 +70,8 @@ interface Falling {
  * Straight falls go a column at a time from the left, each from its
  * bottom. A roll takes the lowest empty square it can, the leftmost of a
  * row, and on every other square, by the moves played, looks above to the
- * right before the left.
+ * right before the left. The board at rest is asked of each square in
+ * turn, and of each element in the elements' order.
  */
 export function settle(
   game: Game,
@@ -57,7 +80,8 @@ export function settle(
   const settling = new Settling(game, rules);
   let moving = true;
   while (moving) {
-    moving = settling.fallStraight() || settling.rollOne();
+    moving =
+      settling.fallStraight() || settling.rollOne() || settling.comeToRest();
   }
   return settling.settled();
 }
@@ -65,20 +89,35 @@ export function settle(
 /** Holds a board as it settles, moving each of its pieces in turn. */
 class Settling {
   private readonly pieces: (Piece | null)[];
+  private readonly dust: DustLayers[];
   private readonly letIn: number[];
   private nextPieceId: number;
+  private goalsLeft: readonly number[];
   private readonly falling: Falling[] = [];
   /** Where each square's piece is in `falling`, once it has moved. */
   private readonly fallingAt: (number | null)[];
+  private readonly hits: Hit[] = [];
+  private readonly counted: Record<ElementId, number> = recordOf(
+    ELEMENT_IDS,
+    () => 0,
+  );
+  /** The elements that take a part in the board at rest, in the elements' order. */
+  private readonly atRest: readonly AtRest[];
 
   constructor(
     private readonly game: Game,
     private readonly rules: Readonly<Record<ElementId, ElementRule>>,
   ) {
     this.pieces = [...game.board.pieces];
+    this.dust = [...game.board.dust];
     this.letIn = [...game.lanes[game.turns]];
     this.nextPieceId = game.nextPieceId;
+    this.goalsLeft = game.goalsLeft;
     this.fallingAt = this.pieces.map(() => null);
+    this.atRest = ELEMENT_IDS.flatMap((element) => {
+      const { settled } = rules[element];
+      return settled === undefined ? [] : [{ element, settled }];
+    });
   }
 
   /** Lets every piece fall straight down that can, and every lane let in what fills it, and returns whether any did. */
@@ -130,7 +169,29 @@ class Settling {
     return false;
   }
 
-  /** Returns the game as the board rests, and each piece's way down. */
+  /**
+   * Lets each element's rule do what the board at rest does to each
+   * square, as a sleepyhead on a bed put to bed, and returns whether any
+   * changed what a square holds or the dust on it.
+   */
+  comeToRest(): boolean {
+    let changed = false;
+    for (const [square, bed] of this.game.board.beds.entries()) {
+      for (const { element, settled } of this.atRest) {
+        const before = this.stateOf(square);
+        const change = settled(before, bed);
+        if (change !== null) {
+          this.change(element, square, before, change);
+          changed ||=
+            change.square.piece !== before.piece ||
+            change.square.dust !== before.dust;
+        }
+      }
+    }
+    return changed;
+  }
+
+  /** Returns the game as the board rests, each piece's way down, and what its coming to rest did. */
   settled(): Settled {
     const { game } = this;
     const lanes = [...game.lanes] satisfies Game["lanes"];
@@ -138,12 +199,58 @@ class Settling {
     return {
       game: {
         ...game,
-        board: { ...game.board, pieces: this.pieces },
+        board: { ...game.board, pieces: this.pieces, dust: this.dust },
         lanes,
+        goalsLeft: this.goalsLeft,
         nextPieceId: this.nextPieceId,
       },
       falls: this.falling.map(({ start, path }) => ({ ...start, path })),
+      hits: this.hits,
+      counted: this.counted,
     };
+  }
+
+  /** Returns what a square holds and the dust on it. */
+  private stateOf(square: number): SquareState {
+    return {
+      piece: itemAt(this.pieces, square),
+      dust: itemAt(this.dust, square),
+    };
+  }
+
+  /** Makes an element's change to a square at rest, writing its hit and counting it where it counts. */
+  private change(
+    element: ElementId,
+    square: number,
+    before: SquareState,
+    change: Change,
+  ): void {
+    this.pieces[square] = change.square.piece;
+    this.dust[square] = change.square.dust;
+    if (change.square.piece?.id !== before.piece?.id) {
+      this.fallingAt[square] = null;
+    }
+    if (change.hit !== null) {
+      // The board at rest strikes as a bunch strikes its own squares, with no blast.
+      this.hits.push(
+        hitOf(
+          change.hit,
+          { square, step: 0, blast: null },
+          before,
+          change.square,
+        ),
+      );
+    }
+    if (change.counts) {
+      this.counted[element]++;
+      const goal = this.rules[element].goal;
+      if (goal !== undefined) {
+        this.goalsLeft = countedOff(
+          { goals: this.game.goals, goalsLeft: this.goalsLeft },
+          { what: goal.id },
+        );
+      }
+    }
   }
 
   /** Returns whether a square is open and holds nothing. */
@@ -168,10 +275,7 @@ class Settling {
 
   /** Returns whether an element's rule keeps a square's piece where it is. */
   private holdsFall(square: number): boolean {
-    const state = {
-      piece: itemAt(this.pieces, square),
-      dust: itemAt(this.game.board.dust, square),
-    };
+    const state = this.stateOf(square);
     return ELEMENT_IDS.some((id) => this.rules[id].holdsFall?.(state) === true);
   }
 

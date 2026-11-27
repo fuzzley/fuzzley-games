@@ -384,7 +384,7 @@ function bornHit(square: number, made: MadeId, fuzzball: Fuzzball): Hit {
  * @throws {Error} for a hit on a piece the square doesn't hold, or a brick
  *   knocked that is no brick after.
  */
-function hitOf(
+export function hitOf(
   what: NonNullable<Change["hit"]>,
   struck: Struck,
   before: SquareState,

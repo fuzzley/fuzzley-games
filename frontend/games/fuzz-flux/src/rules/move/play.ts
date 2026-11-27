@@ -1,17 +1,18 @@
 // A move played whole: the swap, its waves to rest, the move counted and
-// how the level stands, then, while it plays on, the wind's turn. The rules
-// play it in the board's own frame, and take the move in and hand its
-// record back in the screen's. A game is never changed: the move makes the
-// next one.
+// how the level stands, then, while it plays on, what each element does at
+// the end of a move and the wind's turn. The rules play it in the board's
+// own frame, and take the move in and hand its record back in the
+// screen's. A game is never changed: the move makes the next one.
 
+import { itemAt } from "@fz/core/records";
 import type { Game, Outcome } from "../board/board";
-import { fromScreen, turnFrame } from "../board/orientation";
+import { fromScreen, onScreen, turnFrame } from "../board/orientation";
 import { findBunches } from "../bunches/find";
-import type { ElementId } from "../catalog/elements";
+import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
 import type { ElementRule, WindRule } from "../elements/element_rule";
 import { goalsMet } from "./goals";
 import { waveOnScreen } from "./on_screen";
-import type { Gust, MoveRecord, Wave } from "./record";
+import type { BurrSpread, Gust, MoveRecord, Wave } from "./record";
 import { settle } from "./settle";
 import { playSwap } from "./swapped";
 import { playToRest } from "./wave";
@@ -20,6 +21,12 @@ import { playToRest } from "./wave";
 export interface Played {
   readonly game: Game;
   readonly record: MoveRecord;
+}
+
+/** Describes the end of a move, its waves at rest: the game it leaves, and the burr that spread, or null. */
+interface EndOfMove {
+  readonly game: Game;
+  readonly burrSpread: BurrSpread | null;
 }
 
 /** Describes the wind's turn after a move: the game it leaves, and the gust, or null where the wind didn't turn. */
@@ -84,12 +91,59 @@ export function play(
       "cleared",
     );
   }
-  const gusted = gustAfter(ended, rules, wind);
+  const end = moveEnded(ended, rested.counted, rules);
+  const gusted = gustAfter(end.game, rules, wind);
   return endedAs(
     gusted.game,
-    { swap, waves, burrSpread: null, gust: gusted.gust, shuffle: null },
+    {
+      swap,
+      waves,
+      burrSpread: end.burrSpread,
+      gust: gusted.gust,
+      shuffle: null,
+    },
     outcomeOf(gusted.game),
   );
+}
+
+/**
+ * Returns a game once the elements' rules, asked in the elements' order
+ * until one spreads a burr, have done what the end of a move that leaves
+ * the level in play does: that burr put on the fuzzball it spreads to,
+ * and the spread in the screen's frame.
+ *
+ * @param counted How many of each element's changes in the move counted.
+ * @throws {Error} for a burr spread to a square that holds no fuzzball.
+ */
+function moveEnded(
+  game: Game,
+  counted: Readonly<Record<ElementId, number>>,
+  rules: Readonly<Record<ElementId, ElementRule>>,
+): EndOfMove {
+  for (const element of ELEMENT_IDS) {
+    const spread =
+      rules[element].moveEnded?.({ game, counted: counted[element] }) ?? null;
+    if (spread === null) {
+      continue;
+    }
+    const pieces = [...game.board.pieces];
+    const piece = itemAt(pieces, spread.to);
+    if (piece?.what !== "fuzzball") {
+      throw new Error(
+        `A burr spreads to square ${String(spread.to)}, which holds no fuzzball.`,
+      );
+    }
+    pieces[spread.to] = { ...piece, burred: true };
+    return {
+      game: { ...game, board: { ...game.board, pieces } },
+      burrSpread: {
+        from: onScreen(game, spread.from),
+        to: onScreen(game, spread.to),
+        piece: piece.id,
+      },
+    };
+  }
+  return { game, burrSpread: null };
 }
 
 /**
@@ -123,7 +177,7 @@ function gustAfter(
     number: 0,
     bunches: [],
     blasts: [],
-    hits: [],
+    hits: fallen.hits,
     falls: fallen.falls,
     goalsLeft: fallen.game.goalsLeft,
   };

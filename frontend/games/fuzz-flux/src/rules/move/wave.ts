@@ -2,11 +2,12 @@
 // sets off what they and the move set off, then the board falls, and the
 // next gathers the bunches the fall left, until a fall leaves none.
 
+import { recordOf } from "@fz/core/records";
 import type { Game } from "../board/board";
 import { strikeWave } from "../blasts/chain";
 import type { SetOff } from "../blasts/striking";
 import { type FoundBunch, findBunches } from "../bunches/find";
-import type { ElementId } from "../catalog/elements";
+import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
 import type { ElementRule } from "../elements/element_rule";
 import { MOST_WAVES } from "../tuning";
 import type { Wave } from "./record";
@@ -18,6 +19,8 @@ export interface Rested {
   readonly game: Game;
   /** Each wave, numbered from 1, in the board's own frame. */
   readonly waves: readonly Wave[];
+  /** How many of each element's changes counted, over every wave. */
+  readonly counted: Readonly<Record<ElementId, number>>;
 }
 
 /**
@@ -40,6 +43,7 @@ export function playToRest(
   rules: Readonly<Record<ElementId, ElementRule>>,
 ): Rested {
   const waves: Wave[] = [];
+  const counted = recordOf(ELEMENT_IDS, () => 0);
   let resting = game;
   let standing = bunches;
   let goingOff = setOff;
@@ -53,13 +57,16 @@ export function playToRest(
       number: waves.length + 1,
       bunches: struck.bunches,
       blasts: struck.blasts,
-      hits: struck.hits,
+      hits: [...struck.hits, ...fallen.hits],
       falls: fallen.falls,
       goalsLeft: fallen.game.goalsLeft,
     });
+    for (const element of ELEMENT_IDS) {
+      counted[element] += struck.counted[element] + fallen.counted[element];
+    }
     resting = fallen.game;
     standing = findBunches(resting.board, null);
     goingOff = [];
   }
-  return { game: resting, waves };
+  return { game: resting, waves, counted };
 }

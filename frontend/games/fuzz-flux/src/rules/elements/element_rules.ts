@@ -6,6 +6,7 @@
 // its rule here the same way.
 
 import type { ElementId } from "../catalog/elements";
+import { DUST_RULE } from "./dust";
 import type { ElementRule, WindRule } from "./element_rule";
 
 /** The rule of an element still to be brought in, which takes no part in any moment of a move. */
@@ -13,7 +14,6 @@ const STAND_IN: ElementRule = {};
 
 /** Every element that plays by the stand-in, its rule still to be brought in. */
 export const STAND_INS = [
-  "dust",
   "brick",
   "cage",
   "sleepyhead",
@@ -22,7 +22,7 @@ export const STAND_INS = [
 
 /** Each element's rule, by its id. */
 export const ELEMENT_RULES = {
-  dust: STAND_IN,
+  dust: DUST_RULE,
   brick: STAND_IN,
   cage: STAND_IN,
   sleepyhead: STAND_IN,

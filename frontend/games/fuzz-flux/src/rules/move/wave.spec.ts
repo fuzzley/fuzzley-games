@@ -1,3 +1,4 @@
+import { recordOf } from "@fz/core/records";
 import {
   type BoardPicture,
   type GameOptions,
@@ -6,6 +7,7 @@ import {
 import { DESIGN_PARTS } from "../../testing/made_up_rules";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import { findBunches } from "../bunches/find";
+import { ELEMENT_IDS } from "../catalog/elements";
 import { MOST_WAVES } from "../tuning";
 import { type Swapped, playSwap } from "./swapped";
 import { type Rested, playToRest } from "./wave";
@@ -42,7 +44,11 @@ describe("playToRest", () => {
 
     const rested = playToRest(game, [], [], DESIGN_PARTS);
 
-    expect(rested).toEqual({ game, waves: [] });
+    expect(rested).toEqual({
+      game,
+      waves: [],
+      counted: recordOf(ELEMENT_IDS, () => 0),
+    });
   });
 
   it("plays each wave the sketch played, numbered from 1, until a fall leaves no bunch", () => {
@@ -72,6 +78,21 @@ describe("playToRest", () => {
       ),
     ).toEqual([[["dasher-across", 4, null]]]);
   });
+
+  it.each([
+    ["cageBunched", "cage"],
+    ["sleepyheadBedded", "sleepyhead"],
+  ] as const)(
+    "counts each element's changes that count over the waves, as in %s",
+    (name, element) => {
+      const { counted } = restedAfter(name);
+
+      expect(counted).toEqual({
+        ...recordOf(ELEMENT_IDS, () => 0),
+        [element]: 1,
+      });
+    },
+  );
 
   it("stops at the most waves a move plays, though a bunch still stands", () => {
     // Every fuzzball let in is blue, so each fall stands up the bunch again.

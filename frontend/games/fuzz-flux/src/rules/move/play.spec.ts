@@ -3,7 +3,11 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS, DESIGN_WIND } from "../../testing/made_up_rules";
+import {
+  DESIGN_PARTS,
+  DESIGN_WIND,
+  NO_PART,
+} from "../../testing/made_up_rules";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import type { Game } from "../board/board";
 import { turnFrame } from "../board/orientation";
@@ -133,6 +137,84 @@ describe("play", () => {
     });
 
     expect(game.outcome).toBe("cleared");
+  });
+
+  it.each(["sleepyheadBedded", "burrBrushedOff"] as const)(
+    "plays each element's part as the sketch did, in %s",
+    (name) => {
+      const { record } = replayed(name);
+
+      expect(record).toEqual(MOVE_FIXTURES[name].record);
+    },
+  );
+
+  it("spreads a burr after a move that brushed none off, as the sketch does", () => {
+    const { game, record } = replayed("burrSpreads");
+
+    expect([record, game.board.pieces[3]]).toEqual([
+      MOVE_FIXTURES.burrSpreads.record,
+      expect.objectContaining({ id: 4, burred: true }),
+    ]);
+  });
+
+  it("spreads no burr after a move that brushed one off, though another could spread", () => {
+    // The bunch brushes the burr beside it off; the one at the corner stays.
+    const game = gameFrom(
+      { ...BLUES_ACROSS, marks: ["...", "*..", "..*"] },
+      PLAYING,
+    );
+
+    const { game: played, record } = play(
+      game,
+      1,
+      4,
+      DESIGN_PARTS,
+      DESIGN_WIND,
+    );
+
+    expect([
+      record.waves[0]?.hits.filter(({ what }) => what === "unburred").length,
+      played.board.pieces[8],
+      record.burrSpread,
+    ]).toEqual([1, expect.objectContaining({ burred: true }), null]);
+  });
+
+  it("spreads no burr after the move that clears the level", () => {
+    const { record } = play(
+      gameFrom(
+        { ...BLUES_ACROSS, marks: ["...", "...", "*.."] },
+        { goals: [{ what: "gather", kind: "blue", count: 3 }] },
+      ),
+      1,
+      4,
+      DESIGN_PARTS,
+      DESIGN_WIND,
+    );
+
+    expect([record.burrSpread, record.outcome]).toEqual([null, "cleared"]);
+  });
+
+  it("hands a burr's spread back in the screen's frame", () => {
+    const game = turnFrame(
+      gameFrom({ ...BLUES_ACROSS, marks: ["...", "...", "*.."] }, PLAYING),
+      1,
+    );
+
+    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+
+    expect(record.burrSpread).toEqual({ from: 6, to: 7, piece: 8 });
+  });
+
+  it("throws for a burr spread to a square that holds no fuzzball", () => {
+    const rules = {
+      ...NO_PART,
+      burr: { moveEnded: () => ({ from: 7, to: 8 }) },
+    };
+    const game = gameFrom(["bgb", "rbr", "av1"], PLAYING);
+
+    expect(() => play(game, 1, 4, rules, DESIGN_WIND)).toThrow(
+      "A burr spreads to square 8, which holds no fuzzball.",
+    );
   });
 
   it("turns the wind after a move, as the sketch does, everything falling the new way", () => {

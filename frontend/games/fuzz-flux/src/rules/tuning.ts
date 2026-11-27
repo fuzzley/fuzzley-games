@@ -2,6 +2,8 @@
 // proven for every level were found on them, so a change to one asks for
 // the levels to be certified again.
 
+import type { ElementId } from "./catalog/elements";
+
 /** How many tries a deal makes at a board with no bunch standing and moves to make, a try a salt, before it gives up. */
 export const DEAL_TRIES = 500;
 
@@ -37,3 +39,19 @@ export const WISP_FUZZBALL_WORTH = 10;
 
 /** How many values the draw takes that puts one of a wisp's equally good squares first. */
 export const WISP_TIE_DRAWS = 10;
+
+/**
+ * The order a wisp weighs what lies on a square in, each element's rank
+ * in it from 0, as the sketch weighs them: a cage, a brick, whatever holds
+ * a sleepyhead up, a burr, then dust.
+ */
+export const WISP_RANKS = {
+  cage: 0,
+  brick: 1,
+  sleepyhead: 2,
+  burr: 3,
+  dust: 4,
+} as const satisfies Readonly<Record<ElementId, number>>;
+
+/** What a dusty square is worth to a wisp while the dust's goal is open, and a layer more for each layer on it. */
+export const WISP_DUST_WORTH = 50;

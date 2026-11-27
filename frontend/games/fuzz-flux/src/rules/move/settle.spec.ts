@@ -1,13 +1,20 @@
+import { recordOf } from "@fz/core/records";
 import {
   type BoardPicture,
   type GameOptions,
   gameFrom,
   pictureOf,
 } from "../../testing/board_picture";
-import { DESIGN_HOLDS, NO_PART } from "../../testing/made_up_rules";
+import {
+  DESIGN_HOLDS,
+  DESIGN_PARTS,
+  NO_PART,
+} from "../../testing/made_up_rules";
 import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
 import type { Game } from "../board/board";
 import { onScreen, turnFrame } from "../board/orientation";
+import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
+import type { ElementRule } from "../elements/element_rule";
 import { refillKind } from "./refill";
 import { type Settled, settle } from "./settle";
 
@@ -246,7 +253,12 @@ describe("settle", () => {
   it("moves nothing on a board at rest", () => {
     const game = gameFrom(["bg", "rv"]);
 
-    expect(settle(game, DESIGN_HOLDS)).toEqual({ game, falls: [] });
+    expect(settle(game, DESIGN_HOLDS)).toEqual({
+      game,
+      falls: [],
+      hits: [],
+      counted: recordOf(ELEMENT_IDS, () => 0),
+    });
   });
 
   it("leaves the game it is handed as it was", () => {
@@ -256,5 +268,107 @@ describe("settle", () => {
     settle(game, DESIGN_HOLDS);
 
     expect(game).toEqual(before);
+  });
+
+  it("puts a sleepyhead on a bed to bed once the board is at rest, counting it, and lets the board fall again", () => {
+    const game = gameFrom(["bz", "r "], { goals: [{ what: "sleepyhead" }] });
+
+    const { game: rested, falls, hits, counted } = settle(game, DESIGN_PARTS);
+
+    expect([
+      hits,
+      rested.goalsLeft,
+      counted.sleepyhead,
+      falls.map(({ piece, from, path }) => [piece, from, path]),
+    ]).toEqual([
+      [{ what: "bedded", square: 3, piece: 2 }],
+      [0],
+      1,
+      [
+        [2, 1, [3]],
+        [4, null, [1, 3]],
+        [5, null, [1]],
+      ],
+    ]);
+  });
+
+  it("leaves a sleepyhead on its bed where no element takes part in the board at rest", () => {
+    const game = gameFrom(["bz", "r "], { goals: [{ what: "sleepyhead" }] });
+
+    const { game: rested, hits } = settle(game, DESIGN_HOLDS);
+
+    expect([rested.board.pieces[3]?.what, hits, rested.goalsLeft]).toEqual([
+      "sleepyhead",
+      [],
+      [1],
+    ]);
+  });
+
+  it("makes each change the board at rest makes, counting those that count, toward no goal where its element has none", () => {
+    // Dust that comes off at rest, with no hit and no goal of its own,
+    // counting where it lay 2 deep.
+    const rules: Readonly<Record<ElementId, ElementRule>> = {
+      ...NO_PART,
+      dust: {
+        settled: ({ piece, dust }) =>
+          dust === 0
+            ? null
+            : { square: { piece, dust: 0 }, hit: null, counts: dust === 2 },
+      },
+    };
+    const game = gameFrom(
+      { pieces: ["bg", "rv"], dust: ["21", "00"] },
+      { goals: [{ what: "dust" }], goalsLeft: [3] },
+    );
+
+    const { game: rested, hits, counted } = settle(game, rules);
+
+    expect([rested.board.dust, hits, counted.dust, rested.goalsLeft]).toEqual([
+      [0, 0, 0, 0],
+      [],
+      1,
+      [3],
+    ]);
+  });
+
+  it("starts a fall afresh for a piece the board at rest puts in another's place", () => {
+    // At rest, the blue fuzzball is made anew where it lands; then the
+    // sleepyhead under it is put to bed and the new one falls on.
+    const rules: Readonly<Record<ElementId, ElementRule>> = {
+      ...DESIGN_PARTS,
+      dust: {
+        settled: ({ piece, dust }) =>
+          piece?.what === "fuzzball" && piece.id === 1
+            ? {
+                square: { piece: { ...piece, id: 9 }, dust },
+                hit: null,
+                counts: false,
+              }
+            : null,
+      },
+    };
+    const game = gameFrom(["b", "z", " "]);
+
+    const { falls } = settle(game, rules);
+
+    expect(falls.map(({ piece, from, path }) => [piece, from, path])).toEqual([
+      [2, 1, [2]],
+      [1, 0, [1]],
+      [3, null, [0, 1]],
+      [9, 1, [2]],
+      [4, null, [0]],
+    ]);
+  });
+
+  it("comes to rest where a change at rest leaves its square as it was", () => {
+    const rules: Readonly<Record<ElementId, ElementRule>> = {
+      ...NO_PART,
+      dust: { settled: (square) => ({ square, hit: null, counts: true }) },
+    };
+    const game = gameFrom(["bg", "rv"]);
+
+    const { counted } = settle(game, rules);
+
+    expect(counted.dust).toBe(4);
   });
 });

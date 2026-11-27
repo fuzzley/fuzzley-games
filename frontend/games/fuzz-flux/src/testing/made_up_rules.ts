@@ -3,16 +3,23 @@
 // elements' own rules have been brought in; and the wind's, made up the
 // same way.
 
-import { itemAt, recordOf } from "@fz/core/records";
+import { hashOf } from "@fz/core/random";
+import { itemAt, pick, recordOf } from "@fz/core/records";
 import type { Board } from "../rules/board/board";
+import { neighborsOf } from "../rules/board/cells";
 import {
   type BrickLayers,
   ELEMENT_IDS,
   type ElementId,
 } from "../rules/catalog/elements";
+import { SALTS } from "../rules/draws";
+import { DUST_RULE } from "../rules/elements/dust";
+import { WISP_RANKS } from "../rules/tuning";
 import type {
   Change,
   ElementRule,
+  MoveEnd,
+  Spread,
   SquareState,
   WindRule,
 } from "../rules/elements/element_rule";
@@ -48,13 +55,7 @@ export const DESIGN_HOLDS: Readonly<Record<ElementId, ElementRule>> = {
  */
 export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
   {
-    dust: {
-      goal: {
-        id: "dust",
-        countOn: ({ dust }) =>
-          dust.reduce<number>((sum, layers) => sum + layers, 0),
-      },
-    },
+    dust: pick(DUST_RULE, ["goal"]),
     brick: {
       ...DESIGN_HOLDS.brick,
       goal: { id: "brick", countOn: (board) => countOf(board, isBrick) },
@@ -77,47 +78,28 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
 /**
  * Every element's rule holding and counting what
  * `DESIGN_HOLDS_AND_GOALS` does, and taking the part the design's sketch
- * gives it as a wave strikes: a bunch opens a cage and brushes off a burr
+ * gives it as a wave strikes, dust by its own rule: a bunch opens a cage
+ * and brushes off a burr
  * on each fuzzball it takes in, and knocks a brick or brushes off a burr
  * beside it; a blast knocks a brick, ruffles a sleepyhead, opens a cage or
  * brushes off a burr rather than gathering; a layer of dust is swept from
  * under each fuzzball gathered or made special and each square struck
  * bare; a caged fuzzball takes no fur the frizzball gives, and a burred
- * one loses its burr as it takes it; and a wisp weighs a caged fuzzball, a
+ * one loses its burr as it takes it; a wisp weighs a caged fuzzball, a
  * brick, whatever holds a sleepyhead up, a burr and a dusty square, in
- * that order, each worth more where its goal is open.
+ * that order, each worth more where its goal is open; a sleepyhead on a
+ * bed is put to bed once the board is at rest, which counts; and after a
+ * move that brushed no burr off, a burr spreads to a plain fuzzball beside
+ * one, drawn as the sketch draws it.
  */
 export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
-  dust: {
-    ...DESIGN_HOLDS_AND_GOALS.dust,
-    struckUnder: ({ piece, dust }) =>
-      dust === 0
-        ? null
-        : {
-            square: { piece, dust: dust === 2 ? 1 : 0 },
-            hit: "dusted",
-            counts: true,
-          },
-    wisp: {
-      rank: 4,
-      worth: ({ pieces, dust }, square, goalOpen) => {
-        const layers = itemAt(dust, square);
-        const piece = itemAt(pieces, square);
-        return goalOpen &&
-          layers > 0 &&
-          piece !== null &&
-          piece.what !== "sleepyhead"
-          ? 50 + layers
-          : null;
-      },
-    },
-  },
+  dust: DUST_RULE,
   brick: {
     ...DESIGN_HOLDS_AND_GOALS.brick,
     besideBunch: knocked,
     blasted: knocked,
     wisp: {
-      rank: 1,
+      rank: WISP_RANKS.brick,
       worth: ({ pieces }, square, goalOpen) => {
         const piece = itemAt(pieces, square);
         if (piece?.what !== "brick") {
@@ -133,7 +115,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
     blasted: (square) => uncaged(square, "uncaged"),
     givenFur: (square) => (isCaged(square) ? null : square),
     wisp: {
-      rank: 0,
+      rank: WISP_RANKS.cage,
       worth: ({ pieces }, square, goalOpen) => {
         if (!isCaged({ piece: itemAt(pieces, square) })) {
           return null;
@@ -148,8 +130,12 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
       square.piece?.what === "sleepyhead"
         ? { square, hit: "ruffled", counts: false }
         : null,
+    settled: ({ piece, dust }, bed) =>
+      bed && piece?.what === "sleepyhead"
+        ? { square: { piece: null, dust }, hit: "bedded", counts: true }
+        : null,
     wisp: {
-      rank: 2,
+      rank: WISP_RANKS.sleepyhead,
       worth: (board, square, goalOpen) =>
         goalOpen && holdsSleepyheadUp(board, square) ? 70 : null,
     },
@@ -160,8 +146,9 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
     besideBunch: (square) => unburred(square, "unburred"),
     blasted: (square) => unburred(square, "unburred"),
     givenFur: (square) => unburred(square, null)?.square ?? square,
+    moveEnded: burrSpread,
     wisp: {
-      rank: 3,
+      rank: WISP_RANKS.burr,
       worth: ({ pieces }, square) => {
         const piece = itemAt(pieces, square);
         return piece?.what === "fuzzball" && piece.burred ? 60 : null;
@@ -181,6 +168,41 @@ export const DESIGN_WIND: WindRule = {
       ? { wind: { ...wind, wait: wind.wait - 1 }, quarters: 0 }
       : { wind: { ...wind, wait: wind.every }, quarters: wind.quarters },
 };
+
+/**
+ * Returns the burr's spread at the end of a move that brushed none off: to
+ * a plain fuzzball, neither caged nor burred, beside a burred one, the
+ * ways it can by the burred one's square and then right, left, down and
+ * up, one drawn from the deal's seed and the moves played; or null where
+ * none can.
+ */
+function burrSpread({ game, counted }: MoveEnd): Spread | null {
+  if (counted > 0) {
+    return null;
+  }
+  const { board } = game;
+  const isPlain = (square: number): boolean => {
+    const piece = itemAt(board.pieces, square);
+    return (
+      piece?.what === "fuzzball" &&
+      piece.special === null &&
+      !piece.caged &&
+      !piece.burred
+    );
+  };
+  const ways = board.pieces.flatMap((piece, from) =>
+    piece?.what === "fuzzball" && piece.burred
+      ? neighborsOf(from, board)
+          .filter(isPlain)
+          .map((to) => ({ from, to }))
+      : [],
+  );
+  if (ways.length === 0) {
+    return null;
+  }
+  const draw = hashOf(game.seed, game.movesPlayed, ways.length, SALTS.burr);
+  return itemAt(ways, draw % ways.length);
+}
 
 /** Returns whether a square holds up a sleepyhead: the nearest piece above it, past gaps and empty squares, is one. */
 function holdsSleepyheadUp(board: Board, square: number): boolean {
