@@ -45,10 +45,12 @@ export default defineConfig(
     files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
   }),
   // Each layer imports only the layers below it, and the rules and the view
-  // read only what they are handed. The rules, and the helpers held as they
-  // are, keep to arithmetic every engine rounds alike, so a certificate
-  // found in Node holds in every browser.
+  // read only what they are handed. The view takes the fuzzball of
+  // @fz/style, its faces among them. The rules, and the helpers held as
+  // they are, keep to arithmetic every engine rounds alike, so a
+  // certificate found in Node holds in every browser.
   phaserGameLayers({
+    viewAllows: ["@fz/style/fuzzball"],
     heldAsRules: { root: import.meta.dirname, files: HELD_AS_RULES },
     exact: true,
   }),
