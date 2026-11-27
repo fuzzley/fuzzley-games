@@ -80,10 +80,21 @@ describe("MOVE_FIXTURES", () => {
     ).toEqual(new Set(MADE_IDS));
   });
 
-  it("sets off each special and the frizzball, and two pairs", () => {
+  it("sets off each special and the frizzball, each pair a storyboard shows, and a wisp carrying a dasher", () => {
     expect(
       new Set(WAVES.flatMap(({ blasts }) => blasts.map(({ what }) => what))),
-    ).toEqual(new Set([...MADE_IDS, "two-dashers", "wisp-and-dasher-across"]));
+    ).toEqual(
+      new Set([
+        ...MADE_IDS,
+        "two-dashers",
+        "dasher-and-puffer",
+        "two-puffers",
+        "two-wisps",
+        "wisp-and-dasher-across",
+        "frizzball-and-dasher",
+        "two-frizzballs",
+      ]),
+    );
   });
 
   it("sets off a blast from another", () => {
