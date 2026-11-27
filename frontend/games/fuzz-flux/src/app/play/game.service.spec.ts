@@ -114,6 +114,14 @@ describe("GameService", () => {
       });
     });
 
+    it("has no ring, and moves none, before the board hands over the view", () => {
+      const game = TestBed.inject(GameService);
+
+      game.moveRing(at(7));
+
+      expect(game.ringSquare()).toBeNull();
+    });
+
     it("has no level on the board before the board hands over the view", () => {
       const game = TestBed.inject(GameService);
 
@@ -358,6 +366,32 @@ describe("GameService", () => {
       expect(played.game.inPlay().moves).toEqual([BLUE_LINE]);
     });
 
+    it("move the ring the grid over the board keeps the focus on", async () => {
+      const played = await startGame();
+
+      played.frames.pressKeys("ArrowRight", "ArrowDown");
+
+      expect(played.game.ringSquare()).toEqual(at(6));
+    });
+
+    it("play the square the focus moves the ring to", async () => {
+      const played = await startGame(3);
+      played.game.moveRing(at(BLUE_LINE.from));
+
+      played.frames.pressKeys("Enter");
+
+      expect(played.game.picking().held).toEqual(at(BLUE_LINE.from));
+    });
+
+    it("start the ring on the first square of a level begun", async () => {
+      const played = await startGame();
+      played.game.moveRing(at(7));
+
+      await played.game.startLevel(2);
+
+      expect(played.game.ringSquare()).toEqual(at(0));
+    });
+
     it("move the ring over the board, the board left as it stands", async () => {
       const played = await startGame();
       const still = played.game.play();
@@ -413,6 +447,37 @@ describe("GameService", () => {
       played.frames.tap(at(BLUE_LINE.from));
 
       expect(played.game.play()).not.toBe(held);
+    });
+
+    it("is the square the grid over the board marks selected", async () => {
+      const played = await startGame(3);
+
+      played.frames.tap(at(BLUE_LINE.from));
+
+      expect(played.game.heldSquare()).toEqual(at(BLUE_LINE.from));
+    });
+
+    it("is selected no more once put down", async () => {
+      const played = await startGame(3);
+      played.frames.tap(at(BLUE_LINE.from));
+
+      played.frames.tap(at(BLUE_LINE.from));
+
+      expect(played.game.heldSquare()).toBeNull();
+    });
+
+    it("is selected only once the board shows it held, as it rests after a move", async () => {
+      const played = await startGame(3);
+      swap(played, BLUE_LINE);
+      played.frames.tap(at(0));
+      const whilePlaying = played.game.heldSquare();
+
+      played.frames.playToRest();
+
+      expect({ whilePlaying, atRest: played.game.heldSquare() }).toEqual({
+        whilePlaying: null,
+        atRest: at(0),
+      });
     });
 
     it("waits to show held while a move plays, until the board rests", async () => {

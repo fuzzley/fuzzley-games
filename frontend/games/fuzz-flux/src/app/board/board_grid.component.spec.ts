@@ -2,10 +2,17 @@ import { TestBed } from "@angular/core/testing";
 import { levelsOf } from "@fz/core/levels";
 import { itemAt } from "@fz/core/records";
 import { render, screen, within } from "@testing-library/angular";
+import { squareOf } from "../../rules/board/cells";
 import { levelSetOf } from "../../rules/levels/level";
 import type { LevelEntry } from "../../rules/levels/levels";
-import { GAPPED_LEVELS, SMALL_LEVELS } from "../../testing/small_levels";
+import { BoardFrames } from "../../testing/board_frames";
+import {
+  BLUE_LINE,
+  GAPPED_LEVELS,
+  SMALL_LEVELS,
+} from "../../testing/small_levels";
 import { GameService } from "../play/game.service";
+import { VIEW_KIT } from "../play/view_kit";
 import { GAME_LEVELS } from "../tokens";
 import { BoardGridComponent } from "./board_grid.component";
 
@@ -51,6 +58,29 @@ async function renderGrid(
     game: TestBed.inject(GameService),
     detectChanges,
   };
+}
+
+/** How many squares across the small levels' board is. */
+const ACROSS = 5;
+
+/** Describes the grid rendered over a game the board has handed the view's parts, and the board's frames played for it. */
+interface GridOnBoard extends RenderedGrid {
+  readonly frames: BoardFrames;
+}
+
+/** Renders the grid over a game of the small levels, the board's view handed it, as the scene hands it, and its first frame played. */
+async function renderOnBoard(): Promise<GridOnBoard> {
+  const rendered = await renderGrid();
+  rendered.game.useView(VIEW_KIT);
+  const frames = new BoardFrames(rendered.game);
+  frames.frame();
+  rendered.detectChanges();
+  return { ...rendered, frames };
+}
+
+/** Returns the cell over a square of the small levels' board, by its index. */
+function cellAt(square: number): HTMLElement {
+  return itemAt(screen.getAllByRole("gridcell"), square);
 }
 
 /** Returns the squares that hold a tab stop. */
@@ -134,6 +164,57 @@ describe("BoardGridComponent", () => {
       component.focus();
 
       expect(tabStops()[0]).toHaveFocus();
+    });
+  });
+
+  describe("the ring", () => {
+    it("holds the tab stop, as the keys move it", async () => {
+      const { frames, detectChanges } = await renderOnBoard();
+
+      frames.pressKeys("ArrowRight");
+      detectChanges();
+
+      expect(tabStops()).toEqual([cellAt(1)]);
+    });
+
+    it("takes the focus with it, while the board has the focus", async () => {
+      const { component, frames, detectChanges } = await renderOnBoard();
+      component.focus();
+
+      frames.pressKeys("ArrowRight", "ArrowDown");
+      detectChanges();
+
+      expect(cellAt(6)).toHaveFocus();
+    });
+
+    it("leaves the focus where it is while the board hasn't it", async () => {
+      const { frames, detectChanges } = await renderOnBoard();
+
+      frames.pressKeys("ArrowRight");
+      detectChanges();
+
+      expect(cellAt(1)).not.toHaveFocus();
+    });
+
+    it("follows the focus a screen reader moves to a square", async () => {
+      const { game } = await renderOnBoard();
+
+      cellAt(7).focus();
+
+      expect(game.ringSquare()).toEqual(squareOf(7, ACROSS));
+    });
+  });
+
+  describe("the fuzzball held", () => {
+    it("is selected, and no other", async () => {
+      const { frames, detectChanges } = await renderOnBoard();
+
+      frames.tap(squareOf(BLUE_LINE.from, ACROSS));
+      detectChanges();
+
+      expect(screen.getAllByRole("gridcell", { selected: true })).toEqual([
+        cellAt(BLUE_LINE.from),
+      ]);
     });
   });
 });

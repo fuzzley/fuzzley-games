@@ -8,6 +8,7 @@ import {
   C,
   E,
   F,
+  GAP,
   GameOnBoard,
   H,
   SPECIAL,
@@ -68,6 +69,52 @@ describe("Ring", () => {
       const board = { width: 2, height: 1, open: [false, true] };
 
       expect(ringOn(board).ring.square).toEqual({ x: 1, y: 0 });
+    });
+  });
+
+  describe("moveTo", () => {
+    it("moves the ring to a square, as the focus moving there does", () => {
+      const { ring } = ringOn();
+      const commands = ring.moveTo(H);
+
+      expect({ commands, square: ring.square }).toEqual({
+        commands: [ringAt(H)],
+        square: H,
+      });
+    });
+
+    it("puts the fuzzball held down as it moves the ring off it", () => {
+      const { ring, hand } = ringOn(BOARD, SPACE);
+
+      const commands = ring.moveTo(H);
+
+      expect({ commands, held: hand.held }).toEqual({
+        commands: [{ what: "put-down", square: A }, ringAt(H)],
+        held: null,
+      });
+    });
+
+    it("leaves the keys to play the square it moved to", () => {
+      const { ring, hand } = ringOn();
+      ring.moveTo(B);
+
+      ring.press(SPACE);
+
+      expect(hand.held).toEqual(B);
+    });
+
+    it.each<[string, Square]>([
+      ["the square it is on", A],
+      ["a gap", GAP],
+      ["a square off the board", { x: 4, y: 0 }],
+    ])("keeps the ring where it is, given %s", (_, square) => {
+      const { ring } = ringOn();
+      const commands = ring.moveTo(square);
+
+      expect({ commands, square: ring.square }).toEqual({
+        commands: [],
+        square: A,
+      });
     });
   });
 

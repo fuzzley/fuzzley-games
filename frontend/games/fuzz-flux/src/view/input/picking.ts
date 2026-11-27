@@ -61,7 +61,7 @@ export class Picking {
     private readonly game: GameInPlay,
   ) {}
 
-  /** The square of the fuzzball held, which the grid over the board marks selected, or null while none is. */
+  /** The square of the fuzzball held, or null while none is. */
   get held(): Square | null {
     return this.holding;
   }

@@ -10,6 +10,7 @@ import {
   isOnBoard,
   isWithinEdges,
   neighborOf,
+  sameSquare,
 } from "../board/spaces";
 import type { BoardCommand } from "./commands";
 import type { Picking } from "./picking";
@@ -90,6 +91,22 @@ export class Ring {
       case "hint":
         return [{ what: "hint" }];
     }
+  }
+
+  /**
+   * Moves the ring to a square of the board, as the focus moving there does,
+   * and returns the commands that show it there; or none where the ring is
+   * there already, or the square is a gap or off the board.
+   *
+   * It puts the fuzzball held down, which an arrow would otherwise swap
+   * where the ring no longer is.
+   */
+  moveTo(square: Square): readonly BoardCommand[] {
+    if (sameSquare(square, this.at) || !isOnBoard(this.board, square)) {
+      return [];
+    }
+    this.at = square;
+    return [...this.picking.putDown(), { what: "move-ring", square }];
   }
 
   /**

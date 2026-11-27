@@ -20,12 +20,16 @@
     >
       @for (cell of row.cells; track cell.index) {
         <div
+          #gridCell
           class="cell"
           role="gridcell"
           [tabindex]="cell.tabIndex"
           [attr.aria-colindex]="cell.column"
           [attr.aria-label]="cell.name"
+          [attr.aria-selected]="cell.selected"
+          [attr.data-index]="cell.index"
           [style.--column]="cell.column"
+          (focus)="followFocus(cell.index)"
         ></div>
       }
     </div>

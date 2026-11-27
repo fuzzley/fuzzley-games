@@ -108,8 +108,7 @@ interface Showing {
  * Describes the level on the board, as the view plays it: the view's parts
  * it is played with, the picking and the ring the player's presses and
  * keys play on, the hint's clock, what the board plays and whether its move
- * has rested, the fuzzball shown held, the hand and the shell's own sound
- * cues.
+ * has rested, the hand and the shell's own sound cues.
  */
 interface LevelBoard {
   readonly kit: ViewKit;
@@ -119,8 +118,6 @@ interface LevelBoard {
   showing: Showing;
   /** Whether the move it shows, if any, has come to rest. */
   rested: boolean;
-  /** The square of the fuzzball the board shows held between moves, or null. */
-  shownHeld: number | null;
   /** The square of a fuzzball put down in the frame under way, which a move made in it starts by putting down, or null. */
   putDownNow: number | null;
   hand: Timeline | null;
@@ -167,6 +164,10 @@ export class GameService extends RunLifecycle {
 
   /** The level on the board, once the board has handed over the view's parts, or null before. */
   private board: LevelBoard | null = null;
+  /** The square under the ring the keys move, or null before the board has a ring. */
+  private readonly ringState = signal<Square | null>(null);
+  /** The square of the fuzzball the board shows held between moves, by its index on the screen, or null. */
+  private readonly shownHeld = signal<number | null>(null);
   /** The scene's clock as it last ticked, in milliseconds. */
   private nowMs = 0;
 
@@ -180,6 +181,15 @@ export class GameService extends RunLifecycle {
   readonly state = computed<RunState>(() =>
     runStateOf(this.inPlayState(), this.grid(), this.beatsState()),
   );
+
+  /** The square under the ring the keys move, which the grid over the board keeps the focus on, or null before the board has a ring. */
+  readonly ringSquare = this.ringState.asReadonly();
+
+  /** The square of the fuzzball the board shows held, which the grid over the board marks selected, or null while none shows. */
+  readonly heldSquare = computed(() => {
+    const held = this.shownHeld();
+    return held === null ? null : squareOf(held, this.grid().width);
+  });
 
   /** Where the level stands: in play, cleared, or over, its moves run out. */
   readonly outcome = computed(() => this.inPlayState().game.outcome);
@@ -307,8 +317,15 @@ export class GameService extends RunLifecycle {
         this.hint();
         return;
       case "move-ring":
-        // The grid over the board reads where the ring is from the ring.
+        this.ringState.set(command.square);
         return;
+    }
+  }
+
+  /** Moves the ring to a square, as the focus moving there does, once the board has a ring. */
+  moveRing(square: Square): void {
+    for (const command of this.board?.ring.moveTo(square) ?? []) {
+      this.boardCommand(command);
     }
   }
 
@@ -426,10 +443,13 @@ export class GameService extends RunLifecycle {
       moves.length === 0 ? level.data.hint : null,
     );
     hinting.rests(this.nowMs);
+    const ring = new kit.Ring(shape, picking);
+    this.ringState.set(ring.square);
+    this.shownHeld.set(null);
     this.board = {
       kit,
       picking,
-      ring: new kit.Ring(shape, picking),
+      ring,
       hinting,
       showing: {
         play: this.boardPlay(
@@ -440,7 +460,6 @@ export class GameService extends RunLifecycle {
         move: null,
       },
       rested: true,
-      shownHeld: null,
       putDownNow: null,
       hand: null,
       cues: [],
@@ -460,15 +479,15 @@ export class GameService extends RunLifecycle {
       lookers: mates.map((mate) => this.screenSquare(mate)),
       down: board.putDownNow,
     });
-    board.shownHeld = up;
+    this.shownHeld.set(up);
   }
 
   /** Puts down the fuzzball the board shows held. */
   private putDown(board: LevelBoard, square: Square): void {
     const down = this.screenSquare(square);
-    if (board.shownHeld !== down) return;
+    if (this.shownHeld() !== down) return;
     this.showTap(board, { ...NOTHING_HELD, down });
-    board.shownHeld = null;
+    this.shownHeld.set(null);
     board.putDownNow = down;
   }
 
@@ -536,7 +555,7 @@ export class GameService extends RunLifecycle {
       },
     });
     board.rested = false;
-    board.shownHeld = null;
+    this.shownHeld.set(null);
     board.putDownNow = null;
     if (!made) return;
     if (before.moves.length === 0) {
