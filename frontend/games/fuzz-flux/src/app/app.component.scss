@@ -77,8 +77,9 @@
   font-size: var(--fz-font-lg);
 }
 
-// Hint and Restart, one over the other, as wide as the panel: only the
-// buttons take the pointer, and a press beside them reaches the board.
+// Hint and Restart, one over the other, as wide as the panel, each a tap
+// target: only the buttons take the pointer, and a press beside them
+// reaches the board.
 .buttons {
   align-content: start;
   gap: var(--fz-space-3);
@@ -87,6 +88,8 @@
   box-shadow: none;
 
   button {
+    @include tap-target;
+
     margin: 0;
     pointer-events: auto;
   }

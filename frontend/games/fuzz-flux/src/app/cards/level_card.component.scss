@@ -54,12 +54,16 @@
 }
 
 // The card's buttons side by side, the next step first, one over the other
-// where the card is too narrow for both.
+// where the card is too narrow for both, each a tap target.
 .buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0 var(--fz-space-2);
+
+  button {
+    @include tap-target;
+  }
 }
 
 // On a small board, as on a phone on its side, the card sets smaller, so

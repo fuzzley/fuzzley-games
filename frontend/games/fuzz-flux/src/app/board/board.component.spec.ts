@@ -12,7 +12,16 @@ import {
   watchResizes,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
-import { PANEL_GAP_CSS_PX, cssRectStyle } from "@fz/phaser/layout";
+import {
+  PANEL_GAP_CSS_PX,
+  type SidePanels,
+  type Viewport,
+  cssRectOf,
+  cssRectStyle,
+  namedRectsAttribute,
+  rectAttribute,
+  roomInside,
+} from "@fz/phaser/layout";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { paintRoles } from "@fz/style/testing";
 import type { LevelEntry } from "../../rules/levels/levels";
@@ -85,6 +94,13 @@ async function runSceneOn(
   run.advance(FRAME_MS);
   rendered.detectChanges();
   return run;
+}
+
+/** Returns where the board lays the panels out beside the small levels' board in a room, and throws where the room spares none. */
+function panelsIn(room: Viewport): SidePanels {
+  const { panels } = boardMetrics(room, 5, 5);
+  if (panels === null) throw new Error("The room spares no panels.");
+  return panels;
 }
 
 describe("BoardComponent", () => {
@@ -230,6 +246,67 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(component.besideBoard()).toBeNull();
+    });
+  });
+
+  describe("what the layout check reads", () => {
+    watchResizes();
+
+    it("says the board's size in squares, across and down", async () => {
+      const { host } = await renderBoard({}, GAPPED_LEVELS);
+
+      expect(host).toHaveStyle({ "--across": "5", "--down": "4" });
+    });
+
+    it("says the level in play, by its number, and how it stands", async () => {
+      const { host } = await renderBoard();
+
+      expect([
+        host.getAttribute("data-level"),
+        host.getAttribute("data-outcome"),
+      ]).toEqual(["1", "playing"]);
+    });
+
+    it("says nothing of where the board lies before the scene lays it out", async () => {
+      const { host } = await renderBoard();
+
+      expect(
+        ["data-board", "data-room", "data-panels"].map((name) =>
+          host.getAttribute(name),
+        ),
+      ).toEqual([null, null, null]);
+    });
+
+    it("says where the scene laid the board out, in the room it measured, and no panels where the room spares none", async () => {
+      const rendered = await renderBoard({}, GAPPED_LEVELS);
+      resize(rendered.host, 390, 600);
+
+      await runSceneOn(rendered, 390, 600);
+
+      const room = viewport(390, 600);
+      expect(
+        ["data-board", "data-room", "data-panels"].map((name) =>
+          rendered.host.getAttribute(name),
+        ),
+      ).toEqual([
+        rectAttribute(boardMetrics(room, 5, 4).css),
+        rectAttribute(cssRectOf(roomInside(room), room.pixelRatio)),
+        "",
+      ]);
+    });
+
+    it("says where the scene laid the panels out, by their names, where the room spares them", async () => {
+      const rendered = await renderBoard();
+
+      await runSceneOn(rendered, 1280, 728);
+
+      const { left, right } = panelsIn(viewport(1280, 728));
+      expect(rendered.host.getAttribute("data-panels")).toBe(
+        namedRectsAttribute([
+          ["left", left],
+          ["right", right],
+        ]),
+      );
     });
   });
 

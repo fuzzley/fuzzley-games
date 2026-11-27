@@ -22,7 +22,11 @@ import {
 import {
   type CssRect,
   PANEL_GAP_CSS_PX,
+  cssRectOf,
   cssRectStyle,
+  namedRectsAttribute,
+  rectAttribute,
+  roomInside,
 } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import type { FuzzFluxSceneOptions } from "../../scene/fuzz_flux_scene";
@@ -46,13 +50,23 @@ const LEAST_BESIDE_CSS_PX = 80;
  *
  * The grid is what assistive technology reads of the board, and the canvas
  * under it is hidden; the announcer says what happens.
+ *
+ * It says where the scene laid the board, its room and the panels out, the
+ * level in play and how it stands, for the layout check
+ * (`tools/check-layout.mjs`).
  */
 @Component({
   selector: "app-board",
   imports: [BoardGridComponent, CanvasCardsComponent, PhaserCanvasComponent],
   host: {
     "[style.--across]": "grid().width",
+    "[style.--down]": "grid().height",
     "[style.--pixel-ratio]": "pixelRatio()",
+    "[attr.data-board]": "boardRect()",
+    "[attr.data-room]": "roomRect()",
+    "[attr.data-panels]": "panelZones()",
+    "[attr.data-level]": "game.inPlay().level.number",
+    "[attr.data-outcome]": "game.outcome()",
   },
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
@@ -109,6 +123,44 @@ export class BoardComponent {
     if (room === null) return null;
     const { width, height } = this.grid();
     return boardMetrics(room, width, height);
+  });
+
+  /**
+   * Where the scene laid the board out, for the layout check, as "x y width
+   * height" in CSS pixels, or null before it has.
+   */
+  protected readonly boardRect = computed(() => {
+    const laid = this.laidOut();
+    return laid && rectAttribute(laid.css);
+  });
+
+  /**
+   * The room inside the canvas's chrome the board was last measured in, for
+   * the layout check, written as the board's rectangle is, once the scene
+   * has laid the board out.
+   */
+  protected readonly roomRect = computed(() => {
+    const room = this.measured.viewport();
+    return this.laidOut() && room
+      ? rectAttribute(cssRectOf(roomInside(room), room.pixelRatio))
+      : null;
+  });
+
+  /**
+   * Where the scene laid the panels out, for the layout check, by their
+   * names, as "left x y width height, right x y width height", or nothing
+   * where the room spares none; or null before it has laid the board out.
+   */
+  protected readonly panelZones = computed(() => {
+    const laid = this.laidOut();
+    if (laid === null) return null;
+    const { panels } = laid;
+    return panels
+      ? namedRectsAttribute([
+          ["left", panels.left],
+          ["right", panels.right],
+        ])
+      : "";
   });
 
   /** Where the game's panels lie beside the board, or null where the room spares none. */
