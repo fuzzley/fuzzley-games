@@ -1,4 +1,5 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
+import { ringScale } from "@fz/core/motion";
 import { type Playing, Turns } from "@fz/core/turns";
 import { GameObjects, type Scene } from "phaser";
 import { hasTrait } from "../../rules/catalog/bricks";
@@ -7,11 +8,7 @@ import { MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame } from "../../view/art/art";
 import { brickFrame } from "../../view/art/brick_art";
 import type { BricksPalette } from "../../view/colors/palette";
-import {
-  openingHeight,
-  ringScale,
-  shardTint,
-} from "../../view/effects/flourish";
+import { openingHeight, shardTint } from "../../view/effects/flourish";
 import {
   FADE_MS,
   OPEN_MS,

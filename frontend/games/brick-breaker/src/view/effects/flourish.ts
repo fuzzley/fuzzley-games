@@ -8,9 +8,6 @@ import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS, HOLD_MS } from "./timing";
 /** How far a brick that holds a hit swells at its widest, as a share of its size. */
 export const POP_SWELL = 0.12;
 
-/** How wide a blast's ring starts, as a share of its widest. */
-export const RING_FROM = 0.25;
-
 /** How faint the last bricks' glow gets between pulses. */
 export const GLOW_LEAST = 0.35;
 
@@ -107,11 +104,6 @@ export function dropInHeight(column: number, done: number): number {
 /** Returns how opaque a brick in a column is, a share through the bricks' drop-in: fading in as it drops. */
 export function dropInAlpha(column: number, done: number): number {
   return easeOutCubic(columnDropDone(column, done));
-}
-
-/** Returns the scale of a blast's ring, spreading fast, then slowing. */
-export function ringScale(done: number): number {
-  return RING_FROM + (1 - RING_FROM) * easeOutCubic(done);
 }
 
 /**

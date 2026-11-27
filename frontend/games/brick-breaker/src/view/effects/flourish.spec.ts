@@ -4,7 +4,6 @@ import {
   DROP_IN_HEIGHT,
   GLOW_LEAST,
   POP_SWELL,
-  RING_FROM,
   STREAK_RING_FROM,
   countAlpha,
   dropInAlpha,
@@ -16,7 +15,6 @@ import {
   openingHeight,
   padDip,
   popScale,
-  ringScale,
   shardTint,
   squashAt,
   streakRingScale,
@@ -30,10 +28,6 @@ describe("the flourishes' curves", () => {
       1 + POP_SWELL,
       expect.closeTo(1),
     ]);
-  });
-
-  it("spreads a blast's ring from a share of its widest to all of it", () => {
-    expect([ringScale(0), ringScale(1)]).toEqual([RING_FROM, 1]);
   });
 
   it("spreads a streak's ring from about the ball to its widest, fast, then slowing", () => {
