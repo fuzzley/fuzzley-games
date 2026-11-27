@@ -12,7 +12,7 @@ import { FEEL } from "../feel";
 import type { Motion } from "../less_motion";
 import { POOLS } from "../limits";
 import type { Part } from "../part";
-import type { Effect, Timeline } from "../timeline";
+import type { Effect, Place, Timeline } from "../timeline";
 import { gustCrosses } from "./gust";
 
 /**
@@ -34,13 +34,14 @@ const GUST_MS = 1000;
 /** A line of wind as an effect. */
 type GustLine = Extract<Effect, { readonly what: "gust-line" }>;
 
-/** Returns the parts of the wind turning so far from the screen's frame, crossing `GRID` from `GUST_MS`, in a motion. */
+/** Returns the parts of the wind turning so far from the screen's frame, crossing `GRID` from a moment, `GUST_MS` unless given, in a motion. */
 function crossing(
   turns: QuarterTurns,
   motion: Motion = "full",
+  atMs = GUST_MS,
 ): readonly Part[] {
   const gust: Gust = { turns, waves: [] };
-  const play: AfterPlay = { atMs: GUST_MS, grid: GRID, feel: FEEL, motion };
+  const play: AfterPlay = { atMs, grid: GRID, feel: FEEL, motion };
   return gustCrosses(gust, play);
 }
 
@@ -51,6 +52,11 @@ function linesIn(parts: readonly Part[]): readonly GustLine[] {
       ? [part.effect]
       : [],
   );
+}
+
+/** Returns where each of some lines of wind sets out. */
+function placesOf(lines: readonly GustLine[]): readonly Place[] {
+  return lines.map(({ at }) => at);
 }
 
 /** Returns the pieces some parts move, each once, in the order first moved. */
@@ -109,38 +115,70 @@ describe("gustCrosses", () => {
     expect(Math.max(...setsOutMs)).toBeLessThan(FEEL.gustLinesSpreadMs);
   });
 
-  it("sets each line out from a place and at a moment of its own", () => {
+  it("sets each line out from a place across, a place down and at a moment of its own", () => {
     const lines = linesIn(crossing(1));
 
     expect([
-      new Set(lines.map(({ at }) => `${String(at.x)} ${String(at.y)}`)).size,
+      new Set(lines.map(({ at }) => at.x)).size,
+      new Set(lines.map(({ at }) => at.y)).size,
       new Set(lines.map(({ atMs }) => atMs)).size,
-    ]).toEqual([FEEL.gustLines, FEEL.gustLines]);
+    ]).toEqual([FEEL.gustLines, FEEL.gustLines, FEEL.gustLines]);
+  });
+
+  it("draws a line's place down apart from its place across, so the lines don't lie corner to corner", () => {
+    const lines = linesIn(crossing(1));
+
+    expect(
+      lines.some(
+        ({ at }) =>
+          Math.abs((at.x + 0.5) / GRID.width - (at.y + 0.5) / GRID.height) >
+          1e-9,
+      ),
+    ).toBe(true);
+  });
+
+  it("sends its lines out from other places for a gust turned another way", () => {
+    expect(placesOf(linesIn(crossing(1)))).not.toEqual(
+      placesOf(linesIn(crossing(2))),
+    );
+  });
+
+  it("sends its lines out from other places for a gust setting in at another moment", () => {
+    expect(placesOf(linesIn(crossing(1)))).not.toEqual(
+      placesOf(linesIn(crossing(1, "full", GUST_MS + 1))),
+    );
   });
 
   it("sends its lines out alike every time it crosses", () => {
     expect(linesIn(crossing(3))).toEqual(linesIn(crossing(3)));
   });
 
-  it("leans each fuzzball the way the wind blows as the gust reaches it, its fur lifting", () => {
-    const timeline = timelineOfParts(GRID, crossing(1));
-    const leanedMs = (piece: number): number =>
-      leansFromMs(crossing(1), piece) + FEEL.gustLeanMs;
+  it.each<[QuarterTurns, string, { leanX: number; leanY: number }]>([
+    [0, "down", { leanX: 0, leanY: FEEL.gustLean }],
+    [1, "right", { leanX: FEEL.gustLean, leanY: 0 }],
+  ])(
+    "leans each fuzzball the way the wind blows as the gust reaches it, its fur lifting, a wind turned %i times blowing %s",
+    (turns, _, lean) => {
+      const parts = crossing(turns);
+      const timeline = timelineOfParts(GRID, parts);
+      const leanedMs = (piece: number): number =>
+        leansFromMs(parts, piece) + FEEL.gustLeanMs;
 
-    expect(
-      [BLUE, AMBER].map((piece) => {
-        const { leanX, leanY, lift } = pieceAt(
-          timeline,
-          piece,
-          leanedMs(piece),
-        );
-        return { leanX, leanY, lift };
-      }),
-    ).toEqual([
-      { leanX: FEEL.gustLean, leanY: 0, lift: FEEL.gustLift },
-      { leanX: FEEL.gustLean, leanY: 0, lift: FEEL.gustLift },
-    ]);
-  });
+      expect(
+        [BLUE, AMBER].map((piece) => {
+          const { leanX, leanY, lift } = pieceAt(
+            timeline,
+            piece,
+            leanedMs(piece),
+          );
+          return { leanX, leanY, lift };
+        }),
+      ).toEqual([
+        { ...lean, lift: FEEL.gustLift },
+        { ...lean, lift: FEEL.gustLift },
+      ]);
+    },
+  );
 
   it("springs each back once it has leaned, its fur settling", () => {
     const timeline = timelineOfParts(GRID, crossing(0));

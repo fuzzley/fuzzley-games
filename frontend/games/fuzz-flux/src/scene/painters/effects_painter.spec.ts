@@ -11,6 +11,7 @@ import {
   startBoard,
 } from "../../testing/scene_shell";
 import { STREAK_HEAD } from "../../view/art/fluff";
+import { bakedScale } from "../../view/art/frames";
 import {
   boltAlpha,
   flashAlpha,
@@ -18,7 +19,11 @@ import {
   ringLine,
   ringRadius,
 } from "../../view/effects/flourishes";
-import { LONGEST_GUST_LINE, gustLineAt } from "../../view/effects/gust_line";
+import {
+  type GustLineRun,
+  LONGEST_GUST_LINE,
+  gustLineAt,
+} from "../../view/effects/gust_line";
 import type { Effect } from "../../view/timeline/timeline";
 import { DISC } from "../disc";
 
@@ -93,6 +98,24 @@ const GUST_LINE = {
   ms: 520,
   at: { x: 1, y: 1 },
   blows: "down",
+} as const satisfies Effect;
+
+/** Returns where `GUST_LINE` is a time into its crossing, on the bare board a spec's play draws over. */
+function gustLineCrossed(ms: number): GustLineRun {
+  return gustLineAt(GUST_LINE, ms / GUST_LINE.ms, drawnPlay({}).grid, {
+    x: 0,
+    y: 0,
+    angle: 0,
+    length: 0,
+    shown: 0,
+    alpha: 0,
+  });
+}
+
+/** A line of wind blowing down from the bottom row's middle square, 0.8 squares short of the clip past the board's edge. */
+const GUST_LINE_AT_EDGE = {
+  ...GUST_LINE,
+  at: { x: 1, y: 2 },
 } as const satisfies Effect;
 
 describe("EffectsPainter's rings", () => {
@@ -248,13 +271,7 @@ describe("EffectsPainter's lines of wind", () => {
   it("sets a line of wind along the way the wind blows, as far on, as long and as faded as it is a share through its crossing", async () => {
     const board = await boardPlaying([GUST_LINE], 256);
     const [image] = shownIn(board.scene.effects.gustLines.all);
-    const crossed = gustLineAt(GUST_LINE, 256 / 520, {
-      x: 0,
-      y: 0,
-      angle: 0,
-      length: 0,
-      alpha: 0,
-    });
+    const crossed = gustLineCrossed(256);
 
     expect({
       at: [image?.x, image?.y],
@@ -267,6 +284,45 @@ describe("EffectsPainter's lines of wind", () => {
       scaleX: expect.closeTo(crossed.length / LONGEST_GUST_LINE, 9) as number,
       alpha: expect.closeTo(crossed.alpha, 9) as number,
     });
+  });
+
+  it("shows the whole of a line of wind short of the clip past the board's edge, in an image a line before it left cut off", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+    const { image } = itemAt(board.scene.effects.gustLines.all, 0);
+    image.setCrop(0, 0, 1, image.frame.height);
+
+    playTo(board, drawnPlay({ effects: [GUST_LINE] }), 16);
+
+    expect(image.isCropped).toBe(false);
+  });
+
+  it("cuts a line of wind off where it runs past the clip, keeping its near end", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+    const { image } = itemAt(board.scene.effects.gustLines.all, 0);
+    const setCrop = vi.spyOn(image, "setCrop");
+    const { unit } = bakedScale({
+      unit: layoutOf(board).square,
+      pixelRatio: 1,
+    });
+    const { shown } = gustLineCrossed(256);
+
+    playTo(board, drawnPlay({ effects: [GUST_LINE] }), 256);
+
+    expect(setCrop).toHaveBeenLastCalledWith(
+      0,
+      0,
+      expect.closeTo(
+        image.frame.width / 2 + (shown - 0.5) * LONGEST_GUST_LINE * unit,
+        9,
+      ),
+      image.frame.height,
+    );
+  });
+
+  it("shows nothing of a line of wind once its near end has run past the clip", async () => {
+    const board = await boardPlaying([GUST_LINE_AT_EDGE], 256);
+
+    expect(shownIn(board.scene.effects.gustLines.all)[0]?.alpha).toBe(0);
   });
 
   it("lets a line of wind go once it has crossed", async () => {

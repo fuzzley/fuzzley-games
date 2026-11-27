@@ -1,10 +1,13 @@
 // How a line of wind crosses the board a share through its crossing, as
 // the sketch draws it: a stroke along the way the wind blows, setting off a
 // little way on from where it set out and running on, growing as it goes,
-// fading in and then out.
+// fading in and then out, and cut off a little past the board's edge, where
+// a dasher's streak is cut off.
 
+import { clamp } from "@fz/core/math";
 import { WAYS } from "../timeline/events/fall";
 import type { Effect } from "../timeline/timeline";
+import { reachAlong } from "./flourishes";
 
 /** A line of wind as an effect. */
 export type GustLine = Extract<Effect, { readonly what: "gust-line" }>;
@@ -24,29 +27,38 @@ export const LONGEST_GUST_LINE = (FAR.start + FAR.run) * (1 - NEAR);
 /**
  * Describes a line of wind as it crosses: where its middle is, in squares,
  * the way it points, in radians clockwise from the right, how long it is,
- * in squares, and how opaque.
+ * in squares, how much of that shows, and how opaque.
  */
 export interface GustLineRun {
   x: number;
   y: number;
   angle: number;
   length: number;
+  /** How much of its length shows from its near end, as a share: all but what has run past the clip beyond the board's edge. */
+  shown: number;
   alpha: number;
 }
 
-/** Writes where a line of wind is a share through its crossing into a record, and returns it. */
+/** Writes where a line of wind is a share through its crossing, on a board of a size in squares, into a record, and returns it. */
 export function gustLineAt(
   line: GustLine,
   done: number,
+  board: { readonly width: number; readonly height: number },
   into: GustLineRun,
 ): GustLineRun {
+  const { at } = line;
   const way = WAYS[line.blows];
   const far = FAR.start + FAR.run * done;
-  const middle = (far * (1 + NEAR)) / 2;
-  into.x = line.at.x + way.x * middle;
-  into.y = line.at.y + way.y * middle;
+  const near = far * NEAR;
+  const reach = Math.min(
+    reachAlong(at.x, way.x, board.width),
+    reachAlong(at.y, way.y, board.height),
+  );
+  into.x = at.x + (way.x * (near + far)) / 2;
+  into.y = at.y + (way.y * (near + far)) / 2;
   into.angle = Math.atan2(way.y, way.x);
-  into.length = far * (1 - NEAR);
+  into.length = far - near;
+  into.shown = clamp((reach - near) / (far - near), 0, 1);
   into.alpha = Math.sin(done * Math.PI) * MOST_ALPHA;
   return into;
 }

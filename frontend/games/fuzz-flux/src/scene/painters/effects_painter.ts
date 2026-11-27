@@ -91,7 +91,8 @@ interface GustLineShown extends Playing {
  * bolt of static, stretched from it to what it strikes and flickering;
  * each flash, an image of the soft disc in the effects' white; and each
  * line of wind, set along the way the wind blows, as long and as faded as
- * it is a share through its crossing.
+ * it is a share through its crossing, and cut off a little past the
+ * board's edge.
  */
 export class EffectsPainter implements Painter {
   /** The rings spreading, and those spread. */
@@ -122,6 +123,7 @@ export class EffectsPainter implements Painter {
     y: 0,
     angle: 0,
     length: 0,
+    shown: 0,
     alpha: 0,
   };
 
@@ -364,9 +366,13 @@ export class EffectsPainter implements Painter {
     }
   }
 
-  /** Draws every line of wind at the frame's moment, as far on, as long and as faded as it is through its crossing, and hides each that has crossed. */
+  /**
+   * Draws every line of wind at the frame's moment, as far on, as long and
+   * as faded as it is through its crossing, cut off where it runs past the
+   * clip beyond the board's edge, and hides each that has crossed.
+   */
   private drawGustLines(context: Readonly<PaintContext>): void {
-    const { clock, metrics } = context;
+    const { play, clock, metrics, baked } = context;
     const { crossed } = this;
     const scale = shownScale(context);
     const all = this.gustLines.all;
@@ -378,7 +384,22 @@ export class EffectsPainter implements Painter {
         image.setVisible(false);
         continue;
       }
-      gustLineAt(line, done, crossed);
+      gustLineAt(line, done, play.grid, crossed);
+      if (crossed.shown === 0) {
+        image.setAlpha(0);
+        continue;
+      }
+      if (crossed.shown < 1) {
+        // The frame draws the line at its longest about its middle, and the
+        // scale shortens all of it alike, so a share of it is a share of
+        // that, from its near end.
+        const to =
+          image.frame.width / 2 +
+          (crossed.shown - 0.5) * LONGEST_GUST_LINE * baked.unit;
+        image.setCrop(0, 0, to, image.frame.height);
+      } else if (image.isCropped) {
+        image.setCrop();
+      }
       image
         .setPosition(acrossOf(metrics, crossed.x), downOf(metrics, crossed.y))
         .setRotation(crossed.angle)

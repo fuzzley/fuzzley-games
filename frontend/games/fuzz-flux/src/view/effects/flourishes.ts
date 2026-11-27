@@ -164,7 +164,7 @@ export function streakAt(
 }
 
 /** Returns how far a place may go along one of the board's ways, a share of a step along it at a time, before it passes the streaks' clip: as far as it likes where it goes along the other way alone. */
-function reachAlong(at: number, step: number, squares: number): number {
+export function reachAlong(at: number, step: number, squares: number): number {
   if (step === 0) return Number.POSITIVE_INFINITY;
   const edge = step > 0 ? squares - 0.5 + STREAK_CLIP : -0.5 - STREAK_CLIP;
   return (edge - at) / step;
