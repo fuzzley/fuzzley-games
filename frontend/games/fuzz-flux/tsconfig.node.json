@@ -10,6 +10,9 @@
     // scripts under tools/ carry their types in JSDoc;
     // tsconfig.scripts.json checks them.
     "allowJs": true,
+    // The sound lab makes the design's take from the design's own recipes,
+    // under docs/ at the repository's root.
+    "rootDir": "../../..",
     "types": ["node", "vitest/globals"]
   },
   "include": ["vite.config.ts", "vitest.config.ts", "tools/**/*.ts"]
