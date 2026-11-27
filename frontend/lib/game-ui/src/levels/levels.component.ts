@@ -10,6 +10,7 @@ import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import type { LevelMark } from "./level_marks";
+import { LevelSetNoteDirective } from "./level_set_note.directive";
 import { LevelTileDirective } from "./level_tile.directive";
 
 /** Describes a level as the Levels dialog lists it: by its number, its set and its own name and id. */
@@ -42,13 +43,17 @@ export interface OfferedLevel {
   readonly status: string | null;
 }
 
-/** Describes a set of levels as the dialog lists it, under its name. */
-interface SetChoice {
+/** Describes a set of levels as the Levels dialog lists it, under its name, which a game's note on it is handed. */
+export interface OfferedSet {
   readonly id: string;
   readonly name: string;
+  readonly levels: readonly OfferedLevel[];
+}
+
+/** Describes a set of levels as the dialog lays it out, a section its heading names. */
+interface SetSection extends OfferedSet {
   /** The id of its heading, which names its section. */
   readonly headingId: string;
-  readonly levels: readonly OfferedLevel[];
 }
 
 /**
@@ -59,7 +64,9 @@ interface SetChoice {
  * is, and the run's own marked.
  *
  * A game that shows more of a level draws its tile itself, from an
- * `<ng-template fzLevelTile let-level>` inside `<fz-levels>`.
+ * `<ng-template fzLevelTile let-level>` inside `<fz-levels>`, and one that
+ * says more of a set ends its heading with a note, from an
+ * `<ng-template fzLevelSetNote let-set>`.
  *
  * Choosing an open level hands its number on through `chosen`; the game
  * starts a run there, asking first if one is under way, and closes the
@@ -106,7 +113,10 @@ export class LevelsComponent {
   /** The template the game draws each level's tile with, if it hands one in. */
   protected readonly tile = contentChild(LevelTileDirective);
 
-  protected readonly sets = computed<readonly SetChoice[]>(() => {
+  /** The template the game draws each set's note with, if it hands one in. */
+  protected readonly setNote = contentChild(LevelSetNoteDirective);
+
+  protected readonly sets = computed<readonly SetSection[]>(() => {
     const marks = this.marks();
     const current = this.current();
     const words = { mostStars: this.mostStars(), figure: this.figure() };

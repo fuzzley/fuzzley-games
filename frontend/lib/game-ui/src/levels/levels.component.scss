@@ -13,7 +13,7 @@
   h3 {
     @include fz.field-label;
 
-    margin-top: var(--fz-space-5);
+    margin: 0;
   }
 
   p {
@@ -21,6 +21,15 @@
     color: var(--fz-muted);
     font-size: var(--fz-font-sm);
   }
+}
+
+// A set's name, and the note a game ends it with, at the line's end.
+.set-head {
+  display: flex;
+  gap: var(--fz-space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--fz-space-5) 0 var(--fz-space-3);
 }
 
 .close {

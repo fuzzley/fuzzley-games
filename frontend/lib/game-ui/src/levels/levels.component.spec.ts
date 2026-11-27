@@ -2,6 +2,7 @@ import { Component, input, output } from "@angular/core";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import type { LevelMark } from "./level_marks";
+import { LevelSetNoteDirective } from "./level_set_note.directive";
 import { LevelTileDirective } from "./level_tile.directive";
 import { LevelsComponent, type ListedLevel } from "./levels.component";
 
@@ -86,19 +87,20 @@ const NAMED: readonly ListedLevel[] = [
 ];
 
 /**
- * Hosts the dialog over {@link NAMED} as a game that draws its own tile
- * does, each tile its level's number, name, id and stars' words, so a spec
- * sees what the tile is handed.
+ * Hosts the dialog, over {@link NAMED} unless given other levels, as a game
+ * that draws its own tile and set's note does, so a spec sees what each is
+ * handed: each tile its level's number, name, id and stars' words, and each
+ * note its set's id and how many levels it has.
  */
 @Component({
-  imports: [LevelsComponent, LevelTileDirective],
+  imports: [LevelsComponent, LevelSetNoteDirective, LevelTileDirective],
   template: `
     <fz-levels
       [open]="true"
       [intro]="['Choose a level.']"
       [marks]="marks()"
       [current]="current()"
-      [levels]="levels"
+      [levels]="levels()"
       [mostStars]="3"
       figure="Longest"
       (chosen)="chosen.emit($event)"
@@ -107,23 +109,37 @@ const NAMED: readonly ListedLevel[] = [
         <span>{{ level.number }} {{ level.name }} ({{ level.id }})</span
         >&ngsp;<span>{{ level.starsWords }}</span>
       </ng-template>
+      <ng-template fzLevelSetNote let-set>
+        <p>{{ set.id }}: {{ set.levels.length }}</p>
+      </ng-template>
     </fz-levels>
   `,
 })
-class OwnTileHostComponent {
+class OwnPartsHostComponent {
   readonly marks = input<Readonly<Record<string, LevelMark>>>({});
   readonly current = input<number | null>(null);
+  readonly levels = input<readonly ListedLevel[]>(NAMED);
   readonly chosen = output<number>();
-  protected readonly levels = NAMED;
 }
 
-/** Renders the dialog as a game that draws its own tile does, with the marks and level in play given, and returns what it chose. */
-async function renderOwnTile(
-  inputs: Pick<LevelsInputs, "marks" | "current">,
+/** What a spec hosts the dialog with as a game that draws its own parts does, but what it leaves to the host's. */
+type OwnPartsInputs = Pick<LevelsInputs, "marks" | "current"> & {
+  readonly levels?: readonly ListedLevel[];
+};
+
+/** Renders the dialog as a game that draws its own tile and set's note does, with the inputs given, and returns what it chose. */
+async function renderOwnParts(
+  inputs: OwnPartsInputs,
 ): Promise<ReturnType<typeof vi.fn>> {
   const chosen = vi.fn();
-  await render(OwnTileHostComponent, { inputs, on: { chosen } });
+  await render(OwnPartsHostComponent, { inputs, on: { chosen } });
   return chosen;
+}
+
+/** Returns what a set's heading ends with, after its name, or undefined for nothing. */
+function noteOf(set: string): string | undefined {
+  return screen.getByRole("heading", { name: set }).nextElementSibling
+    ?.textContent;
 }
 
 /** Returns the names of a set's levels, as the dialog lists them under its name. */
@@ -186,6 +202,15 @@ describe("LevelsComponent", () => {
       }).toEqual({ name: `1 a ${words} Longest 1,240`, stars });
     },
   );
+
+  it("ends a set's heading with its name alone", async () => {
+    await renderLevels();
+
+    expect([noteOf("The first"), noteOf("The second")]).toEqual([
+      undefined,
+      undefined,
+    ]);
+  });
 
   it("counts a level's stars out of the most the game's levels earn", async () => {
     await renderLevels({
@@ -275,9 +300,9 @@ describe("LevelsComponent", () => {
     expect(closed).toHaveBeenCalledOnce();
   });
 
-  describe("with a tile the game draws", () => {
+  describe("with a tile and a set's note the game draws", () => {
     it("draws each level's tile from the game's template, handed the level as the dialog offers it, by its id", async () => {
-      await renderOwnTile({
+      await renderOwnParts({
         marks: { gravel: { open: true, stars: 2, best: 900 }, sand: OPEN },
       });
 
@@ -288,7 +313,7 @@ describe("LevelsComponent", () => {
     });
 
     it("starts a run at an open level as its tile is chosen", async () => {
-      const chosen = await renderOwnTile({
+      const chosen = await renderOwnParts({
         marks: { gravel: OPEN, sand: OPEN },
       });
 
@@ -298,7 +323,7 @@ describe("LevelsComponent", () => {
     });
 
     it("shows a locked level, which can't be chosen", async () => {
-      const chosen = await renderOwnTile({ marks: { gravel: OPEN } });
+      const chosen = await renderOwnParts({ marks: { gravel: OPEN } });
 
       const locked = levelButton(/^2 Sand/);
       await userEvent.click(locked);
@@ -309,8 +334,17 @@ describe("LevelsComponent", () => {
       }).toEqual({ disabled: "true", chosen: [] });
     });
 
+    it("ends each set's heading with the game's note, handed the set as the dialog lists it", async () => {
+      await renderOwnParts({ levels: TWO_SETS });
+
+      expect([noteOf("The first"), noteOf("The second")]).toEqual([
+        "first: 2",
+        "second: 1",
+      ]);
+    });
+
     it("marks the level of the run on the board, and no other", async () => {
-      await renderOwnTile({ marks: { gravel: OPEN, sand: OPEN }, current: 2 });
+      await renderOwnParts({ marks: { gravel: OPEN, sand: OPEN }, current: 2 });
 
       expect(
         screen

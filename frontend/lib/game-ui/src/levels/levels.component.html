@@ -15,7 +15,15 @@
 
     @for (set of sets(); track set.id) {
       <section [attr.aria-labelledby]="set.headingId">
-        <h3 [id]="set.headingId">{{ set.name }}</h3>
+        <div class="set-head">
+          <h3 [id]="set.headingId">{{ set.name }}</h3>
+          @if (setNote(); as gameNote) {
+            <ng-container
+              [ngTemplateOutlet]="gameNote.template"
+              [ngTemplateOutletContext]="{ $implicit: set }"
+            />
+          }
+        </div>
         <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
         <ul class="grid" role="list">
           @for (level of set.levels; track level.number) {
