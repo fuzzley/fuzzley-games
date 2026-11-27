@@ -64,7 +64,9 @@ without knowing of it, changes its line in the same change, as
   (`@fz/core/sound_mix`'s `SoundMix`), it varies, pans, limits and ducks its
   sounds by it. `LayerPlayer` loops layers of sound on one bar line, such as
   a bed and the layers over it. A game's `tools/build-sounds.mjs` makes its
-  sprite with `@fz/dev/sounds`.
+  sprite with `@fz/dev/sounds`, and ships it, and its beds, as Ogg and AAC
+  with its `encodeSprite()`, which runs ffmpeg, or in a spec its
+  `fakeFfmpeg` or `missingFfmpeg`.
 - **`shapes` is what a game's art is drawn in:** each shape of a frame as
   plain data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser, and `scene`'s `atlasFrameOf()` plays a frame into `bakeAtlas()`. A

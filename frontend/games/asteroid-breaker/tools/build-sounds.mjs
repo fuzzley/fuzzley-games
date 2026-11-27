@@ -28,10 +28,8 @@
  * With `--family` or `--only`, it renders those families or sounds alone
  * and packs nothing, as the sprite holds them all.
  */
-import { execFile } from "node:child_process";
-import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { promisify } from "node:util";
 import {
   SR,
   centered,
@@ -45,7 +43,7 @@ import {
   wav,
   wavSamples,
 } from "@fz/dev/synth";
-import { packSoundSprite, takeNames } from "@fz/dev/sounds";
+import { encodeSprite, packSoundSprite, takeNames } from "@fz/dev/sounds";
 import {
   CONSOLE,
   isStop,
@@ -65,7 +63,7 @@ import { SOUNDS as STINGERS } from "./sounds/stingers.mjs";
 import { SOUNDS as VOICE } from "./sounds/voice.mjs";
 
 /** @import { Signal } from "@fz/dev/synth" */
-/** @import { SpriteLayout, SpriteSound } from "@fz/dev/sounds" */
+/** @import { RunProgram, SpriteLayout, SpriteSound } from "@fz/dev/sounds" */
 /** @import { Printer, Stop } from "@fz/dev/script" */
 
 /**
@@ -149,17 +147,6 @@ export const WAV_FOLDER = join(import.meta.dirname, "sounds/wav");
 export const SPRITE_FOLDER = join(import.meta.dirname, "../src/scene/sounds");
 
 /**
- * Encodes a WAV as Ogg Vorbis and as M4A, beside each other.
- *
- * @callback Encode
- * @param {string} from The WAV's path.
- * @param {string} to The path to write, without an extension.
- * @param {number} quality Vorbis's quality, 0 to 10.
- * @param {string} rate AAC's bit rate, such as "96k".
- * @returns {Promise<void>}
- */
-
-/**
  * What a command line asks the build for.
  *
  * @typedef {object} Request
@@ -186,7 +173,7 @@ export const SPRITE_FOLDER = join(import.meta.dirname, "../src/scene/sounds");
  * @property {Families} [families]
  * @property {string} [wavFolder]
  * @property {string} [spriteFolder]
- * @property {() => Promise<Encode | null>} [findEncoder] Returns the encoder, or null where ffmpeg isn't on the path.
+ * @property {RunProgram} [runFfmpeg] Runs ffmpeg, which encodes the sprite and the beds.
  */
 
 /**
@@ -422,46 +409,6 @@ function spriteWav(samples) {
 }
 
 /**
- * Returns ffmpeg as an encoder, writing the same bytes from the same WAV
- * every run, or null where it isn't on the path.
- *
- * @returns {Promise<Encode | null>}
- */
-export async function findFfmpeg() {
-  const execute = promisify(execFile);
-  try {
-    await execute("ffmpeg", ["-hide_banner", "-version"]);
-  } catch {
-    return null;
-  }
-  return async (from, to, quality, rate) => {
-    // Bit-exact, with no date and no encoder's name written in.
-    const quiet = [
-      "-hide_banner",
-      "-loglevel",
-      "error",
-      "-y",
-      "-i",
-      from,
-      "-map_metadata",
-      "-1",
-      "-fflags",
-      "+bitexact",
-      "-flags:a",
-      "+bitexact",
-    ];
-    await execute("ffmpeg", [
-      ...quiet,
-      ...["-c:a", "libvorbis", "-q:a", String(quality), `${to}.ogg`],
-    ]);
-    await execute("ffmpeg", [
-      ...quiet,
-      ...["-c:a", "aac", "-b:a", rate, "-movflags", "+faststart", `${to}.m4a`],
-    ]);
-  };
-}
-
-/**
  * Builds the sounds a command line asks for, or prints its usage, and
  * returns the code to exit with: 0, or 2 for a command line it can't read,
  * built nothing. It throws where an encode fails, having changed none of
@@ -479,7 +426,7 @@ export async function run(
     families = FAMILIES,
     wavFolder = WAV_FOLDER,
     spriteFolder = SPRITE_FOLDER,
-    findEncoder = findFfmpeg,
+    runFfmpeg,
   } = {},
 ) {
   const request = readCommandLine(args, families);
@@ -518,8 +465,20 @@ export async function run(
     `The sprite: ${String(takes)} takes, ${sprite.seconds.toFixed(1)} s, in ${join(wavFolder, "sprite.wav")}.`,
   );
 
-  const encode = await findEncoder();
-  if (encode === null) {
+  const beds = rendered.filter(({ family }) => family === BED_FAMILY);
+  const encoded = await encodeSprite(
+    {
+      wav: join(wavFolder, "sprite.wav"),
+      beds: beds.flatMap(({ files }) =>
+        files.map((file) => join(wavFolder, file)),
+      ),
+      alongside: { "sprite.json": sprite.json, "sprite_lengths.json": lengths },
+      into: spriteFolder,
+      staging: join(wavFolder, "encoded"),
+    },
+    runFfmpeg,
+  );
+  if (!encoded) {
     print(
       wrapped(
         `ffmpeg isn't on the path, so the sprite and the beds in ${spriteFolder} are left as they are.`,
@@ -527,27 +486,6 @@ export async function run(
     );
     return 0;
   }
-  // Everything is encoded beside the WAVs first, and copied into the game
-  // only once every encode has passed, so what ships changes all at once.
-  const staged = join(wavFolder, "encoded");
-  await rm(staged, { recursive: true, force: true });
-  await mkdir(join(staged, "beds"), { recursive: true });
-  await encode(join(wavFolder, "sprite.wav"), join(staged, "sprite"), 5, "96k");
-  await writeFile(join(staged, "sprite.json"), sprite.json);
-  await writeFile(join(staged, "sprite_lengths.json"), lengths);
-  const beds = rendered.filter(({ family }) => family === BED_FAMILY);
-  for (const { files } of beds) {
-    for (const file of files) {
-      const name = file.slice(`${BED_FAMILY}/`.length, -".wav".length);
-      await encode(
-        join(wavFolder, file),
-        join(staged, "beds", name),
-        4,
-        "128k",
-      );
-    }
-  }
-  await cp(staged, spriteFolder, { recursive: true });
   print(
     `Encoded the sprite and ${String(beds.length)} beds into ${spriteFolder}.`,
   );

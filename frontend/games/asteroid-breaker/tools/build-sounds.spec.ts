@@ -1,17 +1,22 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { recordingPrinter } from "@fz/dev/script";
-import { spritemapOf, takeNames } from "@fz/dev/sounds";
+import {
+  type RunProgram,
+  fakeFfmpeg,
+  missingFfmpeg,
+  spritemapOf,
+  takeNames,
+} from "@fz/dev/sounds";
 import { loudness, osc, wav } from "@fz/dev/synth";
 import shipped from "../src/scene/sounds/sprite.json";
 import recorded from "../src/scene/sounds/sprite_lengths.json";
 import { SOUNDS, SOUND_NAMES } from "../src/view/effects/sounds";
 import {
   BED_FAMILY,
-  type Encode,
   FAMILIES,
   LEVELS,
   type Recipe,
@@ -399,22 +404,10 @@ describe("run", () => {
     await rm(spriteFolder, { recursive: true, force: true });
   });
 
-  /** Encodes a WAV as a file of each format that says what it was handed. */
-  async function fakeEncode(
-    from: string,
-    to: string,
-    quality: number,
-    rate: string,
-  ): Promise<void> {
-    const said = `${from} ${String(quality)} ${rate}`;
-    await writeFile(`${to}.ogg`, said);
-    await writeFile(`${to}.m4a`, said);
-  }
-
-  /** Runs the build over the spec's families, into its folders, with an encoder or none, as where ffmpeg isn't on the path. */
+  /** Runs the build over the spec's families, into its folders, with an ffmpeg that runs or none, as where it isn't on the path. */
   async function build(
     args: readonly string[],
-    encoder: Encode | null,
+    runFfmpeg: RunProgram,
   ): Promise<{ code: number; out: readonly string[] }> {
     const printer = recordingPrinter();
     const code = await run(args, {
@@ -422,13 +415,13 @@ describe("run", () => {
       families: SPEC_FAMILIES,
       wavFolder,
       spriteFolder,
-      findEncoder: () => Promise.resolve(encoder),
+      runFfmpeg,
     });
     return { code, out: printer.out };
   }
 
   it("renders every take and packs the sprite of all but the beds, leaving the game's sounds as they are without ffmpeg", async () => {
-    const { code, out } = await build([], null);
+    const { code, out } = await build([], missingFfmpeg);
 
     const sprite = JSON.parse(
       await readFile(join(wavFolder, "sprite.json"), "utf8"),
@@ -477,7 +470,7 @@ describe("run", () => {
   });
 
   it("encodes the sprite and each bed into the game's sounds with ffmpeg, the map and the lengths beside them", async () => {
-    const { code } = await build([], fakeEncode);
+    const { code } = await build([], fakeFfmpeg);
 
     expect({
       code,
@@ -496,17 +489,21 @@ describe("run", () => {
         "sprite_lengths.json",
       ],
       beds: ["hum.m4a", "hum.ogg"],
-      sprite: `${join(wavFolder, "sprite.wav")} 5 96k`,
-      bed: `${join(wavFolder, "beds", "hum.wav")} 4 128k`,
+      sprite: expect.stringContaining(
+        ` -i ${join(wavFolder, "sprite.wav")} `,
+      ) as unknown,
+      bed: expect.stringContaining(
+        ` -i ${join(wavFolder, "beds", "hum.wav")} `,
+      ) as unknown,
       map: await readFile(join(wavFolder, "sprite.json"), "utf8"),
     });
   });
 
   it("changes none of the game's sounds where an encode fails", async () => {
-    const failing: Encode = (from, to, quality, rate) =>
-      from.endsWith("hum.wav")
+    const failing: RunProgram = (program, args) =>
+      args.some((arg) => arg.endsWith("hum.wav"))
         ? Promise.reject(new Error("This ffmpeg has no Vorbis."))
-        : fakeEncode(from, to, quality, rate);
+        : fakeFfmpeg(program, args);
 
     const failed = await build([], failing).then(
       () => "",
@@ -520,7 +517,7 @@ describe("run", () => {
   });
 
   it("renders only the families or the sounds asked for, and packs nothing", async () => {
-    const { code, out } = await build(["--only", "tone"], fakeEncode);
+    const { code, out } = await build(["--only", "tone"], fakeFfmpeg);
 
     expect({
       code,
@@ -539,7 +536,7 @@ describe("run", () => {
   });
 
   it("builds nothing for a command line it can't read", async () => {
-    const { code } = await build(["--family", "boulders"], fakeEncode);
+    const { code } = await build(["--family", "boulders"], fakeFfmpeg);
 
     expect({ code, wavs: await readdir(wavFolder) }).toEqual({
       code: 2,

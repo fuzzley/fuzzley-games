@@ -2,10 +2,13 @@
 // into one WAV sprite and the spritemap Phaser plays it by, the same bytes
 // every run. A game's `tools/build-sounds.mjs` gives its recipes to
 // writeSoundSprite(), which writes both files, or, where it renders its takes
-// with `@fz/dev/synth`, packs them with packSoundSprite().
+// with `@fz/dev/synth`, packs them with packSoundSprite(), and ships the
+// sprite as Ogg Vorbis and AAC with encodeSprite().
 
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { execFile } from "node:child_process";
+import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { basename, join } from "node:path";
+import { promisify } from "node:util";
 
 /** A wave: its value at a time, in seconds. */
 export type Wave = (t: number) => number;
@@ -406,4 +409,125 @@ export async function writeSoundSprite(
   await writeFile(join(folder, "sounds.wav"), sprite.wav);
   await writeFile(join(folder, "sounds.json"), sprite.json);
   return sprite;
+}
+
+/**
+ * Runs a program on its arguments: it resolves once the program exits well,
+ * and rejects where it can't be run or fails, as `execFile()` does.
+ */
+export type RunProgram = (
+  program: string,
+  args: readonly string[],
+) => Promise<unknown>;
+
+/** Describes a sprite to encode, the beds that ship with it, and where they ship. */
+export interface SpriteToEncode {
+  /** The sprite's WAV, whose encodes are named for it. */
+  readonly wav: string;
+  /** Each bed's WAV, in stereo, encoded into `beds/`, named for it. */
+  readonly beds: readonly string[];
+  /** The files that ship with the encodes, by name, such as the sprite's map. */
+  readonly alongside: Readonly<Record<string, string>>;
+  /** The folder they ship into, the game's. */
+  readonly into: string;
+  /** The folder they are made in first, emptied before, so what ships changes all at once. */
+  readonly staging: string;
+}
+
+/** Says how a WAV is encoded: Vorbis's quality, from 0 to 10, and AAC's bit rate, such as "96k". */
+interface Encoding {
+  readonly vorbis: number;
+  readonly aac: string;
+}
+
+/** How a sprite is encoded. */
+const SPRITE_ENCODING: Encoding = { vorbis: 5, aac: "96k" };
+
+/** How a bed, whose WAV is stereo, is encoded: AAC at a higher rate, for its two channels. */
+const BED_ENCODING: Encoding = { vorbis: 4, aac: "128k" };
+
+/** The folder of the game's encodes the beds are in. */
+const BEDS = "beds";
+
+/** Runs a program with `execFile()`. */
+const runProgram: RunProgram = promisify(execFile);
+
+/**
+ * A stand-in for ffmpeg, for a spec of a build, which passes the version
+ * check and writes each file it is asked to encode as the command line
+ * that asked for it, failing, as ffmpeg does, a command line that names no
+ * file.
+ */
+export const fakeFfmpeg: RunProgram = async (program, args) => {
+  if (args.includes("-version")) return;
+  const output = args.at(-1);
+  if (output === undefined) {
+    throw new Error("ffmpeg was handed no file to write.");
+  }
+  await writeFile(output, [program, ...args].join(" "));
+};
+
+/** A stand-in for a machine without ffmpeg, for a spec of a build, where running it fails. */
+export const missingFfmpeg: RunProgram = () =>
+  Promise.reject(new Error("spawn ffmpeg ENOENT"));
+
+/**
+ * Encodes a sprite's WAV and its beds' as Ogg Vorbis, which every browser
+ * but Safari plays, and as AAC in an M4A, which Safari plays, and ships
+ * them into a game's folder with the files that go alongside, returning
+ * whether it did: not where ffmpeg can't be run, which changes nothing.
+ *
+ * The same WAV gives the same bytes every run. It throws where an encode
+ * fails, having shipped none of them.
+ */
+export async function encodeSprite(
+  { wav, beds, alongside, into, staging }: SpriteToEncode,
+  run: RunProgram = runProgram,
+): Promise<boolean> {
+  try {
+    await run("ffmpeg", ["-hide_banner", "-version"]);
+  } catch {
+    return false;
+  }
+  const encode = async (
+    from: string,
+    folder: string,
+    { vorbis, aac }: Encoding,
+  ): Promise<void> => {
+    const to = join(folder, basename(from, ".wav"));
+    // Bit-exact, with no date and no encoder's name written in.
+    const quiet = [
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-i",
+      from,
+      "-map_metadata",
+      "-1",
+      "-fflags",
+      "+bitexact",
+      "-flags:a",
+      "+bitexact",
+    ];
+    await mkdir(folder, { recursive: true });
+    await run("ffmpeg", [
+      ...quiet,
+      ...["-c:a", "libvorbis", "-q:a", String(vorbis), `${to}.ogg`],
+    ]);
+    await run("ffmpeg", [
+      ...quiet,
+      ...["-c:a", "aac", "-b:a", aac, "-movflags", "+faststart", `${to}.m4a`],
+    ]);
+  };
+  await rm(staging, { recursive: true, force: true });
+  await encode(wav, staging, SPRITE_ENCODING);
+  for (const [name, text] of Object.entries(alongside)) {
+    await writeFile(join(staging, name), text);
+  }
+  for (const bed of beds) {
+    await encode(bed, join(staging, BEDS), BED_ENCODING);
+  }
+  await cp(staging, into, { recursive: true });
+  return true;
 }

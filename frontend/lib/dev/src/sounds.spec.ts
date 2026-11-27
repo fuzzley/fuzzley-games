@@ -1,13 +1,25 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  type RunProgram,
   SAMPLE_RATE,
   type Sound,
+  type SpriteToEncode,
   arpeggio,
+  encodeSprite,
+  fakeFfmpeg,
   envelope,
   glide,
   looped,
+  missingFfmpeg,
   note,
   packSoundSprite,
   renderSoundSprite,
@@ -479,5 +491,121 @@ describe("writeSoundSprite", () => {
       wav: true,
       json: sprite.json,
     });
+  });
+});
+
+describe("fakeFfmpeg", () => {
+  it("fails, as ffmpeg does, a command line that names no file to write", async () => {
+    const run = fakeFfmpeg("ffmpeg", []);
+
+    await expect(run).rejects.toThrow("ffmpeg was handed no file to write.");
+  });
+});
+
+describe("encodeSprite", () => {
+  let folder = "";
+
+  beforeEach(async () => {
+    folder = await mkdtemp(join(tmpdir(), "fz-encode-"));
+  });
+
+  afterEach(async () => {
+    await rm(folder, { recursive: true, force: true });
+  });
+
+  /** Returns a sprite and a bed in the spec's folder, the sprite's map to ship alongside, shipped into a game's folder from a staging one. */
+  function spriteToEncode(): SpriteToEncode {
+    return {
+      wav: join(folder, "wav", "sprite.wav"),
+      beds: [join(folder, "wav", "beds", "hum.wav")],
+      alongside: { "sprite.json": "{}\n" },
+      into: join(folder, "game"),
+      staging: join(folder, "encoded"),
+    };
+  }
+
+  /** Returns the files in a folder and its folders, by their paths from it, in order. */
+  async function filesIn(at: string): Promise<string[]> {
+    const entries = await readdir(at, { recursive: true, withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => join(entry.parentPath, entry.name).slice(at.length + 1))
+      .sort();
+  }
+
+  it("ships the sprite and each bed as Ogg and M4A, named for their WAVs, with the files alongside", async () => {
+    const sprite = spriteToEncode();
+
+    const shipped = await encodeSprite(sprite, fakeFfmpeg);
+
+    expect({ shipped, game: await filesIn(sprite.into) }).toEqual({
+      shipped: true,
+      game: [
+        "beds/hum.m4a",
+        "beds/hum.ogg",
+        "sprite.json",
+        "sprite.m4a",
+        "sprite.ogg",
+      ],
+    });
+  });
+
+  it("encodes bit-exact, with no metadata: the sprite at Vorbis's quality 5 and AAC's 96 kb/s, a bed at 4 and 128 kb/s", async () => {
+    const sprite = spriteToEncode();
+    const quiet = (from: string): string =>
+      `ffmpeg -hide_banner -loglevel error -y -i ${from} -map_metadata -1 -fflags +bitexact -flags:a +bitexact`;
+    const [bed = ""] = sprite.beds;
+
+    await encodeSprite(sprite, fakeFfmpeg);
+
+    const read = (file: string): Promise<string> =>
+      readFile(join(sprite.into, file), "utf8");
+    expect({
+      ogg: await read("sprite.ogg"),
+      m4a: await read("sprite.m4a"),
+      bedOgg: await read("beds/hum.ogg"),
+      bedM4a: await read("beds/hum.m4a"),
+    }).toEqual({
+      ogg: `${quiet(sprite.wav)} -c:a libvorbis -q:a 5 ${join(sprite.staging, "sprite.ogg")}`,
+      m4a: `${quiet(sprite.wav)} -c:a aac -b:a 96k -movflags +faststart ${join(sprite.staging, "sprite.m4a")}`,
+      bedOgg: `${quiet(bed)} -c:a libvorbis -q:a 4 ${join(sprite.staging, "beds", "hum.ogg")}`,
+      bedM4a: `${quiet(bed)} -c:a aac -b:a 128k -movflags +faststart ${join(sprite.staging, "beds", "hum.m4a")}`,
+    });
+  });
+
+  it("ships nothing, and says so, where ffmpeg can't be run", async () => {
+    const sprite = spriteToEncode();
+
+    const shipped = await encodeSprite(sprite, missingFfmpeg);
+
+    expect({ shipped, made: await readdir(folder) }).toEqual({
+      shipped: false,
+      made: [],
+    });
+  });
+
+  it("ships none of them where an encode fails", async () => {
+    const sprite = spriteToEncode();
+    const failing: RunProgram = (program, args) =>
+      args.includes(sprite.beds[0] ?? "")
+        ? Promise.reject(new Error("This ffmpeg has no Vorbis."))
+        : fakeFfmpeg(program, args);
+
+    const failed = await encodeSprite(sprite, failing).catch(String);
+
+    expect({ failed, made: await readdir(folder) }).toEqual({
+      failed: "Error: This ffmpeg has no Vorbis.",
+      made: ["encoded"],
+    });
+  });
+
+  it("empties the staging folder first, so nothing left there ships", async () => {
+    const sprite = spriteToEncode();
+    await mkdir(sprite.staging, { recursive: true });
+    await writeFile(join(sprite.staging, "stale.ogg"), "stale");
+
+    await encodeSprite(sprite, fakeFfmpeg);
+
+    expect(await filesIn(sprite.into)).not.toContain("stale.ogg");
   });
 });
