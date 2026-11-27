@@ -75,9 +75,24 @@ describe("swapWorks", () => {
     ["a special picked up", { pieces: ["br"], marks: ["|."] }, 0, 1],
     ["a special swapped with", { pieces: ["br"], marks: [".w"] }, 0, 1],
     ["the frizzball", { pieces: ["rf"] }, 1, 0],
+    ["the frizzball and a special", { pieces: ["rf"], marks: ["o."] }, 1, 0],
+    ["two frizzballs", { pieces: ["ff"] }, 0, 1],
   ])("makes a move of a swap that moves %s", (_, picture, from, to) => {
     expect(swapWorks(boardFrom(picture), from, to)).toBe(true);
   });
+
+  it.each([
+    ["a brick", ["f1"]],
+    ["a sleepyhead", ["fz"]],
+  ])(
+    "makes none of the frizzball swapped with %s, which has no kind for it to take",
+    (_, pieces) => {
+      expect([
+        swapWorks(boardFrom(pieces), 0, 1),
+        swapWorks(boardFrom(pieces), 1, 0),
+      ]).toEqual([false, false]);
+    },
+  );
 });
 
 describe("legalMoves", () => {

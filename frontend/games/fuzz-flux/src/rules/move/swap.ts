@@ -2,7 +2,7 @@
 // moves, every move a board allows, and which fuzzballs could bunch with
 // one picked up. What keeps a piece from being swapped is each element's
 // rule; a swap is a move where it moves a special or the frizzball, or
-// makes a bunch.
+// makes a bunch, but never the frizzball with a piece that is no fuzzball.
 
 import { itemAt } from "@fz/core/records";
 import type { Board, Game } from "../board/board";
@@ -31,13 +31,17 @@ export function canSwap(
 /**
  * Returns whether swapping two neighbors makes a move: a swap that moves a
  * special or the frizzball, or makes a bunch, and never one of two
- * fuzzballs of a kind.
+ * fuzzballs of a kind, nor one of the frizzball and a piece that is no
+ * fuzzball, which has no kind for it to take.
  *
  * It asks nothing of whether each can be picked up, which `canSwap()` says.
  */
 export function swapWorks(board: Board, from: number, to: number): boolean {
   const picked = itemAt(board.pieces, from);
   const neighbor = itemAt(board.pieces, to);
+  if (picked?.what === "frizzball" || neighbor?.what === "frizzball") {
+    return isBall(picked) && isBall(neighbor);
+  }
   if (goesOff(picked) || goesOff(neighbor)) {
     return true;
   }
@@ -107,8 +111,13 @@ function goesOff(piece: Piece | null): boolean {
   );
 }
 
+/** Returns whether a piece is a fuzzball or the frizzball. */
+function isBall(piece: Piece | null): boolean {
+  return piece?.what === "fuzzball" || piece?.what === "frizzball";
+}
+
 /** Returns a board with the pieces on two of its squares traded. */
-function swappedOn(board: Board, from: number, to: number): Board {
+export function swappedOn(board: Board, from: number, to: number): Board {
   const pieces = [...board.pieces];
   pieces[from] = itemAt(board.pieces, to);
   pieces[to] = itemAt(board.pieces, from);
