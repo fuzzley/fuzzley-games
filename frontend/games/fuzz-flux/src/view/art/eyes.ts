@@ -11,6 +11,7 @@ import { type EyesStyle, eyesCommands } from "@fz/phaser/fuzzball";
 import {
   type ArtFrame,
   type ArtScale,
+  type DrawCommand,
   centered,
   shifted,
 } from "@fz/phaser/shapes";
@@ -79,8 +80,8 @@ export function eyesSeatOf(kind: KindId, fur: Fur): EyesSeat {
   return EYES_SEATS[kind][fur];
 }
 
-/** Says what a fuzzball's eyes are drawn in: their color and their glints'. */
-export type EyesInks = Pick<Required<EyesStyle>, "color" | "glint">;
+/** Says what a fuzzball's eyes are drawn in: their color, and their glints' where they have them. */
+export type EyesInks = Pick<EyesStyle, "color" | "glint">;
 
 /** The least of their size a fuzzball's eyes are shown at, a wisp's, the smallest a fuzzball is drawn. */
 const LEAST_EYES_SCALE = Math.min(
@@ -90,11 +91,28 @@ const LEAST_EYES_SCALE = Math.min(
 );
 
 /**
- * Returns a frame of the eyes in a face, under a name, in inks at a scale,
- * drawn about a body's middle and looking straight out, a line of a face a
- * CSS pixel wide at least wherever the scene shows it, down to `leastScale`
- * of its size.
+ * Returns the eyes in a face, in inks at a scale, about a body's middle and
+ * looking straight out, a line of a face a CSS pixel wide at least wherever
+ * the scene shows it, down to `leastScale` of its size.
  */
+export function eyesDrawing(
+  face: FuzzballFace,
+  inks: EyesInks,
+  scale: ArtScale,
+  leastScale: number,
+): readonly DrawCommand[] {
+  const by = EYES_GRID * scale.unit;
+  const style = {
+    ...inks,
+    leastLine: Math.ceil(scale.pixelRatio) / leastScale,
+  };
+  const centering = { x: -MARK_EYES_RIGHT * by, y: 0 };
+  return eyesCommands(by, style, { face, look: { x: 0, y: 0 } }).map(
+    (command) => shifted(command, centering),
+  );
+}
+
+/** Returns a frame of {@link eyesDrawing}'s eyes, under a name. */
 export function eyesFrame(
   name: FrameName,
   face: FuzzballFace,
@@ -102,18 +120,7 @@ export function eyesFrame(
   scale: ArtScale,
   leastScale: number,
 ): ArtFrame {
-  const by = EYES_GRID * scale.unit;
-  const style = {
-    ...inks,
-    leastLine: Math.ceil(scale.pixelRatio) / leastScale,
-  };
-  const centering = { x: -MARK_EYES_RIGHT * by, y: 0 };
-  return centered(
-    name,
-    eyesCommands(by, style, { face, look: { x: 0, y: 0 } }).map((command) =>
-      shifted(command, centering),
-    ),
-  );
+  return centered(name, eyesDrawing(face, inks, scale, leastScale));
 }
 
 /** The house fuzzball's eyes' inks, which every kind wears. */

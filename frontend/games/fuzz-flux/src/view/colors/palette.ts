@@ -30,10 +30,14 @@ export const BOARD_ROLES: Readonly<Record<keyof BoardRoles, PaletteRole>> = {
 
 /** Describes the frizzball's colors. */
 export interface FrizzballColors {
-  /** Its body and its fur: the text. */
+  /** Its body and its rays. */
   readonly body: number;
-  /** Its eyes, which the text's contrast with the page keeps apart from its body: the page's color. */
+  /** Its eyes: the page's color, white on a light palette, where they hold pupils, and dark on a dark one. */
   readonly eyes: number;
+  /** The pupils its eyes hold where they are white, as on a light palette, or none where they are dark, as a fuzzball's are. */
+  readonly pupils: number | undefined;
+  /** The glints on its pupils, or on its eyes where they hold none. */
+  readonly glint: number;
 }
 
 /** Describes the board's colors, as the numbers Phaser takes: those from the palette's roles, and its pieces' inks. */
@@ -51,7 +55,7 @@ export interface BoardPalette extends PieceInks {
   readonly dust: Readonly<Record<Dusty, number>>;
   /** The specks that tell a dusty square from a clean one, more and larger on thick dust: the muted text. */
   readonly specks: number;
-  /** The frizzball, which wears the text, dark on a light palette and pale on a dark one, as the design's art draws it. */
+  /** The frizzball, a dark slate on a light palette and pale on a dark one, as the design's art draws it. */
   readonly frizzball: FrizzballColors;
   /** The sparks of static, and the frizzball's bolts: the warning color. */
   readonly spark: number;
@@ -77,11 +81,37 @@ const DUST_WASHES: Readonly<
   dark: { 1: 0.07, 2: 0.12 },
 };
 
+/** How much of the muted text a light palette's frizzball takes in over the text, which alone would draw it near black. */
+const FRIZZBALL_GRAYING = 0.5;
+
+/**
+ * Returns the frizzball's colors in a mode, from the page's color, the text
+ * and the muted text, as the design's art draws it: on a light palette a
+ * slate, its eyes white and holding pupils in the text, glinting white; on
+ * a dark one the pale text, its eyes dark, glinting in the text.
+ */
+function frizzballColors(
+  page: number,
+  text: number,
+  muted: number,
+  mode: ColorMode,
+): FrizzballColors {
+  return mode === "light"
+    ? {
+        body: mixColors(muted, text, FRIZZBALL_GRAYING),
+        eyes: page,
+        pupils: text,
+        glint: page,
+      }
+    : { body: text, eyes: page, pupils: undefined, glint: text };
+}
+
 /** Returns the board's colors in a palette's roles, with the washes and the inks of its mode. */
 export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
   const page = colorNumber(roles.page);
   const square = colorNumber(roles.panel);
   const text = colorNumber(roles.text);
+  const muted = colorNumber(roles.muted);
   const washes = DUST_WASHES[mode];
   return {
     page,
@@ -90,8 +120,8 @@ export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
       1: mixColors(text, square, washes[1]),
       2: mixColors(text, square, washes[2]),
     },
-    specks: colorNumber(roles.muted),
-    frizzball: { body: text, eyes: page },
+    specks: muted,
+    frizzball: frizzballColors(page, text, muted, mode),
     spark: colorNumber(roles.warning),
     marks: text,
     flare: text,

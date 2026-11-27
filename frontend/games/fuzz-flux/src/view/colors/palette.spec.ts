@@ -32,10 +32,21 @@ describe("boardPalette", () => {
     expect(boardPalette(ROLES, "light").specks).toBe(0x707070);
   });
 
-  it("draws the frizzball in the text, its eyes in the page's color", () => {
+  it("draws a light palette's frizzball half way from the text to the muted text, its eyes in the page's color holding pupils in the text, glinting in the page's color", () => {
+    expect(boardPalette(ROLES, "light").frizzball).toEqual({
+      body: 0x404040,
+      eyes: 0xfafafa,
+      pupils: 0x101010,
+      glint: 0xfafafa,
+    });
+  });
+
+  it("draws a dark palette's frizzball in the text, its eyes in the page's color with no pupils, glinting in the text", () => {
     expect(boardPalette(ROLES, "dark").frizzball).toEqual({
       body: 0x101010,
       eyes: 0xfafafa,
+      pupils: undefined,
+      glint: 0x101010,
     });
   });
 

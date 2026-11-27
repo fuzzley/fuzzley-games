@@ -28,14 +28,15 @@ const EYES = colorNumber(FUZZBALL.ink);
 // So does the ring the grid over the board draws round the square the keys
 // are on, in the text, as Minesweeper's and Sudoku's squares are ringed.
 // The eyes keep it against each kind and the sleepyhead, and the
-// frizzball's against the frizzball; a cage's bars against each kind they
-// cross; and dust's specks against dust and thick dust. The hint's hand and
-// a wave's mark, which lie over the pieces, keep it against the grounds;
-// the page among them is the color of the rim each wears, which every piece
-// keeps 3:1 against, so either reads over any piece. A tuft of fluff takes
-// its kind's ink, and is held as its kind is, or the frizzball's. The
-// effects' white, a ring's, a streak's and a flash's light, keeps it
-// against the grounds it spreads over.
+// frizzball's against the frizzball, and its pupils against them where it
+// has them; a cage's bars against each kind they cross; and dust's specks
+// against dust and thick dust. The hint's hand and a wave's mark, which lie
+// over the pieces, keep it against the grounds; the page among them is the
+// color of the rim each wears, which every piece keeps 3:1 against, so
+// either reads over any piece. A tuft of fluff takes its kind's ink, and is
+// held as its kind is, or the frizzball's. The effects' white, a ring's, a
+// streak's and a flash's light, keeps it against the grounds it spreads
+// over.
 //
 // A kind keeps less against its second fur, about 2:1 in a light palette
 // and as little as 1.25:1 in a dark one, as the design's art mixes the fur:
@@ -110,6 +111,11 @@ describe("the board's contrast", () => {
       ...against("frizzball", palette.frizzball.body, [
         ["frizzball's eyes", palette.frizzball.eyes],
       ]),
+      ...(palette.frizzball.pupils === undefined
+        ? []
+        : against("frizzball's eyes", palette.frizzball.eyes, [
+            ["frizzball's pupils", palette.frizzball.pupils],
+          ])),
       ...dusts.flatMap(([dust, color]) =>
         against(dust, color, [["specks", palette.specks]]),
       ),
