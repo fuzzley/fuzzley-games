@@ -27,7 +27,7 @@ export const LIFTS = ["rest", "on-end"] as const satisfies readonly string[];
 export type Lift = (typeof LIFTS)[number];
 
 /** Every count of layers of dust a square shows. */
-const DUSTY = [1, 2] as const satisfies readonly DustLayers[];
+export const DUSTY = [1, 2] as const satisfies readonly DustLayers[];
 
 /** How many layers of dust a square shows. */
 export type Dusty = (typeof DUSTY)[number];
@@ -51,6 +51,8 @@ export const FRAMES = {
   sleepyhead: "sleepyhead",
   /** A fuzzball's eyes in a face, which the scene moves as they look. */
   eyes: (face: FuzzballFace) => `eyes-${face}` as const,
+  /** The frizzball's eyes in a face, in the palette's color for them, which the scene moves as they look. */
+  frizzballEyes: (face: FuzzballFace) => `frizzball-eyes-${face}` as const,
   /** A square's well. */
   square: "square",
   /** A square's dust, paler for each layer. */
@@ -102,6 +104,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   FRAMES.frizzball,
   FRAMES.sleepyhead,
   ...FUZZBALL_FACES.map((face) => FRAMES.eyes(face)),
+  ...FUZZBALL_FACES.map((face) => FRAMES.frizzballEyes(face)),
   FRAMES.square,
   ...DUSTY.map((layers) => FRAMES.dust(layers)),
   ...BRICK_LAYERS.map((layers) => FRAMES.brick(layers)),

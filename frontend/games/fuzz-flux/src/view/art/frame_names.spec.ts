@@ -14,6 +14,7 @@ const FAMILIES = {
   frizzball: [/^frizzball$/, 1],
   sleepyhead: [/^sleepyhead$/, 1],
   eyes: [/^eyes-/, FUZZBALL_FACES.length],
+  frizzballEyes: [/^frizzball-eyes-/, FUZZBALL_FACES.length],
   square: [/^square$/, 1],
   // The dust a square shows, its 1 layer and its 2.
   dust: [/^dust-\d$/, 2],
