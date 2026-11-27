@@ -110,6 +110,22 @@ describe("LoosePainter", () => {
     ]);
   });
 
+  it("shows no more loose frames than a play's feel, tuned under the design's, lets show at once", async () => {
+    const board = await boardOf();
+    const bar = looseTrackOf({ what: "frame", frame: FRAMES.cageBar });
+
+    playTo(
+      board,
+      {
+        ...drawnPlay({ sprites: [bar, bar, bar] }),
+        feel: { ...FEEL, mostLooseBits: 2 },
+      },
+      16,
+    );
+
+    expect(bitsShown(board)).toHaveLength(2);
+  });
+
   it("hides a loose sprite once it is gone", async () => {
     const board = await boardOf(
       looseTrackOf({ what: "frame", frame: FRAMES.cageBar }, {}, 32),
@@ -218,6 +234,39 @@ describe("LoosePainter's fluff", () => {
     );
 
     expect(bitsShown(board)).toEqual([]);
+  });
+
+  it("throws as many tufts as a play's feel, tuned past the design's, lets show at once", async () => {
+    const feel = { ...FEEL, mostLooseBits: FEEL.mostLooseBits + 30 };
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+
+    playTo(
+      board,
+      {
+        ...drawnPlay({ effects: [{ ...FLUFF, count: feel.mostLooseBits }] }),
+        feel,
+      },
+      16,
+    );
+
+    expect(bitsShown(board)).toHaveLength(feel.mostLooseBits);
+  });
+
+  it("shows no more loose bits than a play's feel, tuned under the design's, lets show at once, tufts still flying from the play before among them", async () => {
+    const board = await fluffedBoard([FLUFF]);
+
+    playTo(
+      board,
+      {
+        ...drawnPlay({
+          sprites: [looseTrackOf({ what: "frame", frame: FRAMES.cageBar })],
+        }),
+        feel: { ...FEEL, mostLooseBits: 4 },
+      },
+      16,
+    );
+
+    expect(bitsShown(board)).toHaveLength(4);
   });
 
   it("flies a tuft on as the next play starts", async () => {

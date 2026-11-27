@@ -1,8 +1,11 @@
 // What each of the board's painters draws a frame from, where a place on
 // the board, in squares, lies on the canvas, how far past the canvas what
-// covers it reaches, how an image takes a color, and how a sprite's image
-// shows where its track is sampled.
+// covers it reaches, how an image takes a color, how a sprite's image
+// shows where its track is sampled, and how a pool grows to what a play's
+// feel lets show at once.
 
+import { itemAt } from "@fz/core/records";
+import { type Playing, Turns } from "@fz/core/turns";
 import type { CssRect } from "@fz/phaser/layout";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects } from "phaser";
@@ -81,4 +84,26 @@ export function placeSprite(
     .setRotation(sampled.rotation)
     .setAlpha(opacityOf(sampled.fade))
     .setVisible(true);
+}
+
+/**
+ * Returns turns of records grown to a count, the new ones made first, so
+ * the next to play is one of them, and those it held after, the one that
+ * started playing longest ago first, as the turns would have taken them;
+ * or the turns as they were, where they hold as many already.
+ */
+export function grownTurns<T extends Playing>(
+  turns: Turns<T>,
+  count: number,
+  make: () => T,
+): Turns<T> {
+  const added = count - turns.all.length;
+  if (added <= 0) return turns;
+  const records = [
+    ...Array.from({ length: added }, make),
+    // Two never played start at −Infinity, which differ by no number.
+    ...[...turns.all].sort((a, b) => (a.at === b.at ? 0 : a.at - b.at)),
+  ];
+  let next = 0;
+  return new Turns(records.length, () => itemAt(records, next++));
 }

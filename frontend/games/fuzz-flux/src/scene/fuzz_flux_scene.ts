@@ -180,8 +180,8 @@ export class FuzzFluxScene extends Scene {
     this.pieces = new PiecesPainter(this, layers);
     this.effects = new EffectsPainter(this, layers);
     this.marks = new MarksPainter(this, layers.marks);
-    this.loose = new LoosePainter(this, layers.loose);
-    this.flights = new FlightsPainter(this, layers.flights);
+    this.loose = new LoosePainter(this, layers.loose, play.feel);
+    this.flights = new FlightsPainter(this, layers.flights, play.feel);
     this.hand = new HandPainter(this, layers.hand);
     this.painters = [
       this.board,
@@ -233,9 +233,11 @@ export class FuzzFluxScene extends Scene {
    * as it stands.
    *
    * It makes nothing but on a new play, whose timeline's records it makes
-   * once, a new layout or a new palette; the sound player makes a voice
-   * for a sound the first times its plays overlap, and Phaser a buffer
-   * source for each sound it plays, as Web Audio starts each only once.
+   * once, and the images of the copies and loose bits where its feel lets
+   * more show at once than any play's before, a new layout or a new
+   * palette; the sound player makes a voice for a sound the first times
+   * its plays overlap, and Phaser a buffer source for each sound it plays,
+   * as Web Audio starts each only once.
    */
   override update(_time: number, deltaMs: number): void {
     const { options, clock } = this;

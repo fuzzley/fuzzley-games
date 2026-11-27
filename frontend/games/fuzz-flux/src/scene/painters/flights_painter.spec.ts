@@ -116,6 +116,37 @@ describe("FlightsPainter", () => {
     expect(flying(board)).toHaveLength(2 * FEEL.mostFlights);
   });
 
+  it("flies on as many copies as a play's feel, tuned past the design's, lets a move fly, as the next move sets off as many", async () => {
+    const feel = { ...FEEL, mostFlights: FEEL.mostFlights + 3 };
+    const most = Array.from({ length: feel.mostFlights }, () => FLIGHT);
+    const board = await flyingBoard([]);
+    playTo(board, { ...drawnPlay({ flights: most }), feel }, 16);
+
+    playTo(board, { ...drawnPlay({ flights: most }), feel }, 16);
+
+    expect(flying(board)).toHaveLength(2 * feel.mostFlights);
+  });
+
+  it("flies on the copies of a move at the design's feel as the next move, tuned to let more fly, sets off its own", async () => {
+    const feel = { ...FEEL, mostFlights: FEEL.mostFlights + 3 };
+    const board = await flyingBoard(
+      Array.from({ length: FEEL.mostFlights }, () => FLIGHT),
+    );
+
+    playTo(
+      board,
+      {
+        ...drawnPlay({
+          flights: Array.from({ length: feel.mostFlights }, () => FLIGHT),
+        }),
+        feel,
+      },
+      16,
+    );
+
+    expect(flying(board)).toHaveLength(FEEL.mostFlights + feel.mostFlights);
+  });
+
   it("flies every copy set off at once", async () => {
     const board = await flyingBoard([
       FLIGHT,
