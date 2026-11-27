@@ -1,43 +1,26 @@
 // The move's sounds: a fuzzball picked up, two swapped, a swap refused,
-// fuzzballs landing, the note a bunch plays by its size, and the bubble of
-// each fuzzball hopping off. The note and the bubble sound at the ladder's
-// foot, C5, and the scene raises each by the rung its wave has reached.
+// fuzzballs landing, the note a bunch plays, and the bubble of each
+// fuzzball hopping off. The note and the bubble climb the ladder, the
+// sprite holding each at a few of its rungs.
 
 import { degree, filter, mix, noise, osc, pitch, points } from "@fz/dev/synth";
+import { takesUpTheLadder } from "./ladder.mjs";
 import { mallet, shaped, toward, whoosh } from "./voices.mjs";
 
 /** @import { Recipe } from "../build-sounds.mjs" */
 /** @import { Signal } from "@fz/dev/synth" */
+/** @import { LadderedRecipe } from "./ladder.mjs" */
 
 /**
- * Returns the note a bunch plays at the ladder's foot: a mallet's C5, with
- * the note 2 steps up the scale beside it for a bunch of 4, and the one 4
- * steps up as well for 5 or more, each struck a little after the last.
+ * Returns a bubble's blip at a step of the ladder: the step's note and its
+ * octave, rising an octave in 70 ms.
  *
- * @param {number} size How many fuzzballs the bunch gathers.
+ * @param {number} step
  * @returns {Signal}
  */
-function bunchNote(size) {
-  return mix([
-    mallet(degree(0), { air: 0.32 }),
-    ...(size >= 4
-      ? [{ x: mallet(degree(2), { air: 0.1, seed: 9 }), at: 0.022, gain: 0.6 }]
-      : []),
-    ...(size >= 5
-      ? [{ x: mallet(degree(4), { air: 0.1, seed: 13 }), at: 0.044, gain: 0.5 }]
-      : []),
-  ]);
-}
-
-/**
- * Returns a bubble's blip at the ladder's foot: C5 and its octave, rising an
- * octave in 70 ms.
- *
- * @returns {Signal}
- */
-function bubble() {
+function bubble(step) {
   const rising = (/** @type {number} */ t) =>
-    degree(0) * 2 ** Math.min(1, t / 0.07);
+    degree(step) * 2 ** Math.min(1, t / 0.07);
   return mix([
     {
       x: shaped(osc("sine", rising, 0.16), {
@@ -56,6 +39,24 @@ function bubble() {
     },
   ]);
 }
+
+/**
+ * A bunch's note: a mallet's.
+ *
+ * @type {LadderedRecipe}
+ */
+export const NOTE = {
+  name: "note",
+  peak: -10,
+  makeAt: (step) => mallet(degree(step), { air: 0.32 }),
+};
+
+/**
+ * One fuzzball hopping off the board: a bubble.
+ *
+ * @type {LadderedRecipe}
+ */
+export const POP = { name: "pop", peak: -16, makeAt: bubble };
 
 /**
  * The move's recipes, in the sprite's order.
@@ -176,12 +177,6 @@ export const RECIPES = [
         },
       ]),
   },
-  // A bunch of 3: the mallet's note.
-  { name: "note", peak: -10, make: () => bunchNote(3) },
-  // A bunch of 4: the note and the one 2 steps above it.
-  { name: "note-4", peak: -10, make: () => bunchNote(4) },
-  // A bunch of 5 or more: three notes.
-  { name: "note-5", peak: -10, make: () => bunchNote(5) },
-  // One fuzzball hopping off the board: a bubble.
-  { name: "pop", peak: -16, make: bubble },
+  ...takesUpTheLadder(NOTE),
+  ...takesUpTheLadder(POP),
 ];

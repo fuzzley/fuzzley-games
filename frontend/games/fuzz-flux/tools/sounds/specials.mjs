@@ -17,6 +17,7 @@ import {
   osc,
   points,
 } from "@fz/dev/synth";
+import { takesUpTheLadder } from "./ladder.mjs";
 import {
   bell,
   buzz,
@@ -30,6 +31,7 @@ import {
 
 /** @import { Recipe } from "../build-sounds.mjs" */
 /** @import { Layer, Signal } from "@fz/dev/synth" */
+/** @import { LadderedRecipe } from "./ladder.mjs" */
 
 /**
  * Returns a special made: two notes of a small bell a fifth apart, the
@@ -150,6 +152,40 @@ function puffed(big) {
     { seconds: 0.4 * stretch, wet: 0.16 },
   );
 }
+
+/**
+ * Static leaping from a frizzball to one fuzzball: a blip an octave above
+ * its step of the ladder, and a tick. A frizzball's zaps climb the ladder
+ * a fuzzball at a time.
+ *
+ * @type {LadderedRecipe}
+ */
+export const ZAP = {
+  name: "zap",
+  peak: -16,
+  makeAt: (step) =>
+    filter(
+      mix([
+        {
+          // From the bottom of its swing, as the design's triangles start.
+          x: shaped(osc("tri", degree(step + 5), 0.07, { phase: 0.75 }), {
+            attack: 0.002,
+            decay: 0.012,
+          }),
+          gain: 0.7,
+        },
+        {
+          x: shaped(filter(noise("white", 0.02, 21 + step), "bp", 3600, 1.2), {
+            attack: 0.001,
+            decay: 0.004,
+          }),
+          gain: 0.5,
+        },
+      ]),
+      "lp",
+      5600,
+    ),
+};
 
 /**
  * The specials' recipes, in the sprite's order.
@@ -311,35 +347,7 @@ export const RECIPES = [
       ]);
     },
   },
-  // Static leaping from a frizzball to one fuzzball: a blip on C6, the
-  // ladder's foot an octave up, and a tick. The scene raises each a step
-  // up the ladder as the frizzball takes the fuzzballs in turn.
-  {
-    name: "zap",
-    peak: -16,
-    make: () =>
-      filter(
-        mix([
-          {
-            // From the bottom of its swing, as the design's triangles start.
-            x: shaped(osc("tri", degree(5), 0.07, { phase: 0.75 }), {
-              attack: 0.002,
-              decay: 0.012,
-            }),
-            gain: 0.7,
-          },
-          {
-            x: shaped(filter(noise("white", 0.02, 21), "bp", 3600, 1.2), {
-              attack: 0.001,
-              decay: 0.004,
-            }),
-            gain: 0.5,
-          },
-        ]),
-        "lp",
-        5600,
-      ),
-  },
+  ...takesUpTheLadder(ZAP),
   // Every fuzzball a frizzball reached hopping off at once: mallet notes
   // up a chord, a bell over them, a long sparkle and a rush of air, in a
   // larger room.

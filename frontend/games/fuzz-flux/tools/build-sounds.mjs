@@ -6,12 +6,15 @@
  *
  * The recipes are the design's (docs/fuzz-flux/sound/sounds.mjs), written
  * again on `@fz/dev/synth`, a module of them for each part of play in
- * tools/sounds/, with what they share in tools/sounds/voices.mjs. Each
- * sound is finished as the design finished it: centered, brought to its
- * peak, its tail cut once it has died away under -52 dB and faded out, its
- * start faded in. It writes each as a WAV into tools/sounds/wav/, which git
- * ignores, and `tools/build-sounds.spec.ts` holds each to the design's
- * measures, `docs/fuzz-flux/sound/measures.md`.
+ * tools/sounds/, with what they share in tools/sounds/voices.mjs; a sound
+ * that climbs the ladder is made at a few of its rungs
+ * (tools/sounds/ladder.mjs). Each sound is finished as the design finished
+ * it: centered, brought to its peak, its tail cut once it has died away
+ * under -52 dB and faded out, its start faded in. It writes each as a WAV
+ * into tools/sounds/wav/, which git ignores, and
+ * `tools/build-sounds.spec.ts` holds each to the design's measures,
+ * `docs/fuzz-flux/sound/measures.md`, and each rung of the ladder to the
+ * length and the band of the sound made at its own pitch.
  *
  * It then packs them into one sprite, in the view's order, a tenth of a
  * second apart, and writes it there too, with its map. With ffmpeg on the
@@ -31,12 +34,13 @@ import { encodeSprite, endedByGap, packSoundSprite } from "@fz/dev/sounds";
 import { SR, centered, dB, fade, normalize, wav } from "@fz/dev/synth";
 import { RECIPES as BOARD } from "./sounds/board.mjs";
 import { RECIPES as LEVEL } from "./sounds/level.mjs";
-import { RECIPES as MOVE } from "./sounds/move.mjs";
-import { RECIPES as SPECIALS } from "./sounds/specials.mjs";
+import { RECIPES as MOVE, NOTE, POP } from "./sounds/move.mjs";
+import { RECIPES as SPECIALS, ZAP } from "./sounds/specials.mjs";
 
 /** @import { Printer } from "@fz/dev/script" */
 /** @import { Encoding, PackedSprite, RunProgram, SpriteLayout, SpriteSound } from "@fz/dev/sounds" */
 /** @import { Signal } from "@fz/dev/synth" */
+/** @import { LadderedRecipe } from "./sounds/ladder.mjs" */
 
 /**
  * A sound, as its part of play's module describes it.
@@ -81,6 +85,14 @@ import { RECIPES as SPECIALS } from "./sounds/specials.mjs";
 export const RECIPES = [...MOVE, ...SPECIALS, ...BOARD, ...LEVEL];
 
 /**
+ * The sounds that climb the ladder, each made at any rung, in the order
+ * the view's `LADDERED` names them.
+ *
+ * @type {readonly LadderedRecipe[]}
+ */
+export const LADDERED_RECIPES = [NOTE, POP, ZAP];
+
+/**
  * How the sprite is packed: at the recipes' rate, a tenth of a second
  * between two sounds, as the design's sprite has, none faded, as each
  * fades its own, and the map's times to a tenth of a millisecond.
@@ -91,7 +103,7 @@ const SPRITE_LAYOUT = { sampleRate: SR, gap: 0.1, fade: 0, places: 4 };
 
 /**
  * How the sprite is encoded: Vorbis at the house's quality 5, and AAC at
- * the 72 kb/s the design's take was, as the house's 96 would weigh its 27
+ * the 72 kb/s the design's take was, as the house's 96 would weigh its 28
  * seconds over the game's 300 KB.
  *
  * @type {Encoding}

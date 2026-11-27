@@ -1,97 +1,156 @@
-// The sound lab's scenes: the ladder, its top note's length beside its
-// foot's, and the design's ten reels (docs/fuzz-flux/sound/make-sounds.mjs)
-// played from the sprite as the scene plays it, each bunch's note, bubble
-// and zap raised up the ladder by its wave, and the same cues on the
-// design's take beside them.
+// The sound lab's scenes: the ladder, and the design's ten reels
+// (docs/fuzz-flux/sound/make-sounds.mjs), each played from the sprite as
+// the scene plays it, each bunch's note, bubble and zap on its wave's rung
+// of the ladder, played from the take nearest it, and the same moments on
+// the design's take beside them, raised from its foot.
 
+import { ladderCentsOf } from "@fz/core/note_ladder";
 import type { LabCue, LabScene } from "@fz/dev/sound-lab-page";
-import spritemap from "../../src/scene/sounds/sprite.json";
+import type designMap from "../../../../../docs/fuzz-flux/sound/sprite.json";
 import {
   LADDER_CENTS,
+  type LadderedSound,
   noteVolumeOf,
-  waveCentsOf,
+  onRung,
 } from "../../src/view/effects/ladder";
 import type { SoundName } from "../../src/view/effects/sounds";
 
-/** A sound a scene plays. */
-type Cue = LabCue<SoundName>;
+/** A sound of the design's take, by its name in its sprite. */
+export type DesignSound = keyof typeof designMap;
 
-/** The note a bunch plays, by its size. */
-const NOTES = {
-  3: "note",
-  4: "note-4",
-  5: "note-5",
-} as const satisfies Readonly<Record<number, SoundName>>;
+/** A sound the game and the design both play, neither on the ladder. */
+type Plain = Exclude<SoundName & DesignSound, LadderedSound>;
+
+/** Describes something a scene plays at a moment, in seconds from its start, as the game and the design both play it. */
+type Moment =
+  | { readonly at: number; readonly sound: Plain; readonly volume?: number }
+  | {
+      readonly at: number;
+      /** A sound that climbs the ladder, on a rung, 1 at the foot. */
+      readonly climbing: "pop" | "zap";
+      readonly rung: number;
+      readonly volume: number;
+    }
+  | {
+      readonly at: number;
+      /** A bunch's note, by its size, on its wave's rung. */
+      readonly bunchOf: number;
+      readonly rung: number;
+    };
 
 /** How a bunch's bubbles follow its note: the first's delay, and the time between two, in seconds. */
 const BUBBLES = { after: 0.05, apart: 0.03 } as const;
+
+/**
+ * The notes a bunch of 4 or more plays over its own, as the scene plays
+ * them: how many rungs up, from what size of bunch, how long after, in
+ * seconds, and how loud against its own.
+ */
+const CHORD = [
+  { up: 2, from: 4, after: 0.022, volume: 0.6 },
+  { up: 4, from: 5, after: 0.044, volume: 0.5 },
+] as const;
 
 /** How far apart the notes of "The ladder" play, in seconds, as the design's reel plays them. */
 const STEP_S = 0.36;
 
 /** Returns a sound played at a moment, at its own loudness or times some. */
-function heard(at: number, sound: SoundName, volume?: number): Cue {
+function heard(at: number, sound: Plain, volume?: number): Moment {
   return volume === undefined ? { at, sound } : { at, sound, volume };
 }
 
-/** Returns a bubble or a zap played at a moment on a step of the ladder, from 1, at its own loudness times some. */
-function raised(
+/** Returns a bubble or a zap played at a moment on a rung, 1 at the foot, at its own loudness times some. */
+function climbing(
   at: number,
   sound: "pop" | "zap",
-  step: number,
+  rung: number,
   volume = 1,
-): Cue {
-  return { at, sound, detune: waveCentsOf(step), volume };
-}
-
-/** Returns a bunch's note, by its size, played at a moment on a wave's step, from 1, as soft as the wave plays it. */
-function noted(at: number, wave: number, size: keyof typeof NOTES = 3): Cue {
-  return {
-    at,
-    sound: NOTES[size],
-    detune: waveCentsOf(wave),
-    volume: noteVolumeOf(wave),
-  };
+): Moment {
+  return { at, climbing: sound, rung, volume };
 }
 
 /**
- * Returns a bunch hopping off at a moment, on a wave from 1: its note, then
- * each fuzzball's bubble, a step higher than the last.
+ * Returns a bunch hopping off at a moment, on a wave from 1: its note,
+ * then each fuzzball's bubble, a rung higher than the last.
  */
-function bunch(at: number, wave: number, size: keyof typeof NOTES): Cue[] {
+function bunch(at: number, wave: number, size: number): Moment[] {
   return [
-    noted(at, wave, size),
+    { at, bunchOf: size, rung: wave },
     ...Array.from({ length: size }, (_, n) =>
-      raised(at + BUBBLES.after + n * BUBBLES.apart, "pop", wave + n, 0.8),
+      climbing(at + BUBBLES.after + n * BUBBLES.apart, "pop", wave + n, 0.8),
     ),
   ];
 }
 
-/** How long the note lasts in the sprite, in milliseconds. */
-const NOTE_MS = Math.round(
-  (spritemap.spritemap.note.end - spritemap.spritemap.note.start) * 1000,
-);
+/** Returns a laddered sound on a rung as the game plays it: from the take nearest it, tuned the rest of the way. */
+function onLadder(
+  at: number,
+  sound: LadderedSound,
+  rung: number,
+  volume: number,
+): LabCue<SoundName> {
+  const play = onRung(sound, rung);
+  return { at, sound: play.sound, detune: play.cents, volume };
+}
 
-/** How many times as fast as at its foot the ladder's top step plays a note. */
-const TOP_RATE = 2 ** (waveCentsOf(LADDER_CENTS.length) / 1200);
+/** Returns how the game plays a moment. */
+function asGame(moment: Moment): LabCue<SoundName>[] {
+  if ("sound" in moment) return [moment];
+  if ("climbing" in moment) {
+    return [onLadder(moment.at, moment.climbing, moment.rung, moment.volume)];
+  }
+  const { at, bunchOf, rung } = moment;
+  const volume = noteVolumeOf(rung);
+  return [
+    onLadder(at, "note", rung, volume),
+    ...CHORD.filter(({ from }) => bunchOf >= from).map((note) =>
+      onLadder(at + note.after, "note", rung + note.up, volume * note.volume),
+    ),
+  ];
+}
 
-/** Returns a scene whose cues play on the design's take too. */
+/** Returns how the design's take plays a moment: its sound at the ladder's foot, raised to the rung. */
+function asDesign(moment: Moment): LabCue<DesignSound>[] {
+  if ("sound" in moment) return [moment];
+  if ("climbing" in moment) {
+    const { at, climbing: sound, rung, volume } = moment;
+    return [{ at, sound, detune: ladderCentsOf(rung, LADDER_CENTS), volume }];
+  }
+  const { at, bunchOf, rung } = moment;
+  return [
+    {
+      at,
+      sound: bunchOf >= 5 ? "note-5" : bunchOf === 4 ? "note-4" : "note",
+      detune: ladderCentsOf(rung, LADDER_CENTS),
+      volume: noteVolumeOf(rung),
+    },
+  ];
+}
+
+/** Returns a scene of moments, as the game plays them and as the design's take does. */
 function scene(
   name: string,
   what: string,
-  cues: readonly Cue[],
-): LabScene<SoundName, SoundName> {
-  return { name, what, cues, before: cues };
+  moments: readonly Moment[],
+): LabScene<SoundName, DesignSound> {
+  return {
+    name,
+    what,
+    cues: moments.flatMap(asGame),
+    before: moments.flatMap(asDesign),
+  };
 }
 
 /** The lab's scenes, the ladder first and then the design's reels, in its order. */
-export const SCENES: readonly LabScene<SoundName, SoundName>[] = [
+export const SCENES: readonly LabScene<SoundName, DesignSound>[] = [
   scene(
     "The ladder",
-    `A bunch's note on each of the ladder's ${String(LADDER_CENTS.length)} steps, C5 to A6, a little softer each step; the top step plays it ${TOP_RATE.toFixed(2)} times as fast as the foot, so it lasts ${String(Math.round(NOTE_MS / TOP_RATE))} ms of its ${String(NOTE_MS)}; the design's take, raised alike, lasts as little, where the design's own reel of the ladder, each note made at its pitch, rings all ten as long.`,
-    Array.from({ length: LADDER_CENTS.length }, (_, n) =>
-      noted(n * STEP_S, n + 1),
-    ),
+    `A bunch's note on each of the ladder's ${String(LADDER_CENTS.length)} rungs, C5 to A6, a little softer each rung, each played from the take nearest it; the design's take is raised from its foot, so its top note is cut short, where the design's own reel of the ladder, each note made at its pitch, rings all ten as long.`,
+    Array.from({ length: LADDER_CENTS.length }, (_, n) => ({
+      at: n * STEP_S,
+      bunchOf: 3,
+      rung: n + 1,
+    })),
   ),
   scene(
     "A move of five waves",
@@ -127,7 +186,7 @@ export const SCENES: readonly LabScene<SoundName, SoundName>[] = [
       heard(1.62, "swap"),
       heard(1.78, "dash"),
       ...Array.from({ length: 7 }, (_, n) =>
-        raised(1.84 + n * 0.028, "pop", n + 1, 0.8),
+        climbing(1.84 + n * 0.028, "pop", n + 1, 0.8),
       ),
       heard(2.36, "land"),
       ...bunch(2.52, 2, 3),
@@ -145,7 +204,7 @@ export const SCENES: readonly LabScene<SoundName, SoundName>[] = [
       heard(1.4, "swap"),
       heard(1.56, "puff"),
       ...Array.from({ length: 12 }, (_, n) =>
-        raised(
+        climbing(
           1.72 + Math.floor(n / 4) * 0.04 + (n % 4) * 0.012,
           "pop",
           (n % 6) + 1,
@@ -158,7 +217,7 @@ export const SCENES: readonly LabScene<SoundName, SoundName>[] = [
   ),
   scene(
     "A frizzball made and set off",
-    "A bunch of 5 makes a frizzball, whose static, swapped, leaps from fuzzball to fuzzball, a zap each a step higher, then crackles as they hop off; they land, and the next wave's bunch follows.",
+    "A bunch of 5 makes a frizzball, whose static, swapped, leaps from fuzzball to fuzzball, a zap each a rung higher, then crackles as they hop off; they land, and the next wave's bunch follows.",
     [
       heard(0, "swap"),
       ...bunch(0.18, 1, 5),
@@ -166,11 +225,11 @@ export const SCENES: readonly LabScene<SoundName, SoundName>[] = [
       heard(0.9, "land"),
       heard(1.6, "swap"),
       ...Array.from({ length: 11 }, (_, n) =>
-        raised(1.8 + n * 0.04, "zap", n + 1),
+        climbing(1.8 + n * 0.04, "zap", n + 1),
       ),
       heard(2.36, "frizz"),
       ...Array.from({ length: 11 }, (_, n) =>
-        raised(2.38 + n * 0.012, "pop", (n % 7) + 1, 0.5),
+        climbing(2.38 + n * 0.012, "pop", (n % 7) + 1, 0.5),
       ),
       heard(3, "land"),
       ...bunch(3.16, 2, 3),

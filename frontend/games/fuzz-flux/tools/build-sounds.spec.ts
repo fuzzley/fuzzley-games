@@ -7,18 +7,27 @@ import { type RunProgram, fakeFfmpeg, missingFfmpeg } from "@fz/dev/sounds";
 import {
   SR,
   type Signal,
+  cents,
   centsOf,
   loudness,
   measure,
   osc,
+  resample,
   spectrum,
   wav,
 } from "@fz/dev/synth";
 import shipped from "../src/scene/sounds/sprite.json";
 import { designText } from "../src/testing/design_files";
-import { LADDER_CENTS } from "../src/view/effects/ladder";
+import {
+  LADDERED,
+  LADDER_CENTS,
+  type LadderedSound,
+  onRung,
+  takesOf,
+} from "../src/view/effects/ladder";
 import { SOUNDS } from "../src/view/effects/sounds";
 import {
+  LADDERED_RECIPES,
   RECIPES,
   type Recipe,
   SPRITE_DIGEST,
@@ -28,6 +37,7 @@ import {
   run,
   spriteOf,
 } from "./build-sounds.mjs";
+import type { LadderedRecipe } from "./sounds/ladder.mjs";
 import { type DesignSound, designSounds } from "./sounds/measures.mjs";
 
 /** Describes a sound by the measures the design's table gives it. */
@@ -74,6 +84,12 @@ function sum(values: Iterable<number>): number {
   return total;
 }
 
+/** Returns the share of a sound's energy above 6 kHz, from 0 to 1, as the design's rule reads it. */
+function aboveSixKhzOf(x: Signal): number {
+  const power = powerOf(x);
+  return sum(power.filter((_, bin) => frequencyOf(bin) > 6000)) / sum(power);
+}
+
 /** Describes a recipe's sound as the spec measures it, beside the design's measures of it. */
 interface Measured extends Measures {
   readonly name: string;
@@ -94,6 +110,15 @@ const FINISHED: readonly Finished[] = RECIPES.map((recipe) => ({
   x: finished(recipe),
 }));
 
+/** The takes of the laddered sounds above the foot, which the design measures none of. */
+const TAKES_UP = new Set<string>(
+  LADDERED.flatMap((sound) =>
+    takesOf(sound)
+      .filter(({ rung }) => rung > 1)
+      .map((take) => take.sound),
+  ),
+);
+
 /** Returns a recipe's sound measured, with the design's measures of it, or throws for one the design has none of. */
 function measured({ recipe, x }: Finished): Measured {
   const design = DESIGN.get(recipe.name);
@@ -101,20 +126,80 @@ function measured({ recipe, x }: Finished): Measured {
     throw new Error(`The design measures no sound "${recipe.name}".`);
   }
   const power = powerOf(x);
-  const all = sum(power);
   return {
     name: recipe.name,
     ms: (x.length / SR) * 1000,
     peak: loudness(x).peak,
     average: 10 * Math.log10(sum(x.map((v) => v ** 2)) / x.length),
-    centroid: sum(power.map((p, bin) => p * frequencyOf(bin))) / all,
-    aboveSixKhz: sum(power.filter((_, bin) => frequencyOf(bin) > 6000)) / all,
+    centroid: sum(power.map((p, bin) => p * frequencyOf(bin))) / sum(power),
+    aboveSixKhz: aboveSixKhzOf(x),
     design,
   };
 }
 
-/** Every recipe's sound, measured once for every case. */
-const MEASURED = FINISHED.map(measured);
+/** Every recipe's sound the design measures, measured once for every case. */
+const MEASURED = FINISHED.filter(
+  ({ recipe }) => !TAKES_UP.has(recipe.name),
+).map(measured);
+
+/** Describes a laddered sound played on a rung, as the scene plays it, beside the sound made at the rung's own pitch. */
+interface Rung {
+  readonly sound: string;
+  readonly rung: number;
+  readonly take: string;
+  readonly cents: number;
+  /** How long the take lasts at the speed it plays, against the sound made at the rung's own pitch. */
+  readonly length: number;
+  /** The share of the take's energy above 6 kHz at the speed it plays, from 0 to 1. */
+  readonly aboveSixKhz: number;
+}
+
+/** Returns a recipe's finished sound, by its name, or throws for a name no recipe has. */
+function finishedOf(name: string): Signal {
+  const found = FINISHED.find(({ recipe }) => recipe.name === name);
+  if (found === undefined) throw new Error(`No recipe makes "${name}".`);
+  return found.x;
+}
+
+/** Returns how long a take lasts in the shipped sprite, in seconds, or throws for one it doesn't hold. */
+function shippedSecondsOf(take: string): number {
+  const entry = Object.entries(shipped.spritemap).find(
+    ([name]) => name === take,
+  );
+  if (entry === undefined) throw new Error(`The sprite holds no "${take}".`);
+  return entry[1].end - entry[1].start;
+}
+
+/** Returns the recipe of a laddered sound, or throws for one none makes. */
+function recipeOf(sound: LadderedSound): LadderedRecipe {
+  const recipe = LADDERED_RECIPES.find(({ name }) => name === sound);
+  if (recipe === undefined) throw new Error(`No recipe makes "${sound}".`);
+  return recipe;
+}
+
+/** Returns a laddered sound made at a rung, 1 at the foot, at its own pitch, and finished. */
+function madeOn(sound: LadderedSound, rung: number): Signal {
+  const recipe = recipeOf(sound);
+  return finished({ ...recipe, make: () => recipe.makeAt(rung - 1) });
+}
+
+/** Every rung of every laddered sound, as the scene plays it. */
+const RUNGS: readonly Rung[] = LADDERED.flatMap((sound) =>
+  LADDER_CENTS.map((_, step) => {
+    const rung = step + 1;
+    const { sound: take, cents: tuned } = onRung(sound, rung);
+    const speed = cents(tuned);
+    return {
+      sound,
+      rung,
+      take,
+      cents: tuned,
+      length:
+        shippedSecondsOf(take) / speed / (madeOn(sound, rung).length / SR),
+      aboveSixKhz: aboveSixKhzOf(resample(finishedOf(take), speed)),
+    };
+  }),
+);
 
 /** The sprite the recipes make now. */
 const SPRITE = spriteOf(
@@ -131,11 +216,41 @@ describe("the recipes", () => {
 });
 
 describe("the ladder", () => {
-  it("raises the sprite's notes, made at its foot, C5, by the steps of the key the recipes climb, to A6", () => {
+  it("climbs the steps of the key the recipes climb, from C5 to A6", () => {
     expect(LADDER_CENTS).toEqual(
       Array.from({ length: 10 }, (_, step) => centsOf(step)),
     );
   });
+
+  it("makes the sounds the view's ladder names, in its order", () => {
+    expect(LADDERED_RECIPES.map(({ name }) => name)).toEqual(LADDERED);
+  });
+
+  it.each(LADDERED)(
+    "makes each take of %s at the rung the view's ladder holds it at",
+    (sound) => {
+      const takes = takesOf(sound);
+
+      expect(takes.map((take) => finishedOf(take.sound))).toEqual(
+        takes.map(({ rung }) => madeOn(sound, rung)),
+      );
+    },
+  );
+
+  it.each(RUNGS)(
+    "plays $sound on rung $rung from $take, $cents cents off, lasting 80% to 125% as long as it does made at the rung's own pitch",
+    ({ length }) => {
+      expect(length).toBeGreaterThanOrEqual(0.8);
+      expect(length).toBeLessThanOrEqual(1.25);
+    },
+  );
+
+  it.each(RUNGS)(
+    "plays $sound on rung $rung from $take with under 1% of its energy above 6 kHz",
+    ({ aboveSixKhz }) => {
+      expect(aboveSixKhz).toBeLessThan(0.01);
+    },
+  );
 });
 
 describe("the shipped sprite", () => {

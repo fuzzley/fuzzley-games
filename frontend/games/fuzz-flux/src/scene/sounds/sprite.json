@@ -25,209 +25,244 @@
       "end": 1.1172,
       "loop": false
     },
-    "note-4": {
+    "note-g5": {
       "start": 1.2172,
-      "end": 1.544,
+      "end": 1.5177,
       "loop": false
     },
-    "note-5": {
-      "start": 1.644,
-      "end": 1.9936,
+    "note-d6": {
+      "start": 1.6177,
+      "end": 1.9161,
+      "loop": false
+    },
+    "note-a6": {
+      "start": 2.0161,
+      "end": 2.3147,
       "loop": false
     },
     "pop": {
-      "start": 2.0936,
-      "end": 2.2266,
+      "start": 2.4147,
+      "end": 2.5478,
+      "loop": false
+    },
+    "pop-g5": {
+      "start": 2.6478,
+      "end": 2.7809,
+      "loop": false
+    },
+    "pop-d6": {
+      "start": 2.8809,
+      "end": 3.0142,
+      "loop": false
+    },
+    "pop-a6": {
+      "start": 3.1142,
+      "end": 3.2474,
       "loop": false
     },
     "born-dasher": {
-      "start": 2.3266,
-      "end": 3.0919,
+      "start": 3.3474,
+      "end": 4.1127,
       "loop": false
     },
     "born-puffer": {
-      "start": 3.1919,
-      "end": 3.9609,
+      "start": 4.2127,
+      "end": 4.9817,
       "loop": false
     },
     "born-wisp": {
-      "start": 4.0609,
-      "end": 4.8621,
+      "start": 5.0817,
+      "end": 5.8829,
       "loop": false
     },
     "born-frizz": {
-      "start": 4.9621,
-      "end": 5.7731,
+      "start": 5.9829,
+      "end": 6.7939,
       "loop": false
     },
     "dash": {
-      "start": 5.8731,
-      "end": 6.2731,
+      "start": 6.8939,
+      "end": 7.2939,
       "loop": false
     },
     "puff": {
-      "start": 6.3731,
-      "end": 7.2725,
+      "start": 7.3939,
+      "end": 8.2933,
       "loop": false
     },
     "wisp": {
-      "start": 7.3725,
-      "end": 7.8225,
+      "start": 8.3933,
+      "end": 8.8433,
       "loop": false
     },
     "zap": {
-      "start": 7.9225,
-      "end": 7.9848,
+      "start": 8.9433,
+      "end": 9.0056,
+      "loop": false
+    },
+    "zap-g5": {
+      "start": 9.1056,
+      "end": 9.169,
+      "loop": false
+    },
+    "zap-d6": {
+      "start": 9.269,
+      "end": 9.3312,
+      "loop": false
+    },
+    "zap-a6": {
+      "start": 9.4312,
+      "end": 9.4923,
       "loop": false
     },
     "frizz": {
-      "start": 8.0848,
-      "end": 9.3556,
+      "start": 9.5923,
+      "end": 10.8631,
       "loop": false
     },
     "pair": {
-      "start": 9.4556,
-      "end": 9.7756,
+      "start": 10.9631,
+      "end": 11.2831,
       "loop": false
     },
     "big-puff": {
-      "start": 9.8756,
-      "end": 11.1255,
+      "start": 11.3831,
+      "end": 12.6331,
       "loop": false
     },
     "knock-3": {
-      "start": 11.2255,
-      "end": 11.5228,
+      "start": 12.7331,
+      "end": 13.0303,
       "loop": false
     },
     "knock-2": {
-      "start": 11.6228,
-      "end": 11.9225,
+      "start": 13.1303,
+      "end": 13.43,
       "loop": false
     },
     "knock-1": {
-      "start": 12.0225,
-      "end": 12.3215,
+      "start": 13.53,
+      "end": 13.8291,
       "loop": false
     },
     "break": {
-      "start": 12.4215,
-      "end": 12.801,
+      "start": 13.9291,
+      "end": 14.3086,
       "loop": false
     },
     "cage": {
-      "start": 12.901,
-      "end": 13.2354,
+      "start": 14.4086,
+      "end": 14.7429,
       "loop": false
     },
     "yip": {
-      "start": 13.3354,
-      "end": 13.4654,
+      "start": 14.8429,
+      "end": 14.9729,
       "loop": false
     },
     "dust": {
-      "start": 13.5654,
-      "end": 13.7054,
+      "start": 15.0729,
+      "end": 15.2129,
       "loop": false
     },
     "burr-off": {
-      "start": 13.8054,
-      "end": 13.9154,
+      "start": 15.3129,
+      "end": 15.4229,
       "loop": false
     },
     "burr-spread": {
-      "start": 14.0154,
-      "end": 14.1754,
+      "start": 15.5229,
+      "end": 15.6829,
       "loop": false
     },
     "bed": {
-      "start": 14.2754,
-      "end": 15.8809,
+      "start": 15.7829,
+      "end": 17.3885,
       "loop": false
     },
     "gust": {
-      "start": 15.9809,
-      "end": 16.8109,
+      "start": 17.4885,
+      "end": 18.3185,
       "loop": false
     },
     "shuffle": {
-      "start": 16.9109,
-      "end": 17.3309,
+      "start": 18.4185,
+      "end": 18.8385,
       "loop": false
     },
     "tick": {
-      "start": 17.4309,
-      "end": 17.4709,
+      "start": 18.9385,
+      "end": 18.9785,
       "loop": false
     },
     "goal": {
-      "start": 17.5709,
-      "end": 18.584,
+      "start": 19.0785,
+      "end": 20.0915,
       "loop": false
     },
     "low": {
-      "start": 18.684,
-      "end": 18.894,
+      "start": 20.1915,
+      "end": 20.4015,
       "loop": false
     },
     "chirp-1": {
-      "start": 18.994,
-      "end": 19.184,
+      "start": 20.5015,
+      "end": 20.6915,
       "loop": false
     },
     "chirp-2": {
-      "start": 19.284,
-      "end": 19.514,
+      "start": 20.7915,
+      "end": 21.0215,
       "loop": false
     },
     "chirp-3": {
-      "start": 19.614,
-      "end": 19.904,
+      "start": 21.1215,
+      "end": 21.4115,
       "loop": false
     },
     "chirp-4": {
-      "start": 20.004,
-      "end": 20.354,
+      "start": 21.5115,
+      "end": 21.8615,
       "loop": false
     },
     "encore": {
-      "start": 20.454,
-      "end": 20.6946,
+      "start": 21.9615,
+      "end": 22.2021,
       "loop": false
     },
     "win": {
-      "start": 20.7946,
-      "end": 22.6719,
+      "start": 22.3021,
+      "end": 24.1794,
       "loop": false
     },
     "star-1": {
-      "start": 22.7719,
-      "end": 23.464,
+      "start": 24.2794,
+      "end": 24.9715,
       "loop": false
     },
     "star-2": {
-      "start": 23.564,
-      "end": 24.2856,
+      "start": 25.0715,
+      "end": 25.7932,
       "loop": false
     },
     "star-3": {
-      "start": 24.3856,
-      "end": 25.311,
+      "start": 25.8932,
+      "end": 26.8186,
       "loop": false
     },
     "lose": {
-      "start": 25.411,
-      "end": 26.151,
+      "start": 26.9186,
+      "end": 27.6586,
       "loop": false
     },
     "hint": {
-      "start": 26.251,
-      "end": 26.4912,
+      "start": 27.7586,
+      "end": 27.9988,
       "loop": false
     },
     "button": {
-      "start": 26.5912,
-      "end": 26.6312,
+      "start": 28.0988,
+      "end": 28.1388,
       "loop": false
     }
   }
