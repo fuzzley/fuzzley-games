@@ -21,6 +21,11 @@
     color: var(--fz-muted);
     font-size: var(--fz-font-sm);
   }
+
+  // A paragraph after another under the heading, where a game says more.
+  p + p {
+    margin-top: var(--fz-space-2);
+  }
 }
 
 // A set's name, and the note a game ends it with, at the line's end.

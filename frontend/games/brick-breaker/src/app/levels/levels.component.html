@@ -1,75 +1,42 @@
-<fz-dialog [open]="open()" label="Levels" (closed)="closed.emit()">
-  <div class="card">
-    <button
-      type="button"
-      class="close"
-      aria-label="Close levels"
-      (click)="closed.emit()"
-    >
-      <fz-icon name="close" />
-    </button>
-    <h2>Levels</h2>
-    <p>
-      Choose a level to start a new game there. Clearing a level unlocks the
-      next one. If you've cleared a level at this speed, it shows your best
-      score.
-    </p>
-    <p>
-      Each level has 3 stars: 1 for clearing it, 1 for not losing a life, and 1
-      for reaching the streak shown before the level starts. Stars don't unlock
-      anything. You have {{ starsHeld() }}.
-    </p>
-
-    @for (set of sets(); track set.id) {
-      <section [attr.aria-labelledby]="set.headingId">
-        <div class="set-head">
-          <h3 [id]="set.headingId">{{ set.name }}</h3>
-          <p class="count">
-            <fz-icon name="star" />{{ set.starsCount
-            }}<span class="fz-visually-hidden"> stars</span>
-          </p>
-        </div>
-        <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
-        <ul class="grid" role="list">
-          @for (level of set.levels; track level.number) {
-            <li>
-              <!--
-                Named by its number and its name, "1 Blasts", as a voice
-                command reads it, then its stars and what it says under
-                them: `&ngsp;` keeps the spaces between them, which a
-                template otherwise drops. A locked level is marked
-                `aria-disabled` rather than disabled, so it is still found
-                and read.
-              -->
-              <button
-                type="button"
-                class="level"
-                [attr.aria-current]="level.current ? 'true' : null"
-                [attr.aria-disabled]="level.open ? null : 'true'"
-                (click)="choose(level)"
-              >
-                <span class="head"
-                  ><span class="number">{{ level.number }}</span>
-                  @if (level.cleared) {
-                    <fz-icon name="tick" />
-                  }</span
-                >&ngsp;<span class="name">{{ level.name }}</span
-                >&ngsp;<span class="stars">
-                  @for (star of level.stars; track star.id) {
-                    <fz-icon [name]="star.icon" [attr.data-held]="star.held" />
-                  }
-                  <span class="fz-visually-hidden">{{
-                    level.starsWords
-                  }}</span></span
-                >
-                @if (level.status; as status) {
-                  &ngsp;<span class="status">{{ status }}</span>
-                }
-              </button>
-            </li>
-          }
-        </ul>
-      </section>
+<fz-levels
+  [open]="open()"
+  [intro]="shown().intro"
+  [marks]="shown().marks"
+  [current]="current()"
+  [levels]="levels"
+  [mostStars]="mostStars"
+  figure="Best"
+  (chosen)="startAt($event)"
+  (closed)="closed.emit()"
+>
+  <!--
+    Named by its number and its name, "1 Blasts", as a voice command reads
+    it, then its stars and what it says under them: `&ngsp;` keeps the spaces
+    between them, which a template otherwise drops.
+  -->
+  <ng-template fzLevelTile let-level>
+    @if (shown().tiles[level.id]; as tile) {
+      <span class="head"
+        ><span class="number">{{ level.number }}</span>
+        @if (tile.cleared) {
+          <fz-icon name="tick" />
+        }</span
+      >&ngsp;<span class="name">{{ level.name }}</span
+      >&ngsp;<span class="stars">
+        @for (star of tile.stars; track star.id) {
+          <fz-icon [name]="star.icon" [attr.data-held]="star.held" />
+        }
+        <span class="fz-visually-hidden">{{ level.starsWords }}</span></span
+      >
+      @if (tile.status; as status) {
+        &ngsp;<span class="status">{{ status }}</span>
+      }
     }
-  </div>
-</fz-dialog>
+  </ng-template>
+  <ng-template fzLevelSetNote let-set>
+    <p class="count">
+      <fz-icon name="star" />{{ shown().setStars[set.id]
+      }}<span class="fz-visually-hidden"> stars</span>
+    </p>
+  </ng-template>
+</fz-levels>
