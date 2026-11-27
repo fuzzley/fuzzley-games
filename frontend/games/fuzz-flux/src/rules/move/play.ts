@@ -1,8 +1,9 @@
 // A move played whole: the swap, its waves to rest, the move counted and
 // how the level stands, then, while it plays on, what each element does at
-// the end of a move and the wind's turn. The rules play it in the board's
-// own frame, and take the move in and hand its record back in the
-// screen's. A game is never changed: the move makes the next one.
+// the end of a move, the wind's turn, and a shuffle where the board is left
+// with no move. The rules play it in the board's own frame, and take the
+// move in and hand its record back in the screen's. A game is never
+// changed: the move makes the next one.
 
 import { itemAt } from "@fz/core/records";
 import type { Game, Outcome } from "../board/board";
@@ -12,8 +13,10 @@ import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
 import type { ElementRule, WindRule } from "../elements/element_rule";
 import { goalsMet } from "./goals";
 import { waveOnScreen } from "./on_screen";
-import type { BurrSpread, Gust, MoveRecord, Wave } from "./record";
+import type { BurrSpread, Gust, MoveRecord, Shuffle, Wave } from "./record";
 import { settle } from "./settle";
+import { shuffle } from "./shuffle";
+import { legalMoves } from "./swap";
 import { playSwap } from "./swapped";
 import { playToRest } from "./wave";
 
@@ -33,6 +36,12 @@ interface EndOfMove {
 interface Gusted {
   readonly game: Game;
   readonly gust: Gust | null;
+}
+
+/** Describes the last of a move: the game it leaves, and the shuffle, or null where the board needed none. */
+interface Reshuffled {
+  readonly game: Game;
+  readonly shuffle: Shuffle | null;
 }
 
 /**
@@ -93,16 +102,21 @@ export function play(
   }
   const end = moveEnded(ended, rested.counted, rules);
   const gusted = gustAfter(end.game, rules, wind);
+  const outcome = outcomeOf(gusted.game);
+  const last =
+    outcome === "playing"
+      ? shuffledIfStuck(gusted.game, rules)
+      : { game: gusted.game, shuffle: null };
   return endedAs(
-    gusted.game,
+    last.game,
     {
       swap,
       waves,
       burrSpread: end.burrSpread,
       gust: gusted.gust,
-      shuffle: null,
+      shuffle: last.shuffle,
     },
-    outcomeOf(gusted.game),
+    outcome,
   );
 }
 
@@ -186,6 +200,27 @@ function gustAfter(
     gust: {
       turns: turned.turns,
       waves: [fall, ...rested.waves].map((wave) => waveOnScreen(wave, turned)),
+    },
+  };
+}
+
+/** Returns a game in play shuffled where its board has no move to make, and the shuffle in the screen's frame, or the game as it is. */
+function shuffledIfStuck(
+  game: Game,
+  rules: Readonly<Record<ElementId, ElementRule>>,
+): Reshuffled {
+  if (legalMoves(game.board, rules).length > 0) {
+    return { game, shuffle: null };
+  }
+  const shuffled = shuffle(game, rules);
+  return {
+    game: shuffled.game,
+    shuffle: {
+      moves: shuffled.moves.map((moved) => ({
+        ...moved,
+        from: onScreen(game, moved.from),
+        to: onScreen(game, moved.to),
+      })),
     },
   };
 }

@@ -217,6 +217,43 @@ describe("play", () => {
     );
   });
 
+  it("shuffles a board a move leaves with no move, as the sketch does", () => {
+    const { record } = replayed("shuffle");
+
+    expect(record).toEqual(MOVE_FIXTURES.shuffle.record);
+  });
+
+  it("shuffles no board after the level's last move", () => {
+    const { picture, options } = MOVE_FIXTURES.shuffle;
+    const game = gameFrom(picture, { ...options, movesLeft: 1 });
+
+    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+
+    expect([record.shuffle, record.outcome]).toEqual([null, "over"]);
+  });
+
+  it("hands a shuffle back in the screen's frame, as the sketch does", () => {
+    // On this deal the board the move leaves, its frame turned, has no move.
+    const { picture, options } = MOVE_FIXTURES.shuffle;
+    const game = turnFrame(gameFrom(picture, { ...options, seed: 9 }), 1);
+
+    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+
+    expect(record.shuffle).toEqual({
+      moves: [
+        { piece: 7, from: 6, to: 4 },
+        { piece: 4, from: 3, to: 1 },
+        { piece: 12, from: 0, to: 0 },
+        { piece: 8, from: 7, to: 7 },
+        { piece: 2, from: 4, to: 3 },
+        { piece: 11, from: 1, to: 5 },
+        { piece: 9, from: 8, to: 6 },
+        { piece: 6, from: 5, to: 2 },
+        { piece: 10, from: 2, to: 8 },
+      ],
+    });
+  });
+
   it("turns the wind after a move, as the sketch does, everything falling the new way", () => {
     const { game, record } = replayed("windTurns");
 
