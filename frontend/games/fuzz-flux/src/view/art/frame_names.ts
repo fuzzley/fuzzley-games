@@ -47,6 +47,8 @@ export const FRAMES = {
     `body-${kind}-${fur}-${lift}` as const,
   /** The frizzball's body. */
   frizzball: "frizzball",
+  /** The frizzball's sparks of static, about its body's middle, which the scene turns as its static crackles. */
+  frizzballSparks: "frizzball-sparks",
   /** A sleepyhead's body, in its nightcap. */
   sleepyhead: "sleepyhead",
   /** A fuzzball's eyes in a face, which the scene moves as they look. */
@@ -102,6 +104,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
     FURS.flatMap((fur) => LIFTS.map((lift) => FRAMES.body(kind, fur, lift))),
   ),
   FRAMES.frizzball,
+  FRAMES.frizzballSparks,
   FRAMES.sleepyhead,
   ...FUZZBALL_FACES.map((face) => FRAMES.eyes(face)),
   ...FUZZBALL_FACES.map((face) => FRAMES.frizzballEyes(face)),

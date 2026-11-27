@@ -75,7 +75,7 @@ function depthOf({ raise, lift, y }: Readonly<Sampled>): number {
  * other.
  */
 export class PieceLook {
-  /** What the piece wears behind its body, a burr. */
+  /** What the piece wears behind its body, a burr or the frizzball's sparks. */
   readonly behind: ImageLook = { frame: null, alpha: 0 };
   /** Its body, under any other. */
   readonly body: ImageLook = { frame: null, alpha: 0 };

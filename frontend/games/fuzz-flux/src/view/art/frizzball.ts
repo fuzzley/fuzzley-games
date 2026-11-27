@@ -1,7 +1,9 @@
 // The frizzball, which has no kind's color: a fuzzball fully charged, its
 // fur on end in a sun of separate rays round its body and 4 sparks of
 // static standing about them, drawn a little smaller than a fuzzball, as
-// the design draws it. It wears the palette's frizzball colors, which turn
+// the design draws it. Its sparks are a frame of their own, which the
+// scene turns as its static crackles while its rays hold still, as the
+// sketch turns them. It wears the palette's frizzball colors, which turn
 // with the palette, and its eyes are a frame a face, as a fuzzball's are:
 // dark as a fuzzball's on a dark palette, and on a light one white, each
 // open eye holding a fuzzball's eye shrunk to a pupil.
@@ -162,19 +164,35 @@ function eyesIn(
   return centered(name, [...whites, ...held]);
 }
 
-/** Returns the frizzball's body and its eyes in each face, in a palette at a scale. */
+/** Returns a drawing about the frizzball's body's middle in device pixels, as much smaller than a fuzzball as it is drawn, at a scale. */
+function frizzballSized(
+  commands: readonly DrawCommand[],
+  scale: ArtScale,
+): readonly DrawCommand[] {
+  return inPixels(
+    commands.map((command) => scaledBy(command, FRIZZBALL_SCALE)),
+    scale,
+  );
+}
+
+/** Returns the frizzball's body, its sparks about its body's middle, and its eyes in each face, in a palette at a scale. */
 export function frizzballFrames(
   palette: BoardPalette,
   scale: ArtScale,
 ): readonly ArtFrame[] {
   const { body } = palette.frizzball;
-  const drawn = [
-    ...sparks(palette.spark),
-    ...rays(body),
-    circle(ORIGIN, BODY, { color: body }),
-  ].map((command) => scaledBy(command, FRIZZBALL_SCALE));
   return [
-    centered(FRAMES.frizzball, inPixels(drawn, scale)),
+    centered(
+      FRAMES.frizzball,
+      frizzballSized(
+        [...rays(body), circle(ORIGIN, BODY, { color: body })],
+        scale,
+      ),
+    ),
+    centered(
+      FRAMES.frizzballSparks,
+      frizzballSized(sparks(palette.spark), scale),
+    ),
     ...FUZZBALL_FACES.map((face) => eyesIn(face, palette.frizzball, scale)),
   ];
 }

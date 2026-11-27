@@ -109,6 +109,13 @@ describe("a piece's frames", () => {
     ]).toEqual(["burr", "cage"]);
   });
 
+  it("draws the frizzball's sparks behind it, and nothing over it", () => {
+    expect([behindFrameOf(FRIZZBALL), overFrameOf(FRIZZBALL)]).toEqual([
+      "frizzball-sparks",
+      null,
+    ]);
+  });
+
   it("draws nothing behind or over a piece that wears neither", () => {
     expect([
       behindFrameOf(fuzzball()),

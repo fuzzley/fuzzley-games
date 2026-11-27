@@ -34,6 +34,9 @@ const FRIZZBALL = frizzballFrames(ART_PALETTE, ART_SCALE);
 /** The frizzball's body. */
 const BODY_FRAME = frameNamed(FRIZZBALL, FRAMES.frizzball);
 
+/** The frizzball's sparks. */
+const SPARKS_FRAME = frameNamed(FRIZZBALL, FRAMES.frizzballSparks);
+
 /** The frizzball's body's radius in the body's frame: 0.84 of a fuzzball's. */
 const RADIUS = ((0.84 * BODY) / SQUARE) * ART_SCALE.unit;
 
@@ -100,10 +103,13 @@ function turnOf(angle: number): number {
   return billionths(((angle % whole) + whole) % whole);
 }
 
-/** Returns where a point in the body's frame lies from its middle: how far, in the frizzball's body's radii, and which way, each to a billionth. */
-function polarOf({ x, y }: Point): { radii: number; turn: number } {
-  const across = x - BODY_FRAME.width / 2;
-  const down = y - BODY_FRAME.height / 2;
+/** Returns where a point in a frame lies from its middle: how far, in the frizzball's body's radii, and which way, each to a billionth. */
+function polarOf(
+  frame: ArtFrame,
+  { x, y }: Point,
+): { radii: number; turn: number } {
+  const across = x - frame.width / 2;
+  const down = y - frame.height / 2;
   return {
     radii: billionths(Math.hypot(across, down) / RADIUS),
     turn: turnOf(Math.atan2(down, across)),
@@ -111,14 +117,15 @@ function polarOf({ x, y }: Point): { radii: number; turn: number } {
 }
 
 describe("frizzballFrames", () => {
-  it("draws the frizzball's body, then its eyes in each of the house fuzzball's faces", () => {
+  it("draws the frizzball's body, then its sparks, then its eyes in each of the house fuzzball's faces", () => {
     expect(FRIZZBALL.map(({ name }) => name)).toEqual([
       FRAMES.frizzball,
+      FRAMES.frizzballSparks,
       ...FUZZBALL_FACES.map((face) => FRAMES.frizzballEyes(face)),
     ]);
   });
 
-  it("draws its body last, a disc 0.84 of a fuzzball's across, in its own color, and nothing but its sparks in another", () => {
+  it("draws its body over its rays, a disc 0.84 of a fuzzball's across, all in its own color", () => {
     const disc = BODY_FRAME.commands.at(-1);
 
     expect({
@@ -126,7 +133,7 @@ describe("frizzballFrames", () => {
       colors: new Set(BODY_FRAME.commands.map(({ color }) => color)),
     }).toEqual({
       disc: billionths(RADIUS),
-      colors: new Set([ART_PALETTE.frizzball.body, ART_PALETTE.spark]),
+      colors: new Set([ART_PALETTE.frizzball.body]),
     });
   });
 
@@ -135,8 +142,8 @@ describe("frizzballFrames", () => {
 
     expect(
       rays.map(({ from, to, width }) => ({
-        root: polarOf(from),
-        tip: polarOf(to),
+        root: polarOf(BODY_FRAME, from),
+        tip: polarOf(BODY_FRAME, to),
         width: billionths(width / RADIUS),
       })),
     ).toEqual(
@@ -151,17 +158,22 @@ describe("frizzballFrames", () => {
     );
   });
 
-  it("sparks with 4 zigzags of three strokes each, 0.13 of its body's radius wide, their middles 1.86 of it out, a quarter turn apart from 0.3 radians round", () => {
-    const strokes = linesIn(BODY_FRAME.commands, ART_PALETTE.spark);
+  it("sparks in a frame of their own about its body's middle, 4 zigzags of three strokes each in the sparks' color, 0.13 of its body's radius wide, their middles 1.86 of it out, a quarter turn apart from 0.3 radians round", () => {
+    const strokes = linesIn(SPARKS_FRAME.commands, ART_PALETTE.spark);
 
     expect({
+      colors: new Set(SPARKS_FRAME.commands.map(({ color }) => color)),
       widths: new Set(strokes.map(({ width }) => billionths(width / RADIUS))),
       middles: strokes
         .filter((_, i) => i % 3 === 1)
         .map(({ from, to }) =>
-          polarOf({ x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }),
+          polarOf(SPARKS_FRAME, {
+            x: (from.x + to.x) / 2,
+            y: (from.y + to.y) / 2,
+          }),
         ),
     }).toEqual({
+      colors: new Set([ART_PALETTE.spark]),
       widths: new Set([0.13]),
       middles: Array.from({ length: 4 }, (_, i) => ({
         radii: 1.86,
@@ -264,8 +276,10 @@ describe("frizzballFrames at a 40 CSS px square at a pixel ratio of 1", () => {
 describe("frizzballFrames at the smallest square", () => {
   it("draws its sparks a CSS pixel wide at least", () => {
     const strokes = linesIn(
-      frameNamed(frizzballFrames(ART_PALETTE, SMALLEST_SCALE), FRAMES.frizzball)
-        .commands,
+      frameNamed(
+        frizzballFrames(ART_PALETTE, SMALLEST_SCALE),
+        FRAMES.frizzballSparks,
+      ).commands,
       ART_PALETTE.spark,
     );
 
@@ -275,10 +289,10 @@ describe("frizzballFrames at the smallest square", () => {
   });
 
   it("draws a line of its eyes' faces a CSS pixel wide at least, shown at its size", () => {
-    const lines = frizzballFrames(ART_PALETTE, SMALLEST_SCALE)
-      .filter(({ name }) => name !== FRAMES.frizzball)
-      .flatMap(({ commands }) => commands)
-      .filter((command) => command.kind === "line");
+    const frames = frizzballFrames(ART_PALETTE, SMALLEST_SCALE);
+    const lines = FUZZBALL_FACES.flatMap(
+      (face) => frameNamed(frames, FRAMES.frizzballEyes(face)).commands,
+    ).filter((command) => command.kind === "line");
 
     expect(
       billionths(

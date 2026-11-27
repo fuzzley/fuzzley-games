@@ -12,6 +12,7 @@ import { FRAMES, FRAME_NAMES, FURS, LIFTS, TIMES } from "./frame_names";
 const FAMILIES = {
   body: [/^body-/, KIND_IDS.length * FURS.length * LIFTS.length],
   frizzball: [/^frizzball$/, 1],
+  frizzballSparks: [/^frizzball-sparks$/, 1],
   sleepyhead: [/^sleepyhead$/, 1],
   eyes: [/^eyes-/, FUZZBALL_FACES.length],
   frizzballEyes: [/^frizzball-eyes-/, FUZZBALL_FACES.length],

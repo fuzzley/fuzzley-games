@@ -1,6 +1,6 @@
 import { itemAt } from "@fz/core/records";
 import { type GameObjects, TintModes } from "phaser";
-import type { Fuzzball } from "../../rules/catalog/pieces";
+import type { Fuzzball, Piece } from "../../rules/catalog/pieces";
 import { ART_PALETTE } from "../../testing/art_frames";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import {
@@ -212,7 +212,11 @@ describe("PiecesPainter", () => {
     const puffer = fuzzball({ special: "puffer" });
     const board = await boardOf(stillTrackOf(puffer));
     const nowMs = board.shell.ticks.at(-1)?.nowMs ?? 0;
-    const breath = breathAt(puffer, FEEL, nowMs, { scale: 1, turn: 0 });
+    const breath = breathAt(puffer, FEEL, nowMs, {
+      scale: 1,
+      turn: 0,
+      behindTurn: 0,
+    });
     const look = new PieceLook().of(sampledOf(stillTrackOf(puffer)), puffer);
 
     const { body, eyes } = spriteAt(board, 0);
@@ -221,6 +225,30 @@ describe("PiecesPainter", () => {
       expect.closeTo(breath.scale, 9),
       expect.closeTo(look.eyesScale, 9),
     ]);
+  });
+
+  it("turns a frizzball's sparks behind it as its static crackles on the scene's clock, and not its body", async () => {
+    const frizzball: Piece = { what: "frizzball", id: 1 };
+    const board = await boardOf(stillTrackOf(frizzball));
+    board.run.advance(FEEL.staticStepMs);
+    const nowMs = board.shell.ticks.at(-1)?.nowMs ?? 0;
+    const { behindTurn } = breathAt(frizzball, FEEL, nowMs, {
+      scale: 1,
+      turn: 0,
+      behindTurn: 0,
+    });
+
+    const { behind, body } = spriteAt(board, 0);
+
+    expect({
+      sparks: behind.frame.name,
+      turned: [behind.rotation, body.rotation],
+      crackled: behindTurn > 0,
+    }).toEqual({
+      sparks: FRAMES.frizzballSparks,
+      turned: [expect.closeTo(behindTurn, 9), 0],
+      crackled: true,
+    });
   });
 
   it("lights a glowing piece's body with the glow, over all its images, filled with the effects' white", async () => {
@@ -243,6 +271,22 @@ describe("PiecesPainter", () => {
       at: [spriteAt(board, 1).body.x, spriteAt(board, 1).body.y],
       fill: [ART_PALETTE.flare, TintModes.FILL],
       over: true,
+    });
+  });
+
+  it("lights a glowing frizzball's rays and body with the glow, held still as its static crackles, and leaves its sparks unlit", async () => {
+    const frizzball: Piece = { what: "frizzball", id: 1 };
+    const board = await boardOf(stillTrackOf(frizzball, { glow: 1 }));
+    board.run.advance(FEEL.staticStepMs);
+    const { glow } = board.scene.pieces;
+    const { behind } = spriteAt(board, 0);
+
+    expect({
+      glow: [showing(glow).frame, glow.rotation],
+      sparks: [showing(behind).frame, behind.rotation > 0],
+    }).toEqual({
+      glow: [FRAMES.frizzball, 0],
+      sparks: [FRAMES.frizzballSparks, true],
     });
   });
 

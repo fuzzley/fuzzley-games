@@ -15,12 +15,12 @@ function fuzzball(id: number, special: SpecialId | null): Piece {
   };
 }
 
-/** Returns how a piece's body stirs at a moment. */
+/** Returns how a piece stirs at a moment. */
 function breathOf(piece: Piece | null, ms: number): Breath {
-  return breathAt(piece, FEEL, ms, { scale: 1, turn: 0 });
+  return breathAt(piece, FEEL, ms, { scale: 1, turn: 0, behindTurn: 0 });
 }
 
-/** Returns how a piece's body stirs at each millisecond of a while from the start of the scene's clock. */
+/** Returns how a piece stirs at each millisecond of a while from the start of the scene's clock. */
 function breathsOf(piece: Piece, ms: number): readonly Breath[] {
   return Array.from({ length: ms }, (_, at) => breathOf(piece, at));
 }
@@ -75,7 +75,7 @@ describe("breathAt", () => {
     expect(
       Array.from(
         { length: FEEL.staticSteps + 1 },
-        (_, step) => breathOf(frizzball, step * FEEL.staticStepMs).turn,
+        (_, step) => breathOf(frizzball, step * FEEL.staticStepMs).behindTurn,
       ),
     ).toEqual([
       ...Array.from(
@@ -89,9 +89,19 @@ describe("breathAt", () => {
   it("holds the frizzball's static still between its steps", () => {
     const frizzball: Piece = { what: "frizzball", id: 1 };
 
-    expect(breathOf(frizzball, 2 * FEEL.staticStepMs - 1).turn).toBe(
+    expect(breathOf(frizzball, 2 * FEEL.staticStepMs - 1).behindTurn).toBe(
       FEEL.staticStep,
     );
+  });
+
+  it("turns the frizzball's sparks alone as its static crackles, never its body", () => {
+    const frizzball: Piece = { what: "frizzball", id: 1 };
+
+    expect(breathOf(frizzball, FEEL.staticStepMs)).toEqual({
+      scale: 1,
+      turn: 0,
+      behindTurn: FEEL.staticStep,
+    });
   });
 
   it("sets each puffer's breath apart from the others by its id, a radian an id", () => {
@@ -115,14 +125,13 @@ describe("breathAt", () => {
     ["a sleepyhead", { what: "sleepyhead", id: 1 }],
     ["a loose sprite's record", null],
   ])("leaves %s still", (_, piece) => {
-    expect(breathAt(piece, FEEL, 500, { scale: 2, turn: 1 })).toEqual({
-      scale: 1,
-      turn: 0,
-    });
+    expect(
+      breathAt(piece, FEEL, 500, { scale: 2, turn: 1, behindTurn: 1 }),
+    ).toEqual({ scale: 1, turn: 0, behindTurn: 0 });
   });
 
   it("writes into the record it is given, and returns it", () => {
-    const record: Breath = { scale: 1, turn: 0 };
+    const record: Breath = { scale: 1, turn: 0, behindTurn: 0 };
 
     expect(breathAt(fuzzball(1, "puffer"), FEEL, 0, record)).toBe(record);
   });

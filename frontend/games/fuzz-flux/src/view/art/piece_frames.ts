@@ -87,8 +87,9 @@ export function eyesShiftOf(
   return { x: offset.x * EYES_GRID, y: offset.y * EYES_GRID };
 }
 
-/** Returns the frame of what a piece wears behind its body, a burr's ring of thorns, or null for nothing. */
+/** Returns the frame of what a piece wears behind its body, a burr's ring of thorns or the frizzball's sparks, or null for nothing. */
 export function behindFrameOf(piece: Piece): FrameName | null {
+  if (piece.what === "frizzball") return FRAMES.frizzballSparks;
   return piece.what === "fuzzball" && piece.burred ? FRAMES.burr : null;
 }
 

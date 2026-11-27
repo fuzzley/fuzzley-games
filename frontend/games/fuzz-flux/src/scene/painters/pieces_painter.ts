@@ -38,8 +38,8 @@ export class PiecesPainter implements Painter {
   readonly dim: GameObjects.Rectangle;
   private readonly board: Pool;
   private readonly falling: Pool;
-  /** How the body of the piece being drawn stirs, written for each. */
-  private readonly breath: Breath = { scale: 1, turn: 0 };
+  /** How the piece being drawn stirs, written for each. */
+  private readonly breath: Breath = { scale: 1, turn: 0, behindTurn: 0 };
 
   /** Makes every piece's sprite, hidden, those on the board in one layer and those falling in in another. */
   constructor(
