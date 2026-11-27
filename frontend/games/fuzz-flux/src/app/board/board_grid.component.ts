@@ -1,4 +1,5 @@
 import { Component, ElementRef, computed, inject } from "@angular/core";
+import { describeSquare } from "../../rules/run/describe";
 import type { GridShown } from "../../view/run_state";
 import { GameService } from "../play/game.service";
 
@@ -16,6 +17,8 @@ interface CellView {
   readonly index: number;
   /** Its column, from 1. */
   readonly column: number;
+  /** What it holds and the dust on it, as "Red, caged". */
+  readonly name: string;
   /** 0 for the square that holds the board's one tab stop, -1 for every other. */
   readonly tabIndex: number;
 }
@@ -32,8 +35,9 @@ interface RowView {
  * Lays a grid of the board's squares over the canvas, where the scene draws
  * them, for the keys and screen readers: the board named for the level on
  * it and described by its keys, one tab stop, and a cell for each square,
- * a gap none, ringed while it has the focus from the keyboard. It takes no
- * press: each goes through to the canvas beneath, which reads it.
+ * a gap none, named for what it holds and the dust on it, and ringed while
+ * it has the focus from the keyboard. It takes no press: each goes through
+ * to the canvas beneath, which reads it.
  *
  * Its roles are ARIA's own rather than Angular Aria's grid, which takes the
  * arrow keys to move the focus itself, and stops them there, cancelled: the
@@ -86,7 +90,14 @@ function rowsOf({ width, height, squares }: GridShown): readonly RowView[] {
     cells: squares.slice(y * width, (y + 1) * width).flatMap((square, x) => {
       const index = y * width + x;
       if (square === null) return [];
-      return [{ index, column: x + 1, tabIndex: index === tabStop ? 0 : -1 }];
+      return [
+        {
+          index,
+          column: x + 1,
+          name: describeSquare(square),
+          tabIndex: index === tabStop ? 0 : -1,
+        },
+      ];
     }),
   }));
   return rows.filter(({ cells }) => cells.length > 0);

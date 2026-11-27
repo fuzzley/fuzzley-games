@@ -1,5 +1,7 @@
+import type { DustLayers } from "../catalog/elements";
 import type { Goal } from "../catalog/goals";
 import type { KindId } from "../catalog/kinds";
+import type { Fuzzball, Piece } from "../catalog/pieces";
 import type { BlastId, MadeId } from "../catalog/specials";
 import type { Blast, Bunch, Hit, MoveRecord, Wave } from "../move/record";
 import {
@@ -8,6 +10,7 @@ import {
   describeLevelBegun,
   describeMove,
   describeOver,
+  describeSquare,
   goalName,
   newThingLine,
 } from "./describe";
@@ -115,6 +118,19 @@ function said(
     goalsLeft(goals, to),
     low,
   );
+}
+
+/** Returns a fuzzball of a kind, plain, uncaged and unburred unless given. */
+function fuzzballOf(kind: KindId, wears: Partial<Fuzzball> = {}): Fuzzball {
+  return {
+    what: "fuzzball",
+    id: 1,
+    kind,
+    special: null,
+    caged: false,
+    burred: false,
+    ...wears,
+  };
 }
 
 describe("goalName", () => {
@@ -361,4 +377,58 @@ describe("describeOver", () => {
       "Out of moves. 6 blue and 2 cages left.",
     );
   });
+});
+
+describe("describeSquare", () => {
+  it.each<[string, Piece | null, string]>([
+    ["a plain fuzzball", fuzzballOf("red"), "Red"],
+    ["a caged one", fuzzballOf("red", { caged: true }), "Red, caged"],
+    [
+      "a burred one",
+      fuzzballOf("amber", { burred: true }),
+      "Amber, with a burr",
+    ],
+    [
+      "one caged and burred",
+      fuzzballOf("green", { caged: true, burred: true }),
+      "Green, caged, with a burr",
+    ],
+    [
+      "a dasher across",
+      fuzzballOf("blue", { special: "dasher-across" }),
+      "Blue dasher, across",
+    ],
+    [
+      "a dasher down",
+      fuzzballOf("blue", { special: "dasher-down" }),
+      "Blue dasher, down",
+    ],
+    ["a puffer", fuzzballOf("violet", { special: "puffer" }), "Violet puffer"],
+    ["a wisp", fuzzballOf("pink", { special: "wisp" }), "Pink wisp"],
+    ["the frizzball", { what: "frizzball", id: 1 }, "Frizzball"],
+    [
+      "a brick of 1 layer",
+      { what: "brick", id: 1, layers: 1 },
+      "Brick, 1 layer",
+    ],
+    [
+      "a brick of 3 layers",
+      { what: "brick", id: 1, layers: 3 },
+      "Brick, 3 layers",
+    ],
+    ["a sleepyhead", { what: "sleepyhead", id: 1 }, "Sleepyhead"],
+    ["nothing", null, "Empty"],
+  ])("names a square holding %s for it", (_, piece, name) => {
+    expect(describeSquare({ piece, dust: 0 })).toBe(name);
+  });
+
+  it.each<[DustLayers, string]>([
+    [1, "Red, on dust"],
+    [2, "Red, on thick dust"],
+  ])(
+    "names %i layers of dust on a square after what it holds",
+    (dust, name) => {
+      expect(describeSquare({ piece: fuzzballOf("red"), dust })).toBe(name);
+    },
+  );
 });

@@ -90,6 +90,12 @@ describe("BoardGridComponent", () => {
       expect(screen.getAllByRole("gridcell")).toHaveLength(19);
     });
 
+    it("are each named for what they hold", async () => {
+      await renderGrid();
+
+      expect(screen.getAllByRole("gridcell", { name: "Blue" })).toHaveLength(3);
+    });
+
     it("each say where they lie, past a gap", async () => {
       await renderGrid(GAPPED_LEVELS);
 

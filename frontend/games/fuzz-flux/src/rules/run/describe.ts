@@ -1,13 +1,16 @@
 // What the game says of a level in play, in the words on the screen or
 // fewer: each goal's name, as the bar says it beside its picture, the line
-// about what a level brings in new, and what the announcer says as a level
-// begins, as each move is made and as the level ends.
+// about what a level brings in new, each square's name, as the grid over
+// the board says it, and what the announcer says as a level begins, as
+// each move is made and as the level ends.
 
 import { count, listed } from "@fz/core/format";
 import { isKeyOf, itemAt } from "@fz/core/records";
 import { WINDS, type Wind } from "../board/board";
+import type { DustLayers } from "../catalog/elements";
 import type { Goal, GoalId } from "../catalog/goals";
-import type { BlastId, MadeId } from "../catalog/specials";
+import type { Fuzzball, Piece } from "../catalog/pieces";
+import type { BlastId, MadeId, SpecialId } from "../catalog/specials";
 import type { NewThing } from "../levels/level";
 import type { Blast, Bunch, Hit, MoveRecord, Wave } from "../move/record";
 
@@ -286,6 +289,63 @@ export function describeCleared(
 /** Returns what is said as a level runs out of moves, as its card shows it: "Out of moves. 6 blue and 2 cages left." */
 export function describeOver(goals: readonly GoalSaid[]): string {
   return sentences(["Out of moves", `${goalsAsked(goals)} left`]);
+}
+
+/** Describes a square as the grid over the board names it, as `RunState` shows it. */
+export interface SquareSaid {
+  /** What it holds, as the screen shows it, a dasher's way the screen's; or null for nothing. */
+  readonly piece: Piece | null;
+  readonly dust: DustLayers;
+}
+
+/** Each special, as a square's name says it after its kind: a dasher with the way it runs on the screen. */
+const SPECIAL_NAMES: Readonly<Record<SpecialId, string>> = {
+  "dasher-across": "dasher, across",
+  "dasher-down": "dasher, down",
+  puffer: "puffer",
+  wisp: "wisp",
+};
+
+/** A square's dust, as its name says it, by its layers, or null for none. */
+const DUST_NAMES: Readonly<Record<DustLayers, string | null>> = {
+  0: null,
+  1: "on dust",
+  2: "on thick dust",
+};
+
+/**
+ * Returns a square's name, as the grid over the board says it: what it
+ * holds, then the dust under it, "Red, caged", "Blue dasher, across" or
+ * "Brick, 2 layers, on thick dust".
+ */
+export function describeSquare({ piece, dust }: SquareSaid): string {
+  const dustName = DUST_NAMES[dust];
+  const names = [pieceName(piece), ...(dustName === null ? [] : [dustName])];
+  return capitalized(names.join(", "));
+}
+
+/** Returns what a square holds, as its name says it, "empty" for nothing. */
+function pieceName(piece: Piece | null): string {
+  if (piece === null) return "empty";
+  switch (piece.what) {
+    case "fuzzball":
+      return fuzzballName(piece);
+    case "brick":
+      return `brick, ${count(piece.layers, "layer", "layers")}`;
+    case "frizzball":
+    case "sleepyhead":
+      return piece.what;
+  }
+}
+
+/** Returns a fuzzball's name: its kind, then the special it is, or the cage and the burr it wears, "red, caged". */
+function fuzzballName({ kind, special, caged, burred }: Fuzzball): string {
+  if (special !== null) return `${kind} ${SPECIAL_NAMES[special]}`;
+  const wears = [
+    ...(caged ? ["caged"] : []),
+    ...(burred ? ["with a burr"] : []),
+  ];
+  return [kind, ...wears].join(", ");
 }
 
 /** Returns what is said of the bunches a swap gathered: "Bunch of 4, blue", "2 bunches, blue and red", or null for none. */
