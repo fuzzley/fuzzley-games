@@ -524,6 +524,16 @@ describe("encodeSprite", () => {
     };
   }
 
+  /** Returns the text of a file a sprite shipped, which {@link fakeFfmpeg} writes as the command line that made it. */
+  function shippedText(sprite: SpriteToEncode, file: string): Promise<string> {
+    return readFile(join(sprite.into, file), "utf8");
+  }
+
+  /** Returns how every ffmpeg command line encoding a WAV starts: quiet, bit-exact and with no metadata. */
+  function quietlyFrom(wav: string): string {
+    return `ffmpeg -hide_banner -loglevel error -y -i ${wav} -map_metadata -1 -fflags +bitexact -flags:a +bitexact`;
+  }
+
   /** Returns the files in a folder and its folders, by their paths from it, in order. */
   async function filesIn(at: string): Promise<string[]> {
     const entries = await readdir(at, { recursive: true, withFileTypes: true });
@@ -552,24 +562,42 @@ describe("encodeSprite", () => {
 
   it("encodes bit-exact, with no metadata: the sprite at Vorbis's quality 5 and AAC's 96 kb/s, a bed at 4 and 128 kb/s", async () => {
     const sprite = spriteToEncode();
-    const quiet = (from: string): string =>
-      `ffmpeg -hide_banner -loglevel error -y -i ${from} -map_metadata -1 -fflags +bitexact -flags:a +bitexact`;
     const [bed = ""] = sprite.beds;
 
     await encodeSprite(sprite, fakeFfmpeg);
 
-    const read = (file: string): Promise<string> =>
-      readFile(join(sprite.into, file), "utf8");
     expect({
-      ogg: await read("sprite.ogg"),
-      m4a: await read("sprite.m4a"),
-      bedOgg: await read("beds/hum.ogg"),
-      bedM4a: await read("beds/hum.m4a"),
+      ogg: await shippedText(sprite, "sprite.ogg"),
+      m4a: await shippedText(sprite, "sprite.m4a"),
+      bedOgg: await shippedText(sprite, "beds/hum.ogg"),
+      bedM4a: await shippedText(sprite, "beds/hum.m4a"),
     }).toEqual({
-      ogg: `${quiet(sprite.wav)} -c:a libvorbis -q:a 5 ${join(sprite.staging, "sprite.ogg")}`,
-      m4a: `${quiet(sprite.wav)} -c:a aac -b:a 96k -movflags +faststart ${join(sprite.staging, "sprite.m4a")}`,
-      bedOgg: `${quiet(bed)} -c:a libvorbis -q:a 4 ${join(sprite.staging, "beds", "hum.ogg")}`,
-      bedM4a: `${quiet(bed)} -c:a aac -b:a 128k -movflags +faststart ${join(sprite.staging, "beds", "hum.m4a")}`,
+      ogg: `${quietlyFrom(sprite.wav)} -c:a libvorbis -q:a 5 ${join(sprite.staging, "sprite.ogg")}`,
+      m4a: `${quietlyFrom(sprite.wav)} -c:a aac -b:a 96k -movflags +faststart ${join(sprite.staging, "sprite.m4a")}`,
+      bedOgg: `${quietlyFrom(bed)} -c:a libvorbis -q:a 4 ${join(sprite.staging, "beds", "hum.ogg")}`,
+      bedM4a: `${quietlyFrom(bed)} -c:a aac -b:a 128k -movflags +faststart ${join(sprite.staging, "beds", "hum.m4a")}`,
+    });
+  });
+
+  it("encodes the sprite at the encoding it gives, and a bed as before", async () => {
+    const sprite = {
+      ...spriteToEncode(),
+      encoding: { vorbis: 3, aac: "72k" },
+    };
+    const [bed = ""] = sprite.beds;
+
+    await encodeSprite(sprite, fakeFfmpeg);
+
+    expect({
+      ogg: await shippedText(sprite, "sprite.ogg"),
+      m4a: await shippedText(sprite, "sprite.m4a"),
+      bedOgg: await shippedText(sprite, "beds/hum.ogg"),
+      bedM4a: await shippedText(sprite, "beds/hum.m4a"),
+    }).toEqual({
+      ogg: `${quietlyFrom(sprite.wav)} -c:a libvorbis -q:a 3 ${join(sprite.staging, "sprite.ogg")}`,
+      m4a: `${quietlyFrom(sprite.wav)} -c:a aac -b:a 72k -movflags +faststart ${join(sprite.staging, "sprite.m4a")}`,
+      bedOgg: `${quietlyFrom(bed)} -c:a libvorbis -q:a 4 ${join(sprite.staging, "beds", "hum.ogg")}`,
+      bedM4a: `${quietlyFrom(bed)} -c:a aac -b:a 128k -movflags +faststart ${join(sprite.staging, "beds", "hum.m4a")}`,
     });
   });
 

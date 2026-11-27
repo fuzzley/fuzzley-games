@@ -432,15 +432,17 @@ export interface SpriteToEncode {
   readonly into: string;
   /** The folder they are made in first, emptied before, so what ships changes all at once. */
   readonly staging: string;
+  /** How the sprite is encoded, Vorbis's quality 5 and AAC's 96 kb/s unless given. */
+  readonly encoding?: Encoding;
 }
 
 /** Says how a WAV is encoded: Vorbis's quality, from 0 to 10, and AAC's bit rate, such as "96k". */
-interface Encoding {
+export interface Encoding {
   readonly vorbis: number;
   readonly aac: string;
 }
 
-/** How a sprite is encoded. */
+/** How a sprite is encoded unless its own encoding is given. */
 const SPRITE_ENCODING: Encoding = { vorbis: 5, aac: "96k" };
 
 /** How a bed, whose WAV is stereo, is encoded: AAC at a higher rate, for its two channels. */
@@ -481,7 +483,14 @@ export const missingFfmpeg: RunProgram = () =>
  * fails, having shipped none of them.
  */
 export async function encodeSprite(
-  { wav, beds, alongside, into, staging }: SpriteToEncode,
+  {
+    wav,
+    beds,
+    alongside,
+    into,
+    staging,
+    encoding = SPRITE_ENCODING,
+  }: SpriteToEncode,
   run: RunProgram = runProgram,
 ): Promise<boolean> {
   try {
@@ -521,7 +530,7 @@ export async function encodeSprite(
     ]);
   };
   await rm(staging, { recursive: true, force: true });
-  await encode(wav, staging, SPRITE_ENCODING);
+  await encode(wav, staging, encoding);
   for (const [name, text] of Object.entries(alongside)) {
     await writeFile(join(staging, name), text);
   }
