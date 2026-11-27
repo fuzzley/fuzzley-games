@@ -11,6 +11,7 @@ import type { Pictures } from "../../scene/pictures";
 import { type CatalogHelp, catalogEntries } from "./catalog_entries";
 import { BRICK_HELP } from "./entries/brick";
 import { BURR_HELP } from "./entries/burr";
+import { CAGE_HELP } from "./entries/cage";
 import { DUST_HELP } from "./entries/dust";
 import { GAP_HELP } from "./entries/gap";
 import { SLEEPYHEAD_HELP } from "./entries/sleepyhead";
@@ -23,6 +24,7 @@ const HELP_THINGS = {
   gap: GAP_HELP,
   dust: DUST_HELP,
   brick: BRICK_HELP,
+  cage: CAGE_HELP,
   sleepyhead: SLEEPYHEAD_HELP,
   burr: BURR_HELP,
 } as const satisfies Readonly<Record<ThingId, CatalogHelp>>;

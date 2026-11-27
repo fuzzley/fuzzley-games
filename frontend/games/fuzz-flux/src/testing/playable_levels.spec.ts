@@ -24,18 +24,32 @@ describe("PLAYABLE_LEVELS", () => {
     ]);
   });
 
-  it("lets in each level of Bricks and bars that holds no cage", () => {
+  it("lets in every level of Bricks and bars, each of whose elements has its rule", () => {
     expect(playableIn("bricks-and-bars")).toEqual([
       "10",
       "11",
       "12",
+      "13",
       "14",
+      "15",
       "16",
+      "17",
+      "18",
     ]);
   });
 
-  it("lets in each level of Bedtime that holds no cage", () => {
-    expect(playableIn("bedtime")).toEqual(["19", "20", "22", "24", "25", "26"]);
+  it("lets in every level of Bedtime, each of whose elements has its rule", () => {
+    expect(playableIn("bedtime")).toEqual([
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+    ]);
   });
 
   it("lets in the levels whose wind blows one way and never turns", () => {
@@ -44,7 +58,7 @@ describe("PLAYABLE_LEVELS", () => {
     );
   });
 
-  it("keeps out each level that brings in an element still played by the stand-in", () => {
+  it("keeps out each level that brings in an element whose rule is still to come", () => {
     const strays = PLAYABLE_LEVELS.filter(({ level }) =>
       isOneOf(level.brings, STAND_INS),
     );

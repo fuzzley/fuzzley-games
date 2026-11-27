@@ -67,6 +67,9 @@ export const WISP_BRICK_WORTH = 80;
 /** What a brick is worth to a wisp where no goal still asks for bricks. */
 export const WISP_BRICK_WORTH_MET = 24;
 
+/** What a caged fuzzball is worth to a wisp: more while a goal still asks for cages, and less where none does. */
+export const WISP_CAGE_WORTH = { asked: 90, unasked: 30 } as const;
+
 /** What a square that holds a sleepyhead up is worth to a wisp while the sleepyheads' goal is open. */
 export const WISP_SLEEPYHEAD_WORTH = 70;
 

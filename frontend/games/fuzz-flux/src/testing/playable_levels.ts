@@ -1,5 +1,5 @@
 // The levels whose every part the game's rules play: those whose board
-// holds no element still played by the stand-in, and whose wind, where it
+// holds no element whose rule is still to come, and whose wind, where it
 // turns, the wind's rule turns. The golden games and the random moves that
 // hold the rules to the sketch play these, so each element's package lets
 // its levels in as it takes its id off `STAND_INS`, and the wind's package

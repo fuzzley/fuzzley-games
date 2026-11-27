@@ -198,7 +198,7 @@ function specialPiece(special: PlacedSpecial, id: number): Piece {
  * Returns how many of an element a dealt board holds, as the element's
  * rule counts its goal.
  *
- * @throws {Error} where the element's rule counts no goal, as a stand-in's.
+ * @throws {Error} where the element's rule counts no goal, as the burr's.
  */
 function countOn(
   board: Board,

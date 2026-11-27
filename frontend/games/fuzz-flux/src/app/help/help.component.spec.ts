@@ -178,6 +178,7 @@ describe("HelpComponent", () => {
       "Gap. Has no square. Fuzzballs fall past it.",
       "Dust. Covers a square up to 2 layers deep. A layer comes off when a bunch or a special clears the square.",
       "Brick. Has 1 to 4 layers. A bunch next to it or a special knocks a layer off.",
+      "Cage. Holds a fuzzball in place, so you can't swap it. Free it with a bunch or a special.",
       "Sleepyhead. Can't be swapped. Falls when you clear what's under it, and goes to bed at the bottom.",
       "Burr. Keeps you from swapping a fuzzball. Line up 3 next to a burr to brush it off, or burrs spread.",
     ]);
@@ -209,6 +210,7 @@ describe("HelpComponent", () => {
       null,
       PICTURES.dust[0],
       PICTURES.brick,
+      PICTURES.caged,
       PICTURES.sleepyhead,
       PICTURES.burred,
     ]);

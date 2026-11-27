@@ -10,10 +10,6 @@ describe("ELEMENT_RULES", () => {
     expect(keysOf(ELEMENT_RULES)).toEqual(ELEMENT_IDS);
   });
 
-  it.each(STAND_INS)("takes %s's part in no moment, as the stand-in", (id) => {
-    expect(Object.keys(ELEMENT_RULES[id])).toEqual([]);
-  });
-
   it.each(BROUGHT_IN)("plays %s by a rule of its own", (id) => {
     expect(Object.keys(ELEMENT_RULES[id])).not.toEqual([]);
   });
