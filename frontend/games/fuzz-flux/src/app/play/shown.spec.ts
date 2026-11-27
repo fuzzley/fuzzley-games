@@ -5,7 +5,7 @@ import type { LevelEntry } from "../../rules/levels/levels";
 import { turnFrame } from "../../rules/board/orientation";
 import { gameFrom } from "../../testing/board_picture";
 import { SMALL_LEVELS } from "../../testing/small_levels";
-import { goalsOf, gridOf, starsEarned, windOf } from "./shown";
+import { goalsOf, gridOf, windOf } from "./shown";
 
 /** The first of the small levels, whose stars ask for 0, 2 and 4 moves to spare. */
 const LEVEL = itemAt(SMALL_LEVELS, 0);
@@ -69,18 +69,4 @@ describe("windOf", () => {
       turnsIn: null,
     });
   });
-});
-
-describe("starsEarned", () => {
-  it.each([
-    [0, 1],
-    [1, 1],
-    [2, 2],
-    [4, 3],
-  ])(
-    "earns a level cleared with %i moves to spare %i stars",
-    (spare, stars) => {
-      expect(starsEarned(LEVEL, spare)).toBe(stars);
-    },
-  );
 });

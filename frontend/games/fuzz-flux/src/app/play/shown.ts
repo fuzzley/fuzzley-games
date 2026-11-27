@@ -48,11 +48,6 @@ export function windOf(level: LevelEntry, game: Game): WindShown | null {
   return { blows: itemAt(WINDS, game.turns), turnsIn: game.wind?.wait ?? null };
 }
 
-/** Returns how many stars a level earns cleared with so many moves to spare: one for each of its thresholds met, the first at clearing it. */
-export function starsEarned(level: LevelEntry, spare: number): number {
-  return level.data.stars.filter((threshold) => spare >= threshold).length;
-}
-
 /** Returns everything the shell shows of a level in play, its board as given and the rest as its play has come to. */
 export function runStateOf(
   { level, game }: LevelInPlay,

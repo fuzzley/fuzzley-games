@@ -1,8 +1,10 @@
 import { TestBed } from "@angular/core/testing";
+import { isRecord } from "@fz/core/json";
 import { itemAt } from "@fz/core/records";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { type Square, squareOf } from "../../rules/board/cells";
 import { onScreen } from "../../rules/board/orientation";
 import { ELEMENT_RULES, WIND_RULE } from "../../rules/elements/element_rules";
@@ -16,6 +18,7 @@ import {
   REFUSED,
   SMALL_LEVELS,
 } from "../../testing/small_levels";
+import { ProgressService } from "../stats/progress.service";
 import { RecordsService } from "../stats/records.service";
 import { GAME_LEVELS } from "../tokens";
 import { GameService } from "./game.service";
@@ -37,14 +40,19 @@ interface Played {
 
 /**
  * Returns the game at a level by its number, of the small levels unless
- * given others, the board's view handed it, and its first frame played.
+ * given others, the board's view handed it, and its first frame played,
+ * keeping what it stores in a store of its own where given one.
  */
 async function startGame(
   level = 1,
   levels: readonly LevelEntry[] = SMALL_LEVELS,
+  storage = new MemoryStorage(),
 ): Promise<Played> {
   TestBed.configureTestingModule({
-    providers: [{ provide: GAME_LEVELS, useValue: levels }],
+    providers: [
+      { provide: GAME_LEVELS, useValue: levels },
+      provideMemoryStorage(storage),
+    ],
   });
   const game = TestBed.inject(GameService);
   game.useView(VIEW_KIT);
@@ -52,6 +60,14 @@ async function startGame(
   const frames = new BoardFrames(game);
   frames.frame();
   return { game, frames };
+}
+
+/** Returns each level's record as a store keeps it. */
+function recordsIn(storage: MemoryStorage): unknown {
+  const kept: unknown = JSON.parse(
+    storage.getItem("fuzz-flux-records") ?? "null",
+  );
+  return isRecord(kept) ? kept["levels"] : null;
 }
 
 /** Makes a move by taps on its two squares, as a player would. */
@@ -598,6 +614,25 @@ describe("GameService", () => {
       expect(played.game.picking().held).toBeNull();
     });
 
+    it("opens the level after it, as the move is made", async () => {
+      const played = await startGame();
+
+      swap(played, BLUE_LINE);
+
+      expect(TestBed.inject(ProgressService).isOpen(2)).toBe(true);
+    });
+
+    it("keeps its stars and its moves to spare in its record", async () => {
+      const storage = new MemoryStorage();
+      const played = await startGame(1, SMALL_LEVELS, storage);
+
+      swap(played, BLUE_LINE);
+
+      expect(recordsIn(storage)).toEqual({
+        "1": { nextDeal: 1, stars: 3, spare: 4 },
+      });
+    });
+
     it("goes on to the next level at Enter", async () => {
       const played = await startGame();
       swap(played, BLUE_LINE);
@@ -636,6 +671,23 @@ describe("GameService", () => {
       played.frames.playOut();
 
       expect(played.game.state().card).toEqual({ what: "over" });
+    });
+
+    it("opens no level after it", async () => {
+      const played = await startGame(2);
+
+      swap(played, BLUE_LINE);
+
+      expect(TestBed.inject(ProgressService).isOpen(3)).toBe(false);
+    });
+
+    it("keeps no stars and no moves to spare in its record", async () => {
+      const storage = new MemoryStorage();
+      const played = await startGame(2, SMALL_LEVELS, storage);
+
+      swap(played, BLUE_LINE);
+
+      expect(recordsIn(storage)).toEqual({ "2": { nextDeal: 1 } });
     });
 
     it("lights no star", async () => {

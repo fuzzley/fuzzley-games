@@ -7,7 +7,7 @@ import type { ConfirmRequest } from "@fz/ui/confirm";
 import type { Game } from "../../rules/board/board";
 import { type Square, indexOf, squareOf } from "../../rules/board/cells";
 import { fromScreen } from "../../rules/board/orientation";
-import type { Hint } from "../../rules/levels/level";
+import type { Hint, Level } from "../../rules/levels/level";
 import type { LevelEntry } from "../../rules/levels/levels";
 import type { MoveRecord } from "../../rules/move/record";
 import { encore } from "../../rules/move/encore";
@@ -25,6 +25,7 @@ import {
   levelDealt,
   movePlayed,
 } from "../../rules/run/saved_game";
+import { starsEarned } from "../../rules/run/stars";
 import type { BoardPlay } from "../../scene/play_clock";
 import type { BoardShape } from "../../view/board/spaces";
 import type { Hinting } from "../../view/idle/hint";
@@ -42,6 +43,7 @@ import { FEEL } from "../../view/timeline/feel";
 import type { Cleared } from "../../view/timeline/level_end";
 import { starsLitAt } from "../../view/timeline/stars_lit";
 import type { SoundCue, Timeline } from "../../view/timeline/timeline";
+import { ProgressService } from "../stats/progress.service";
 import { RecordsService } from "../stats/records.service";
 import { GAME_LEVELS, GAME_RULES } from "../tokens";
 import {
@@ -51,7 +53,7 @@ import {
   hasPassed,
   sameCounts,
 } from "./beats";
-import { goalsOf, gridOf, runStateOf, starsEarned, windOf } from "./shown";
+import { goalsOf, gridOf, runStateOf, windOf } from "./shown";
 import type { ViewKit } from "./view_kit";
 
 /** What is lost as a level in progress is left, which each question says. */
@@ -154,6 +156,7 @@ export class GameService extends RunLifecycle {
   private readonly levels = inject(GAME_LEVELS);
   private readonly rules = inject(GAME_RULES);
   private readonly records = inject(RecordsService);
+  private readonly progress = inject(ProgressService);
   private readonly viewport = inject(GameViewportService);
 
   private readonly inPlayState = signal<LevelInPlay>(
@@ -564,9 +567,19 @@ export class GameService extends RunLifecycle {
     if (before.moves.length === 0) {
       this.records.dealUsed(before.level.data, before.deal);
     }
+    if (card?.what === "cleared") this.keepCleared(inPlay.level.data, card);
     this.inPlayState.set(inPlay);
     board.hinting.moves();
     board.hand = null;
+  }
+
+  /** Keeps a level cleared, as the move that clears it is made: its stars and its moves to spare in its record, and the level after it opened. */
+  private keepCleared(
+    level: Level,
+    { stars, spare }: Extract<Card, { what: "cleared" }>,
+  ): void {
+    this.records.cleared(level, stars, spare);
+    this.progress.recordCleared(level.id);
   }
 
   /** Returns how a level in play ends: the encore and the stars of one a move cleared, and the card each end shows. */
@@ -577,7 +590,7 @@ export class GameService extends RunLifecycle {
       case "over":
         return { cleared: null, card: { what: "over" } };
       case "cleared": {
-        const stars = starsEarned(level, game.movesLeft);
+        const stars = starsEarned(level.data, game.movesLeft);
         return {
           cleared: { encore: encore(game, this.rules.elements).record, stars },
           card: { what: "cleared", stars, spare: game.movesLeft },
