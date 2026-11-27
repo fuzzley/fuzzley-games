@@ -77,8 +77,10 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
  * `DESIGN_HOLDS_AND_GOALS` does, and taking the part the design's sketch
  * gives it as a wave strikes: a bunch opens a cage and brushes off a burr
  * on each fuzzball it takes in, and knocks a brick or brushes off a burr
- * beside it; a layer of dust is swept from under each fuzzball gathered
- * or made special; and a wisp weighs a caged fuzzball, a brick, whatever
+ * beside it; a blast knocks a brick, ruffles a sleepyhead, opens a cage or
+ * brushes off a burr rather than gathering; a layer of dust is swept from
+ * under each fuzzball gathered or made special and each square struck
+ * bare; and a wisp weighs a caged fuzzball, a brick, whatever
  * holds a sleepyhead up, a burr and a dusty square, in that order, each
  * worth more where its goal is open.
  */
@@ -110,6 +112,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
   brick: {
     ...DESIGN_HOLDS_AND_GOALS.brick,
     besideBunch: knocked,
+    blasted: knocked,
     wisp: {
       rank: 1,
       worth: ({ pieces }, square, goalOpen) => {
@@ -124,6 +127,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
   cage: {
     ...DESIGN_HOLDS_AND_GOALS.cage,
     inBunch: (square) => uncaged(square, null),
+    blasted: (square) => uncaged(square, "uncaged"),
     wisp: {
       rank: 0,
       worth: ({ pieces }, square, goalOpen) => {
@@ -136,6 +140,10 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
   },
   sleepyhead: {
     ...DESIGN_HOLDS_AND_GOALS.sleepyhead,
+    blasted: (square) =>
+      square.piece?.what === "sleepyhead"
+        ? { square, hit: "ruffled", counts: false }
+        : null,
     wisp: {
       rank: 2,
       worth: (board, square, goalOpen) =>
@@ -146,6 +154,7 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
     ...DESIGN_HOLDS_AND_GOALS.burr,
     inBunch: (square) => unburred(square, null),
     besideBunch: (square) => unburred(square, "unburred"),
+    blasted: (square) => unburred(square, "unburred"),
     wisp: {
       rank: 3,
       worth: ({ pieces }, square) => {

@@ -1,8 +1,9 @@
-// A wave's board as its bunches strike it, before it falls: what gathering
-// a fuzzball or the frizzball does to its square, the special a bunch
-// leaves, and what a bunch does beside it, each element taking its part
-// through its rule. Every hit is written down in the order struck, and
-// every goal counted as it goes.
+// A wave's board as its bunches and blasts strike it, before it falls:
+// what a blast's strike and gathering a fuzzball or the frizzball do to a
+// square, the special a bunch leaves, and what a bunch does beside it,
+// each element taking its part through its rule. Every hit is written down
+// in the order struck, and every goal counted as it goes, so a blast set
+// off later in the wave sees the goals as they stand.
 
 import { itemAt, recordOf } from "@fz/core/records";
 import type { Game } from "../board/board";
@@ -12,6 +13,7 @@ import {
   ELEMENT_IDS,
   type ElementId,
 } from "../catalog/elements";
+import type { KindId } from "../catalog/kinds";
 import type { Fuzzball, Piece } from "../catalog/pieces";
 import type { MadeId } from "../catalog/specials";
 import type {
@@ -33,10 +35,13 @@ export type Struck = Pick<
   "square" | "step" | "blast"
 >;
 
-/** Describes a special or the frizzball set off, before it is known what set it off. */
-export type SetOff = Pick<Blast, "what" | "square" | "piece" | "kind">;
+/** Describes a special or the frizzball set off, and the kind it goes off with, before it is known what set it off. */
+export type SetOff = Pick<Blast, "square" | "piece"> & {
+  readonly what: MadeId;
+  readonly kind: KindId;
+};
 
-/** Describes a wave's board once its bunches have struck it, before it falls. */
+/** Describes a wave's board once its bunches and blasts have struck it, before it falls. */
 export interface StruckBoard {
   /** The game as struck: its board's pieces and dust, what each goal still needs, and the id its next piece takes. */
   readonly game: Game;
@@ -56,7 +61,7 @@ interface Remade {
   readonly born: Hit;
 }
 
-/** Holds a wave's board as its bunches strike it, and what they hit. */
+/** Holds a wave's board as its bunches and blasts strike it, and what they hit. */
 export class Striking {
   /** The board's size, which its squares' neighbors ask of it. */
   readonly size: BoardSize;
@@ -66,6 +71,8 @@ export class Striking {
   private nextPieceId: number;
   /** Whether each square holds what a bunch of the wave left, which nothing strikes. */
   private readonly made: boolean[];
+  /** Whether each square's piece has been gathered in the wave. */
+  private readonly gathered: boolean[];
   private readonly hits: Hit[] = [];
   private readonly counted: Record<ElementId, number> = recordOf(
     ELEMENT_IDS,
@@ -83,6 +90,7 @@ export class Striking {
     this.goalsLeft = game.goalsLeft;
     this.nextPieceId = game.nextPieceId;
     this.made = this.pieces.map(() => false);
+    this.gathered = this.pieces.map(() => false);
   }
 
   /** Lets each element's rule do what a bunch taking in a square's fuzzball does to it, as a cage opened. */
@@ -102,6 +110,33 @@ export class Striking {
   }
 
   /**
+   * Strikes a square once for a blast, and returns what goes off there,
+   * null but for a special or the frizzball gathered.
+   *
+   * It sweeps under a bare square; lets the first element's change take
+   * the strike, as a cage opened; or else gathers the fuzzball or the
+   * frizzball, as `gather()` does. A square the wave made, and a piece no
+   * element's rule takes the strike on and no strike gathers, are left as
+   * they are.
+   */
+  strike(square: number, struck: Struck): SetOff | null {
+    if (itemAt(this.made, square)) {
+      return null;
+    }
+    const piece = itemAt(this.pieces, square);
+    if (piece === null) {
+      this.takePart("struckUnder", square, struck);
+      return null;
+    }
+    if (this.takeFirstPart(square, struck)) {
+      return null;
+    }
+    return piece.what === "fuzzball" || piece.what === "frizzball"
+      ? this.gather(square, struck)
+      : null;
+  }
+
+  /**
    * Gathers a square's fuzzball or the frizzball, sweeping what lies under
    * it, and returns what goes off there: the special the fuzzball wore, or
    * the frizzball, taking the kind the board as it stands holds most of;
@@ -117,6 +152,7 @@ export class Striking {
       );
     }
     this.pieces[square] = null;
+    this.gathered[square] = true;
     const kind = piece.what === "fuzzball" ? piece.kind : null;
     if (kind !== null) {
       this.countOff({ what: "gather", kind });
@@ -184,20 +220,26 @@ export class Striking {
     }
   }
 
-  /** Returns the board as struck so far, and what was hit. */
-  struck(): StruckBoard {
+  /** Returns whether the wave has gathered a square's piece. */
+  isGathered(square: number): boolean {
+    return itemAt(this.gathered, square);
+  }
+
+  /** Returns the game as struck so far: its board's pieces and dust, what each goal still needs, and the id its next piece takes. */
+  soFar(): Game {
     const { game } = this;
     return {
-      game: {
-        ...game,
-        board: {
-          ...game.board,
-          pieces: [...this.pieces],
-          dust: [...this.dust],
-        },
-        goalsLeft: this.goalsLeft,
-        nextPieceId: this.nextPieceId,
-      },
+      ...game,
+      board: { ...game.board, pieces: [...this.pieces], dust: [...this.dust] },
+      goalsLeft: this.goalsLeft,
+      nextPieceId: this.nextPieceId,
+    };
+  }
+
+  /** Returns the board as struck so far, and what was hit. */
+  struck(): StruckBoard {
+    return {
+      game: this.soFar(),
       hits: [...this.hits],
       counted: { ...this.counted },
     };
@@ -212,6 +254,23 @@ export class Striking {
         this.change(element, square, change, struck);
       }
     }
+  }
+
+  /**
+   * Lets the first element's rule that changes a blasted square take the
+   * strike, and returns whether one did: a blast strikes a square once,
+   * taking the outermost thing there.
+   */
+  private takeFirstPart(square: number, struck: Struck): boolean {
+    for (const element of ELEMENT_IDS) {
+      const change =
+        this.rules[element].blasted?.(this.stateOf(square)) ?? null;
+      if (change !== null) {
+        this.change(element, square, change, struck);
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Makes an element's change to a square, writing its hit and counting it where it counts. */
