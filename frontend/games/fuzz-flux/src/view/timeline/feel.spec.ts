@@ -158,7 +158,8 @@ const SKETCHED = {
 /**
  * Each number of the feel the sketch plays a move by that the design's
  * words don't give, and the sketch's code that sets it, each run of spaces
- * and line breaks one space, the number it sets marked «so».
+ * and line breaks one space, the number it sets marked «so», or the draw
+ * whose spread it sets.
  */
 const PORTED = {
   putDownMs: [160, "tween(old, { sx: 1, sy: 1 }, «160», ease.spring);"],
@@ -462,6 +463,22 @@ const PORTED = {
   buttonMs: [640, "life: «640»,"],
   thrownGravity: [9, "} else b.vy += «9» * s;"],
   looseBitFade: [1.8, "ctx.globalAlpha = Math.min(1, (1 - u) * «1.8»);"],
+  cageBits: [5, 'for (let n = 0; n < «5»; n++) bits.push({ kind: "bar",'],
+  cageBitGapSquares: [0.16, "x: s.x + (n - 2) * «0.16»,"],
+  cageBitAside: [0.9, "vx: (n - 2) * «0.9»,"],
+  cageBitRise: [2.2, "vy: -«2.2» - Math.random(),"],
+  cageBitRiseSpread: [1, "vy: -2.2 - «Math.random()»,"],
+  cageBitSpin: [5, "spin: (n - 2) * «5»,"],
+  cageBitMs: [560, "life: «560»,"],
+  yipAfterMs: [140, 'sfx("yip", t + «140»);'],
+  freedUpMs: [110, "tween(s, { sy: 1.25, sx: 0.85 }, «110», ease.out);"],
+  freedStretch: [1.25, "tween(s, { sy: «1.25», sx: 0.85 }, 110, ease.out);"],
+  freedNarrow: [0.85, "tween(s, { sy: 1.25, sx: «0.85» }, 110, ease.out);"],
+  freedDownMs: [
+    260,
+    "tween(s, { sy: 1, sx: 1 }, «260», ease.spring, now + 110);",
+  ],
+  freedHappyMs: [500, 'at(now + «500», () => (s.eye = "open"));'],
   ruffledWobble: [
     0.6,
     "s.shake = «0.6»; tween(s, { shake: 0 }, 300, ease.out);",
@@ -682,9 +699,13 @@ const IN_WORDS = new Set<keyof FeelTuning>([
 /** The sketch's feel, each run of spaces and line breaks one space, as `PORTED` quotes its code. */
 const SKETCH_CODE = SKETCH.replaceAll(/\s+/g, " ");
 
-/** Returns the number a quote of the sketch's code marks, as a number, so that "«1.0»" is 1, or NaN for none. */
+/** What a quote of the sketch's code marks for a draw from 0 up to 1, whose spread is 1. */
+const WHOLE_DRAW = "Math.random()";
+
+/** Returns the number a quote of the sketch's code marks, as a number, so that "«1.0»" is 1 and "«Math.random()»" the spread of its draw, 1, or NaN for none. */
 function markedIn(quote: string): number {
-  const [, marked = ""] = /«([\d.]+)»/.exec(quote) ?? [];
+  const [, marked = ""] = /«([^»]+)»/.exec(quote) ?? [];
+  if (marked === WHOLE_DRAW) return 1;
   return marked === "" ? Number.NaN : Number(marked);
 }
 

@@ -52,6 +52,7 @@ const COUNTS: ReadonlySet<keyof FeelTuning> = new Set([
   "struckBubbleRungs",
   "mostZaps",
   "staticSteps",
+  "cageBits",
 ]);
 
 /**

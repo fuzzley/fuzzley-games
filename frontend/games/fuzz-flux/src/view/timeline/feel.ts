@@ -492,14 +492,40 @@ export interface FeelTuning {
   readonly buttonRiseSpeed: number;
   /** How long it flies. */
   readonly buttonMs: number;
-  /** How fast a cushion or a button thrown off a brick falls faster, in squares a second each second. */
+  /** How fast a hard bit thrown loose falls faster, in squares a second each second: a cushion or a button thrown off a brick, or a cage's bar. */
   readonly thrownGravity: number;
   /**
    * How many times its share of its life left a loose bit's opacity is, up
-   * to wholly, so it fades only toward its end: a tuft, or a cushion or a
-   * button thrown off a brick.
+   * to wholly, so it fades only toward its end: a tuft, a cushion or a
+   * button thrown off a brick, or a cage's bar.
    */
   readonly looseBitFade: number;
+  /** How many hard bits a cage bursts into as it opens, each a bar. */
+  readonly cageBits: number;
+  /** How far apart across its square they set out. */
+  readonly cageBitGapSquares: number;
+  /** How fast each flies aside, in squares a second, for each place it sets out from the middle one. */
+  readonly cageBitAside: number;
+  /** How fast they fly up as they set out, in squares a second, at the least. */
+  readonly cageBitRise: number;
+  /** How much faster than that each may fly up, by a share of its own, in squares a second. */
+  readonly cageBitRiseSpread: number;
+  /** How fast each spins, in radians a second, for each place it sets out from the middle one. */
+  readonly cageBitSpin: number;
+  /** How long a cage's bits fly. */
+  readonly cageBitMs: number;
+  /** How long after a blast opens its cage a fuzzball yips. */
+  readonly yipAfterMs: number;
+  /** How long a fuzzball let out of its cage takes to stretch up. */
+  readonly freedUpMs: number;
+  /** How tall it stretches, as a scale. */
+  readonly freedStretch: number;
+  /** How narrow, as a scale. */
+  readonly freedNarrow: number;
+  /** How long it takes to spring back. */
+  readonly freedDownMs: number;
+  /** How long it looks happy. */
+  readonly freedHappyMs: number;
   /** How hard a sleepyhead a blast ruffles shakes its head, dying away. */
   readonly ruffledWobble: number;
   /** How long it shakes its head. */
@@ -514,7 +540,7 @@ export interface FeelTuning {
   readonly bedScale: number;
   /** How far apart the sleepyheads a wave puts to bed sink, the board waiting as long for each. */
   readonly bedGapMs: number;
-  /** How long before its hop a fuzzball of a bunch sheds what it wears, such as a burr brushed off. */
+  /** How long before its hop a fuzzball of a bunch sheds what it wears, such as a cage opened or a burr brushed off. */
   readonly hopShedLeadMs: number;
   /** How many tufts of a burr fly as a fuzzball of a bunch sheds it. */
   readonly burrInBunchTufts: number;
@@ -903,6 +929,19 @@ export const FEEL: FeelTuning = {
   buttonMs: 640,
   thrownGravity: 9,
   looseBitFade: 1.8,
+  cageBits: 5,
+  cageBitGapSquares: 0.16,
+  cageBitAside: 0.9,
+  cageBitRise: 2.2,
+  cageBitRiseSpread: 1,
+  cageBitSpin: 5,
+  cageBitMs: 560,
+  yipAfterMs: 140,
+  freedUpMs: 110,
+  freedStretch: 1.25,
+  freedNarrow: 0.85,
+  freedDownMs: 260,
+  freedHappyMs: 500,
   ruffledWobble: 0.6,
   ruffledMs: 300,
   bedAfterMs: 20,
