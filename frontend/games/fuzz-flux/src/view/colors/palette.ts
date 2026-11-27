@@ -2,11 +2,13 @@
 // The board lies on the page, each square a well of the panel, a shade off
 // it, dust a wash of the text over the square; and the frizzball wears the
 // text, its eyes the page's color, so it turns with the palette as the
-// house's own fuzzball does.
+// house's own fuzzball does. The pieces' inks, the same in every palette of
+// a mode, are inks.ts's, which the board's palette takes in.
 
 import { colorNumber, mixColors } from "@fz/phaser/color";
 import type { ColorMode, PaletteRole } from "@fz/style/themes";
 import type { Dusty } from "../art/frame_names";
+import { type PieceInks, pieceInks } from "./inks";
 
 /** Describes the palette roles the board is drawn in, as the page sets them, in hex. */
 export interface BoardRoles {
@@ -34,8 +36,8 @@ export interface FrizzballColors {
   readonly eyes: number;
 }
 
-/** Describes the board's colors from the palette's roles, as the numbers Phaser takes. */
-export interface BoardPalette {
+/** Describes the board's colors, as the numbers Phaser takes: those from the palette's roles, and its pieces' inks. */
+export interface BoardPalette extends PieceInks {
   /** The page the board lies on, which shows round its squares and through its gaps. */
   readonly page: number;
   /** A square's well, a shade off the page: the panel. */
@@ -67,7 +69,7 @@ const DUST_WASHES: Readonly<
   dark: { 1: 0.07, 2: 0.12 },
 };
 
-/** Returns the board's colors in a palette's roles, with the washes of its mode. */
+/** Returns the board's colors in a palette's roles, with the washes and the inks of its mode. */
 export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
   const page = colorNumber(roles.page);
   const square = colorNumber(roles.panel);
@@ -83,5 +85,6 @@ export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
     specks: colorNumber(roles.muted),
     frizzball: { body: text, eyes: page },
     spark: colorNumber(roles.warning),
+    ...pieceInks(mode),
   };
 }

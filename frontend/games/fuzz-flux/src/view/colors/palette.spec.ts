@@ -1,3 +1,4 @@
+import { pieceInks } from "./inks";
 import { BOARD_ROLES, type BoardRoles, boardPalette } from "./palette";
 
 // Each role differs from the others, from white and black, and from every
@@ -41,6 +42,13 @@ describe("boardPalette", () => {
   it("draws the sparks in the warning color", () => {
     expect(boardPalette(ROLES, "light").spark).toBe(0xffa500);
   });
+
+  it.each(["light", "dark"] as const)(
+    "takes in the pieces' inks of a %s palette",
+    (mode) => {
+      expect(boardPalette(ROLES, mode)).toMatchObject(pieceInks(mode));
+    },
+  );
 });
 
 describe("BOARD_ROLES", () => {
