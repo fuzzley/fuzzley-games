@@ -57,6 +57,12 @@ function dasherOnWisp(): Timeline {
 describe("wispOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.wispGoesOff, wispOff);
 
+  it("flutters as it goes off", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: OFF_MS, sound: "wisp", cents: 0, volume: 1 },
+    ]);
+  });
+
   it("takes the wisp off as it goes off", () => {
     expect(timeline.pieces.find(({ id }) => id === 5)?.untilMs).toBe(OFF_MS);
   });

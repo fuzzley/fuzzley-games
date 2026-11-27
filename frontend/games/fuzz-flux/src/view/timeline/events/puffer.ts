@@ -1,14 +1,15 @@
-// A puffer going off: it breathes in, cross, as everything near it leans
-// in, then bursts with a white flash, two rings and its tufts, and the
-// board shakes as everything left nearby is pushed back and springs home.
-// Two puffers swapped together do the same, further and harder.
+// A puffer going off, with its sound: it breathes in, cross, as everything
+// near it leans in, then bursts with a white flash, two rings and its
+// tufts, and the board shakes as everything left nearby is pushed back and
+// springs home. Two puffers swapped together do the same, further and
+// harder, to a bigger sound.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Blast } from "../../../rules/move/record";
 import { blastShakePx } from "../../effects/shakes";
 import type { FeelTuning } from "../feel";
 import { RAISED } from "../looks";
-import { type Part, facing, moves, sets, spawns, tuftsOf } from "../part";
+import { type Part, cue, facing, moves, sets, spawns, tuftsOf } from "../part";
 import type { Reach } from "../reach";
 import { type Standing, findStanding } from "../standing";
 import type { Place } from "../timeline";
@@ -52,6 +53,7 @@ export function pufferOff(
             .flatMap((other) => leanIn(other, at, reach.startMs, feel)),
         ];
   return [
+    cue(two ? "big-puff" : "puff", reach.startMs),
     ...breathes,
     spawns({
       what: "ring",

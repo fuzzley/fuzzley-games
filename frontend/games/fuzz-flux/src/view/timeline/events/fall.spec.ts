@@ -97,6 +97,23 @@ describe("fallsOf", () => {
       ]);
     });
 
+    it("sounds the first landing louder for each square it fell", () => {
+      expect(timeline.sounds[0]).toEqual({
+        atMs: landsMs,
+        sound: "land",
+        cents: 0,
+        volume: FEEL.landVolume + FEEL.landVolumePerSquare,
+      });
+    });
+
+    it("sounds a landing no louder than its own loudness", () => {
+      const loud = fallsTimeline(MOVE_FIXTURES.bunch, {
+        feel: { ...FEEL, landVolumePerSquare: 1 },
+      });
+
+      expect(loud.sounds[0]?.volume).toBe(1);
+    });
+
     it("blinks each as it lands", () => {
       const blinksMs = landsMs + FEEL.landBlinkAfterMs;
 

@@ -24,6 +24,12 @@ function windUp(from: number, to: number): Timeline {
 describe("pairWindUp", () => {
   const timeline = windUp(0, 1);
 
+  it("sounds the pair as they meet", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: AT_MS, sound: "pair", cents: 0, volume: 1 },
+    ]);
+  });
+
   it("takes the one swapped with off, in its tufts, as a ring spreads where they met", () => {
     expect([
       timeline.pieces.find(({ id }) => id === 2)?.untilMs,

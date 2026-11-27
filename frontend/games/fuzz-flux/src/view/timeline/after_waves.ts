@@ -1,7 +1,8 @@
 // What a move plays once its waves are done, each in turn as its record
 // holds it: a burr spreading, the wind turning and then the waves its turn
 // sets off, and the shuffle. A burr's spread and the wind's turn play by
-// the events in their lists, which an element's events join.
+// the events in their lists, their sounds' first, which an element's
+// events join.
 
 import { itemAt } from "@fz/core/records";
 import { WINDS, type Wind } from "../../rules/board/board";
@@ -9,32 +10,37 @@ import type { BurrSpread, Gust, MoveRecord } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
 import { afterShuffle, afterSpread } from "./board_after";
 import type { Draft } from "./draft";
+import { gustSound } from "./events/gust_sound";
 import { shuffled } from "./events/shuffle";
+import { spreadSound } from "./events/spread_sound";
 import type { FeelTuning } from "./feel";
+import type { Motion } from "./less_motion";
 import type { Part } from "./part";
 import { type WavePlayed, playWave } from "./wave";
 
-/** Returns the parts of a burr spreading after a move, from a moment, on the board its waves left. */
+/** Describes the board as an event after a move's waves plays on it: from when, as it stands then, at the move's feel and in its motion. */
+export interface AfterPlay {
+  readonly atMs: number;
+  readonly grid: GridShown;
+  readonly feel: FeelTuning;
+  /** The motion the move plays in: with Less motion, the wind's turn sways nothing. */
+  readonly motion: Motion;
+}
+
+/** Returns the parts of a burr spreading after a move, on the board its waves left. */
 export type SpreadEvent = (
   spread: BurrSpread,
-  atMs: number,
-  grid: GridShown,
-  feel: FeelTuning,
+  play: AfterPlay,
 ) => readonly Part[];
 
-/** Returns the parts of the wind turning after a move, from a moment, on the board as it turns, before the waves its turn sets off. */
-export type GustEvent = (
-  gust: Gust,
-  atMs: number,
-  grid: GridShown,
-  feel: FeelTuning,
-) => readonly Part[];
+/** Returns the parts of the wind turning after a move, on the board as it turns, before the waves its turn sets off. */
+export type GustEvent = (gust: Gust, play: AfterPlay) => readonly Part[];
 
 /** Each event a burr's spread plays by. */
-const SPREAD_EVENTS: readonly SpreadEvent[] = [];
+const SPREAD_EVENTS: readonly SpreadEvent[] = [spreadSound];
 
 /** Each event the wind's turn plays by. */
-const GUST_EVENTS: readonly GustEvent[] = [];
+const GUST_EVENTS: readonly GustEvent[] = [gustSound];
 
 /** Describes a move played to its end: when the board may go on, how it is left, and the way the wind blows. */
 export interface MovePlayed extends WavePlayed {
@@ -62,7 +68,9 @@ export function playAfterWaves(
   if (spread !== null) {
     endMs = heldMs(
       draft,
-      SPREAD_EVENTS.map((event) => event(spread, endMs, grid, feel)),
+      SPREAD_EVENTS.map((event) =>
+        event(spread, { atMs: endMs, grid, feel, motion: draft.motion }),
+      ),
       endMs,
     );
     grid = afterSpread(grid, spread);
@@ -70,7 +78,9 @@ export function playAfterWaves(
   if (gust !== null) {
     endMs = heldMs(
       draft,
-      GUST_EVENTS.map((event) => event(gust, endMs, grid, feel)),
+      GUST_EVENTS.map((event) =>
+        event(gust, { atMs: endMs, grid, feel, motion: draft.motion }),
+      ),
       endMs,
     );
     blows = itemAt(WINDS, gust.turns);

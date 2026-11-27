@@ -58,7 +58,7 @@ export function frameFor(timeline: Timeline): Frame {
  * milliseconds from the tap, into a frame's records, and returns them.
  *
  * It takes the feel the timeline was built by, as `pacedFeel()` gives it
- * at the player's pace, since a head's shake sways at that feel's rate.
+ * at the player's speed, since a head's shake sways at that feel's rate.
  *
  * @throws {RangeError} for a frame with fewer records than the timeline
  *   has tracks.

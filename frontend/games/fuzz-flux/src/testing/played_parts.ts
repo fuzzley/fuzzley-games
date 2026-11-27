@@ -9,6 +9,7 @@ import type { BlastEvent } from "../view/timeline/blasts";
 import { afterSwap } from "../view/timeline/board_after";
 import { Draft } from "../view/timeline/draft";
 import { FEEL, type FeelTuning } from "../view/timeline/feel";
+import { POOLS } from "../view/timeline/limits";
 import type { Part } from "../view/timeline/part";
 import { reachesOf } from "../view/timeline/reach";
 import { frameFor, sampleAt } from "../view/timeline/sample";
@@ -23,7 +24,7 @@ export const HOPS_MS = FEEL.huddleMs;
 /**
  * Returns how a move played by hand's first wave plays: from 0, its
  * bunches hopping off at `HOPS_MS`, on the board its swap leaves, the wind
- * blowing down, at the design's feel.
+ * blowing down, at the design's feel, in full motion.
  *
  * @throws {RangeError} for a move that plays no wave.
  */
@@ -39,6 +40,7 @@ export function firstWaveOf(fixture: MoveFixture): WavePlay {
     quickening: 1,
     before: 0,
     feel: FEEL,
+    motion: "full",
   };
 }
 
@@ -56,13 +58,13 @@ export function blastTimeline(
   );
 }
 
-/** Returns the timeline a board plays once an event's parts are added to it, at the design's feel. */
+/** Returns the timeline a board plays once an event's parts are added to it, at the design's feel, in full motion. */
 export function timelineOfParts(
   grid: GridShown,
   parts: readonly Part[],
 ): Timeline {
-  const draft = new Draft(grid, []);
-  return draft.finish(Math.max(0, draft.add(parts)), null, FEEL);
+  const draft = new Draft(grid, [], "full");
+  return draft.finish(Math.max(0, draft.add(parts)), null, FEEL, POOLS);
 }
 
 /**

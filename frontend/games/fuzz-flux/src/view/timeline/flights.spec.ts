@@ -46,7 +46,12 @@ function gatheredAt(
 
 describe("flightsOf", () => {
   it("flies each fuzzball gathered to the goal of its kind, a gap apart", () => {
-    const { flights } = flightsOf(gatheredAt(100, 2), asking(5), FEEL);
+    const { flights } = flightsOf(
+      gatheredAt(100, 2),
+      asking(5),
+      FEEL.mostFlights,
+      FEEL,
+    );
 
     expect(flights).toEqual([
       {
@@ -69,7 +74,9 @@ describe("flightsOf", () => {
   it("counts the goal down as each lands", () => {
     const landsMs = 100 + FEEL.flightAfterMs + FEEL.flightMs;
 
-    expect(flightsOf(gatheredAt(100, 2), asking(5), FEEL).counts).toEqual([
+    expect(
+      flightsOf(gatheredAt(100, 2), asking(5), FEEL.mostFlights, FEEL).counts,
+    ).toEqual([
       { atMs: landsMs, goal: 0, left: 4 },
       { atMs: landsMs + FEEL.flightGapMs, goal: 0, left: 3 },
     ]);
@@ -79,6 +86,7 @@ describe("flightsOf", () => {
     const { flights } = flightsOf(
       gatheredAt(100, FEEL.flightsInTurn + 1),
       asking(20),
+      FEEL.mostFlights,
       FEEL,
     );
 
@@ -91,6 +99,7 @@ describe("flightsOf", () => {
     const { flights, counts } = flightsOf(
       gatheredAt(100, FEEL.mostFlights + 1),
       asking(20),
+      FEEL.mostFlights,
       FEEL,
     );
 
@@ -104,6 +113,7 @@ describe("flightsOf", () => {
     const { flights } = flightsOf(
       [...gatheredAt(100, 3), ...gatheredAt(100, 1, "blue")],
       asking(2),
+      FEEL.mostFlights,
       FEEL,
     );
 
@@ -118,6 +128,7 @@ describe("flightsOf", () => {
         ...gatheredAt(100, 1),
       ],
       asking(1, 3),
+      FEEL.mostFlights,
       FEEL,
     );
 
@@ -127,6 +138,32 @@ describe("flightsOf", () => {
         { atMs: 50, goal: 0, left: 0 },
         { atMs: 60, goal: 1, left: 2 },
       ],
+    ]);
+  });
+
+  it("counts each with no flight, a while later, where none may be in the air", () => {
+    const { flights, counts } = flightsOf(
+      gatheredAt(100, 1),
+      asking(5),
+      0,
+      FEEL,
+    );
+
+    expect([flights, counts]).toEqual([
+      [],
+      [{ atMs: 100 + FEEL.unflownCountMs, goal: 0, left: 4 }],
+    ]);
+  });
+
+  it("ticks as each count lands, and sounds the goal as it is met", () => {
+    const { sounds } = flightsOf(gatheredAt(100, 2), asking(2), 0, FEEL);
+
+    const countedMs = 100 + FEEL.unflownCountMs;
+
+    expect(sounds).toEqual([
+      { atMs: countedMs, sound: "tick", cents: 0, volume: 1 },
+      { atMs: countedMs, sound: "tick", cents: 0, volume: 1 },
+      { atMs: countedMs, sound: "goal", cents: 0, volume: 1 },
     ]);
   });
 });

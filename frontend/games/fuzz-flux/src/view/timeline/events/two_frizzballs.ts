@@ -1,11 +1,12 @@
 // Two frizzballs swapped together going off: they are gone at once, the
 // board dims deeper and brightens slowly, two rings spread over the whole
-// board, a white one and then one of static, and it shakes its hardest.
+// board, a white one and then one of static, to a crackle and a boom, and
+// it shakes its hardest.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Blast } from "../../../rules/move/record";
 import { blastShakePx } from "../../effects/shakes";
-import { type Part, spawns } from "../part";
+import { type Part, cue, spawns } from "../part";
 import type { Reach } from "../reach";
 import type { WavePlay } from "../wave_play";
 
@@ -23,6 +24,12 @@ export function twoFrizzballsOff(
       ? []
       : [{ what: "leaves", piece: blast.piece, atMs: reach.startMs }];
   return [
+    cue("frizz", reach.startMs + feel.twoFrizzballsCrackleAfterMs),
+    cue(
+      "big-puff",
+      reach.startMs + feel.twoFrizzballsBoomAfterMs,
+      feel.twoFrizzballsBoomVolume,
+    ),
     ...gone,
     {
       what: "dim",

@@ -3,16 +3,17 @@
 // still asks for more than it has on the way, a gap after the last few,
 // or none where so many are in the air that it is counted with none; and
 // each goal's count falls as a copy lands, or at once for what it counts
-// with no flight.
+// with no flight, ticking, and sounding the goal met as it reaches 0.
 
 import { itemAt } from "@fz/core/records";
 import type { ElementGoalId, Goal } from "../../rules/catalog/goals";
 import type { KindId } from "../../rules/catalog/kinds";
+import type { SoundName } from "../effects/sounds";
 import type { GoalShown } from "../run_state";
 import { byStart } from "./by_start";
 import type { FeelTuning } from "./feel";
 import type { Part } from "./part";
-import type { Flight, GoalCount } from "./timeline";
+import type { Flight, GoalCount, SoundCue } from "./timeline";
 
 /** Describes what a goal counts: a fuzzball of a kind gathered, or one of an element cleared. */
 export type Counts =
@@ -25,12 +26,14 @@ export type Claim = Extract<
   { readonly what: "gathered" } | { readonly what: "counted" }
 >;
 
-/** Describes the flights a move plays and the goals' counts as they land. */
+/** Describes the flights a move plays, the goals' counts as they land, and their sounds. */
 export interface FlightsAndCounts {
   /** Each flight, in the order it sets off. */
   readonly flights: readonly Flight[];
   /** Each count, in the order it lands. */
   readonly counts: readonly GoalCount[];
+  /** A tick as each count lands, and a goal's sound as one is met, in the order they play. */
+  readonly sounds: readonly SoundCue[];
 }
 
 /** Describes the moment a goal counts one more. */
@@ -41,12 +44,16 @@ interface Landing {
 
 /**
  * Returns the flights of what a move gathers to the goals as they stand at
- * its start, and each goal's count as it falls, but for what no goal asks
- * for any longer.
+ * its start, no more in the air at once than some, and each goal's count
+ * as it falls, with its sounds, but for what no goal asks for any longer.
+ *
+ * @param mostInAir The feel's most flights, or none with Less motion, which
+ *   counts each a moment on with no flight.
  */
 export function flightsOf(
   claims: readonly Claim[],
   goals: readonly GoalShown[],
+  mostInAir: number,
   feel: FeelTuning,
 ): FlightsAndCounts {
   const asks = goals.map(({ left }) => left);
@@ -66,7 +73,7 @@ export function flightsOf(
     const inAir = flights.filter(
       ({ atMs, ms }) => atMs + ms > claim.atMs,
     ).length;
-    if (inAir >= feel.mostFlights) {
+    if (inAir >= mostInAir) {
       landings.push({ atMs: claim.atMs + feel.unflownCountMs, goal });
       continue;
     }
@@ -84,11 +91,22 @@ export function flightsOf(
     landings.push({ atMs: flight.atMs + flight.ms, goal });
   }
   const shown = goals.map(({ left }) => left);
+  const counts = byStart(landings).map(({ atMs, goal }): GoalCount => {
+    shown[goal] = itemAt(shown, goal) - 1;
+    return { atMs, goal, left: itemAt(shown, goal) };
+  });
   return {
     flights: byStart(flights),
-    counts: byStart(landings).map(({ atMs, goal }) => {
-      shown[goal] = itemAt(shown, goal) - 1;
-      return { atMs, goal, left: itemAt(shown, goal) };
+    counts,
+    sounds: counts.flatMap(({ atMs, left }) => {
+      const sounds: readonly SoundName[] =
+        left === 0 ? ["tick", "goal"] : ["tick"];
+      return sounds.map((sound): SoundCue => ({
+        atMs,
+        sound,
+        cents: 0,
+        volume: 1,
+      }));
     }),
   };
 }

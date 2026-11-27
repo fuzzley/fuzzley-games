@@ -1,12 +1,13 @@
 // A wave as its events play it: the wave, the board as it starts, the way
-// the board falls, when it starts and its bunches hop off, and how much
-// quicker than its move's first it plays.
+// the board falls, when it starts and its bunches hop off, how much
+// quicker than its move's first it plays, and in which motion.
 
 import type { Wind } from "../../rules/board/board";
 import type { Wave } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
 import { takenBy } from "./board_after";
 import type { FeelTuning } from "./feel";
+import type { Motion } from "./less_motion";
 import { type Standing, everyStanding } from "./standing";
 
 /** Describes a wave as its events play it. */
@@ -25,6 +26,8 @@ export interface WavePlay {
   readonly before: number;
   /** The feel at the move's pace. */
   readonly feel: FeelTuning;
+  /** The motion the move plays in, by which each event plays its own version. */
+  readonly motion: Motion;
 }
 
 /**

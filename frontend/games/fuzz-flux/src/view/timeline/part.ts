@@ -109,12 +109,19 @@ export function moves(
   easing: Easing,
   to: Partial<Look>,
 ): readonly Part[] {
-  return CHANNELS.flatMap((channel): Part[] => {
+  const parts: Part[] = [];
+  for (const channel of CHANNELS) {
     const value = to[channel];
-    return value === undefined
-      ? []
-      : [{ what: "key", piece, channel, key: { atMs, ms, to: value, easing } }];
-  });
+    if (value !== undefined) {
+      parts.push({
+        what: "key",
+        piece,
+        channel,
+        key: { atMs, ms, to: value, easing },
+      });
+    }
+  }
+  return parts;
 }
 
 /** Returns the parts that set a piece's look to new numbers at a moment. */
@@ -139,6 +146,21 @@ export function facingAgain(
   sinceMs: number,
 ): Part {
   return { what: "face-again", piece, atMs, face, sinceMs };
+}
+
+/** Returns the part that cues a sound at a moment, as loud as a share of its own loudness. */
+export function cue(sound: SoundName, atMs: number, volume = 1): Part {
+  return { what: "sound", atMs, sound, rung: null, volume };
+}
+
+/** Returns the part that cues a sound at a moment on a rung of the move's ladder of notes, from 0 for the first wave's, as loud as a share of its own loudness. */
+export function noteCue(
+  sound: SoundName,
+  atMs: number,
+  rung: number,
+  volume = 1,
+): Part {
+  return { what: "sound", atMs, sound, rung, volume };
 }
 
 /** Returns the part that spawns an effect. */

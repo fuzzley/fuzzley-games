@@ -1,19 +1,21 @@
-// A bunch gathered: it sees itself and huddles, wide-eyed, then each of it
-// hops off in turn along it, or, where it makes a special, the rest run
-// into the one that stays as the special shows; and over it, in a move's
-// later waves, its wave's mark.
+// A bunch gathered: it sees itself and huddles, wide-eyed, then plays its
+// chord as each of it hops off in turn along it with a bubble's pop, or,
+// where it makes a special, the rest run into the one that stays as the
+// special shows to its own sound, though with Less motion they hop off as
+// ever; and over it, in a move's later waves, its wave's mark.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { KindId } from "../../../rules/catalog/kinds";
 import type { Bunch, Hit } from "../../../rules/move/record";
 import type { FeelTuning } from "../feel";
 import { RAISED } from "../looks";
-import { type Part, facing, moves, sets, tuftsOf } from "../part";
+import { type Part, cue, facing, moves, noteCue, sets, tuftsOf } from "../part";
 import { type Standing, standingOn } from "../standing";
 import type { Place } from "../timeline";
 import { type WavePlay, stayingThrough } from "../wave_play";
 import { gatheredFrom, hopOff } from "./hop";
-import { type Made, madeOf } from "./made";
+import { chordOf } from "./chord";
+import { MADE_SOUNDS, type Made, madeOf } from "./made";
 import { waveMarkOf } from "./mark";
 
 /** Describes a fuzzball of a bunch gathered from its square. */
@@ -40,6 +42,8 @@ export function bunchOf(
   const keeper = making === null ? null : squareOf(making.square, grid.width);
   const hopsMs = play.hopsMs + order * feel.bunchGapMs;
   const lastHopMs = hopsMs + members.length * feel.hopGapMs;
+  // With Less motion, the rest of a bunch that makes a special hop off too.
+  const runInto = play.motion === "full" ? keeper : null;
   return [
     ...[
       ...members.map(({ standing }) => standing),
@@ -47,8 +51,21 @@ export function bunchOf(
     ].flatMap((standing) =>
       huddle(standing, keeper ?? middleOf(bunch, grid.width), play),
     ),
-    ...members.flatMap(({ standing, kind }, index) =>
-      keeper === null
+    ...chordOf(
+      bunch.squares.length,
+      play.before + order,
+      hopsMs,
+      order === 0 ? 1 : feel.laterBunchVolume,
+      feel,
+    ),
+    ...members.flatMap(({ standing, kind }, index) => [
+      noteCue(
+        "pop",
+        hopsMs + feel.bubbleAfterMs + index * feel.bubbleGapMs,
+        play.before + index,
+        feel.bubbleVolume,
+      ),
+      ...(runInto === null
         ? hopOff(
             standing,
             kind,
@@ -56,8 +73,8 @@ export function bunchOf(
             play.before,
             feel,
           )
-        : runIn(standing, kind, keeper, hopsMs, feel),
-    ),
+        : runIn(standing, kind, runInto, hopsMs, feel)),
+    ]),
     { what: "hold", atMs: lastHopMs + feel.hopMs * feel.fallAfterHop },
     ...waveMarkOf(middleOf(bunch, grid.width), hopsMs, play),
     ...(making === null
@@ -78,13 +95,14 @@ export function bunchOf(
   ];
 }
 
-/** Returns the parts of the special a bunch makes as the rest run into it from a moment, holding the board until it may fall. */
+/** Returns the parts of the special a bunch makes, to its sound, as the rest run into it from a moment, holding the board until it may fall. */
 function specialMade(
   made: Made,
   runInMs: number,
   feel: FeelTuning,
 ): readonly Part[] {
   return [
+    cue(MADE_SOUNDS[made.making.what], runInMs + feel.madeSoundAfterMs),
     ...madeOf(made, runInMs + feel.runInMs - feel.madeLeadMs, feel),
     { what: "hold", atMs: runInMs + feel.runInMs + feel.fallAfterMadeMs },
   ];

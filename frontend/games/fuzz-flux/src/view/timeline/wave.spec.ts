@@ -7,6 +7,8 @@ import type { GridShown } from "../run_state";
 import { afterSwap, afterWave } from "./board_after";
 import { Draft } from "./draft";
 import { FEEL } from "./feel";
+import { POOLS } from "./limits";
+import type { Motion } from "./less_motion";
 import { quickeningOf } from "./pace";
 import type { Effect, Timeline } from "./timeline";
 import { type WavePlayed, playWave } from "./wave";
@@ -23,14 +25,15 @@ const FIRST = itemAt(TWO_WAVES.record.waves, 0);
 /** The second of the two waves. */
 const SECOND = itemAt(TWO_WAVES.record.waves, 1);
 
-/** Returns a wave played alone from 0 on a board, and the timeline it makes. */
+/** Returns a wave played alone from 0 on a board, in a motion, and the timeline it makes. */
 function played(
   wave: Wave,
   grid: GridShown,
+  motion: Motion = "full",
 ): WavePlayed & { readonly timeline: Timeline } {
-  const draft = new Draft(grid, []);
+  const draft = new Draft(grid, [], motion);
   const done = playWave(draft, wave, grid, "down", 0, FEEL);
-  return { ...done, timeline: draft.finish(done.endMs, null, FEEL) };
+  return { ...done, timeline: draft.finish(done.endMs, null, FEEL, POOLS) };
 }
 
 /** Returns a timeline's tufts. */
@@ -79,6 +82,14 @@ describe("playWave", () => {
       pieceAt(timeline, 2, cheersMs - 1).face,
       pieceAt(timeline, 2, cheersMs).face,
     ]).toEqual(["rest", "happy"]);
+  });
+
+  it("plays its events in its draft's motion, the board cheering at none with Less motion", () => {
+    const { timeline } = played({ ...FIRST, number: 3 }, SWAPPED, "less");
+
+    const cheersMs = FEEL.huddleMs * quickeningOf(3, FEEL) + FEEL.cheerAfterMs;
+
+    expect(pieceAt(timeline, 2, cheersMs).face).toBe("rest");
   });
 
   it("lets a wave with no bunch fall after the wait alone", () => {

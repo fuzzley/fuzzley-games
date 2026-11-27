@@ -9,24 +9,37 @@ import {
   pieceAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
+import { rungCentsOf } from "../../effects/ladder";
 import { FEEL } from "../feel";
+import type { Motion } from "../less_motion";
 import type { Part } from "../part";
 import type { Timeline } from "../timeline";
 import { bunchOf } from "./bunch";
 
-/** Returns the timeline of a move played by hand's first bunch, played in an order among its wave's. */
-function bunchTimeline(fixture: MoveFixture, order = 0): Timeline {
-  return timelineOfParts(firstWaveOf(fixture).grid, firstBunch(fixture, order));
+/** Returns the timeline of a move played by hand's first bunch, played in an order among its wave's, in a motion. */
+function bunchTimeline(
+  fixture: MoveFixture,
+  order = 0,
+  motion: Motion = "full",
+): Timeline {
+  return timelineOfParts(
+    firstWaveOf(fixture).grid,
+    firstBunch(fixture, order, motion),
+  );
 }
 
-/** Returns the parts of a move played by hand's first bunch, played in an order among its wave's. */
-function firstBunch(fixture: MoveFixture, order = 0): readonly Part[] {
+/** Returns the parts of a move played by hand's first bunch, played in an order among its wave's, in a motion. */
+function firstBunch(
+  fixture: MoveFixture,
+  order = 0,
+  motion: Motion = "full",
+): readonly Part[] {
   const play = firstWaveOf(fixture);
   const [bunch] = play.wave.bunches;
   if (bunch === undefined) {
     throw new Error("The wave gathers no bunch.");
   }
-  return bunchOf(bunch, order, play);
+  return bunchOf(bunch, order, { ...play, motion });
 }
 
 describe("bunchOf", () => {
@@ -53,6 +66,27 @@ describe("bunchOf", () => {
           (piece) => pieceAt(timeline, piece, HOPS_MS + 2 * FEEL.hopGapMs).face,
         ),
       ).toEqual(["happy", "happy", "eep"]);
+    });
+
+    it("plays its note as it hops off, and each one's bubble a rung up from the one before", () => {
+      const bubblesMs = HOPS_MS + FEEL.bubbleAfterMs;
+
+      expect(timeline.sounds).toEqual([
+        { atMs: HOPS_MS, sound: "note", cents: 0, volume: 1 },
+        { atMs: bubblesMs, sound: "pop", cents: 0, volume: FEEL.bubbleVolume },
+        {
+          atMs: bubblesMs + FEEL.bubbleGapMs,
+          sound: "pop",
+          cents: rungCentsOf(1),
+          volume: FEEL.bubbleVolume,
+        },
+        {
+          atMs: bubblesMs + 2 * FEEL.bubbleGapMs,
+          sound: "pop",
+          cents: rungCentsOf(2),
+          volume: FEEL.bubbleVolume,
+        },
+      ]);
     });
 
     it("holds the board until the last hop is part of the way through", () => {
@@ -96,8 +130,66 @@ describe("bunchOf", () => {
     ).toBe("happy");
   });
 
+  it.each([
+    [MOVE_FIXTURES.dasherAcrossMade, "born-dasher"],
+    [MOVE_FIXTURES.dasherDownMade, "born-dasher"],
+    [MOVE_FIXTURES.pufferMade, "born-puffer"],
+    [MOVE_FIXTURES.wispMade, "born-wisp"],
+    [MOVE_FIXTURES.frizzballMade, "born-frizz"],
+  ] as const)(
+    "plays the sound of the special a bunch makes",
+    (fixture, sound) => {
+      expect(bunchTimeline(fixture).sounds).toContainEqual({
+        atMs: HOPS_MS + FEEL.madeSoundAfterMs,
+        sound,
+        cents: 0,
+        volume: 1,
+      });
+    },
+  );
+
+  it("plays a wave's second bunch's note a rung higher and softer", () => {
+    expect(bunchTimeline(MOVE_FIXTURES.bunch, 1).sounds[0]).toEqual({
+      atMs: HOPS_MS + FEEL.bunchGapMs,
+      sound: "note",
+      cents: rungCentsOf(1),
+      volume: FEEL.laterBunchVolume,
+    });
+  });
+
   describe("a bunch of 4 that makes a dasher", () => {
     const timeline = bunchTimeline(MOVE_FIXTURES.dasherAcrossMade);
+
+    it("plays a chord of two notes, and the dasher's sound as it is made", () => {
+      expect(timeline.sounds.filter(({ sound }) => sound !== "pop")).toEqual([
+        { atMs: HOPS_MS, sound: "note", cents: 0, volume: 1 },
+        {
+          atMs: HOPS_MS + FEEL.chordGapMs,
+          sound: "note",
+          cents: rungCentsOf(FEEL.chordRungs),
+          volume: FEEL.chordSecondVolume,
+        },
+        {
+          atMs: HOPS_MS + FEEL.madeSoundAfterMs,
+          sound: "born-dasher",
+          cents: 0,
+          volume: 1,
+        },
+      ]);
+    });
+
+    it("hops the rest off where they huddled rather than running them in, with Less motion", () => {
+      const less = bunchTimeline(MOVE_FIXTURES.dasherAcrossMade, 0, "less");
+
+      expect(
+        pieceAt(less, 1, HOPS_MS + FEEL.hopGapMs + FEEL.hopMs),
+      ).toMatchObject({
+        x: 0,
+        y: FEEL.huddleLean,
+        scaleX: FEEL.hopScale,
+        face: "happy",
+      });
+    });
 
     it("runs the rest into the one that stays, which they leave the board in", () => {
       expect([

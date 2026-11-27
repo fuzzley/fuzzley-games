@@ -18,6 +18,12 @@ const DOWN: BlastEvent = (blast, reach, play) =>
 describe("dasherOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.dasherGoesOff, dasherOff);
 
+  it("rushes as it goes off, a little under its own loudness", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: OFF_MS, sound: "dash", cents: 0, volume: FEEL.dashVolume },
+    ]);
+  });
+
   it("sends two streaks of its kind from its square along its row, one each way, a square at a time", () => {
     const streak = {
       what: "streak",

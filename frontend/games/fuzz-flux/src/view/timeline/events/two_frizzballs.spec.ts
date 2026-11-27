@@ -18,6 +18,23 @@ const TWO_FRIZZBALLS: BlastEvent = (blast, reach, play) =>
 
 describe("twoFrizzballsOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.twoDashers, TWO_FRIZZBALLS);
+
+  it("crackles, then booms a little softer", () => {
+    expect(timeline.sounds).toEqual([
+      {
+        atMs: OFF_MS + FEEL.twoFrizzballsCrackleAfterMs,
+        sound: "frizz",
+        cents: 0,
+        volume: 1,
+      },
+      {
+        atMs: OFF_MS + FEEL.twoFrizzballsBoomAfterMs,
+        sound: "big-puff",
+        cents: 0,
+        volume: FEEL.twoFrizzballsBoomVolume,
+      },
+    ]);
+  });
   const dimAt = (ms: number): number =>
     sampleAt(timeline, FEEL, ms, frameFor(timeline)).board.dim;
 

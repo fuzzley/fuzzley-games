@@ -1,9 +1,10 @@
 import { MOVE_FIXTURES } from "../../../testing/move_fixtures";
 import { firstWaveOf } from "../../../testing/played_parts";
+import { cue } from "../part";
 import { dusted } from "./dust";
 
 describe("dusted", () => {
-  it("shows what dust is left on the square as the hit lands, and counts the layer for the dust's goal", () => {
+  it("shows what dust is left on the square as the hit lands, to its sound, and counts the layer for the dust's goal", () => {
     const play = firstWaveOf(MOVE_FIXTURES.dustSwept);
 
     expect(
@@ -19,6 +20,7 @@ describe("dusted", () => {
         play,
       ),
     ).toEqual([
+      cue("dust", 300),
       {
         what: "dust",
         change: { atMs: 300, at: { x: 0, y: 0 }, layers: 1 },

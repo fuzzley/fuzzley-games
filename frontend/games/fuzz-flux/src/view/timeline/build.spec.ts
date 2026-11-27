@@ -2,12 +2,12 @@ import { boardFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import { pieceAt } from "../../testing/played_parts";
 import { gridOf, moveStartOf } from "../../testing/shown_board";
-import { heldTimelineOf, timelineOf } from "./build";
+import { rungCentsOf } from "../effects/ladder";
 import { FEEL } from "./feel";
-import type { Pace } from "./pace";
+import { type PlaySettings, heldTimelineOf, timelineOf } from "./build";
 
-/** The pace a move plays at unless the player sets Fast. */
-const NORMAL: Pace = { speed: "normal" };
+/** How moves play unless the player sets them otherwise. */
+const NORMAL: PlaySettings = { speed: "normal", motion: "full" };
 
 /** The bunch of 3 played by hand, from square 1 to 4, on its board. */
 const BUNCH = MOVE_FIXTURES.bunch;
@@ -132,7 +132,7 @@ describe("timelineOf", () => {
       BUNCH.record,
       moveStartOf(BUNCH),
       FEEL,
-      { speed: "fast" },
+      { speed: "fast", motion: "full" },
       null,
     );
 
@@ -203,6 +203,40 @@ describe("timelineOf", () => {
     );
 
     expect(timeline.flights.map(({ drawn }) => drawn.id)).toEqual([4]);
+  });
+
+  it("flies nothing to the goals with Less motion, counting each a moment on", () => {
+    const cleared = MOVE_FIXTURES.cleared;
+
+    const timeline = timelineOf(
+      cleared.record,
+      moveStartOf(cleared),
+      FEEL,
+      { speed: "normal", motion: "less" },
+      { encore: { spares: [] }, stars: 1 },
+    );
+
+    expect([timeline.flights, timeline.counts.map(({ left }) => left)]).toEqual(
+      [[], [2, 1, 0]],
+    );
+  });
+
+  it("pops a bubble for each fuzzball a dasher takes at once, each on its own rung", () => {
+    const dasher = MOVE_FIXTURES.dasherGoesOff;
+
+    const timeline = timelineOf(
+      dasher.record,
+      moveStartOf(dasher),
+      FEEL,
+      NORMAL,
+      null,
+    );
+
+    expect(
+      timeline.sounds
+        .filter(({ sound }) => sound === "pop")
+        .map(({ cents }) => cents),
+    ).toEqual([rungCentsOf(1), rungCentsOf(2)]);
   });
 
   it("ends a level cleared with the Cleared card, lighting each star it earned", () => {

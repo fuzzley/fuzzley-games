@@ -2,7 +2,8 @@
 // a lane at a time across the board and a stack bottom first, speeding up
 // and stretching along the way it falls as it goes, those let in coming
 // from over the board's edge; then it squashes against what it lands on,
-// springs back and blinks.
+// with a landing's sound, louder the further it fell, springs back and
+// blinks.
 
 import type { Wind } from "../../../rules/board/board";
 import { itemAt } from "@fz/core/records";
@@ -11,7 +12,7 @@ import type { Piece } from "../../../rules/catalog/pieces";
 import type { Fall } from "../../../rules/move/record";
 import { fallingIn } from "../board_after";
 import { lookAt, restingFace } from "../looks";
-import { type Part, facing, moves, sets } from "../part";
+import { type Part, cue, facing, moves, sets } from "../part";
 import type { Place } from "../timeline";
 import type { WavePlay } from "../wave_play";
 
@@ -177,6 +178,14 @@ function fallOf(
         scaleX: 1 - feel.fallNarrow * down + feel.fallStretch * across,
         scaleY: 1 - feel.fallNarrow * across + feel.fallStretch * down,
       },
+    ),
+    cue(
+      "land",
+      landMs,
+      Math.min(
+        1,
+        feel.landVolume + lengthOf(points) * feel.landVolumePerSquare,
+      ),
     ),
     ...sets(fall.piece, landMs, { lookX: 0, lookY: 0 }),
     ...moves(fall.piece, landMs, feel.landSquashMs, "out", {

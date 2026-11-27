@@ -5,6 +5,7 @@ import { type MovePlayed, playAfterWaves } from "./after_waves";
 import { afterWave } from "./board_after";
 import { Draft } from "./draft";
 import { FEEL } from "./feel";
+import { POOLS } from "./limits";
 import type { Timeline } from "./timeline";
 
 /** When a move's waves let the board go on. */
@@ -22,7 +23,7 @@ function afterWavesOf(fixture: MoveFixture): AfterWaves {
     firstWaveOf(fixture).grid,
     itemAt(fixture.record.waves, 0),
   );
-  const draft = new Draft(grid, []);
+  const draft = new Draft(grid, [], "full");
   const played = playAfterWaves(
     draft,
     fixture.record,
@@ -30,7 +31,7 @@ function afterWavesOf(fixture: MoveFixture): AfterWaves {
     "down",
     FEEL,
   );
-  return { played, timeline: draft.finish(played.endMs, null, FEEL) };
+  return { played, timeline: draft.finish(played.endMs, null, FEEL, POOLS) };
 }
 
 describe("playAfterWaves", () => {
@@ -44,6 +45,28 @@ describe("playAfterWaves", () => {
         itemAt(fixture.record.waves, 0),
       ),
       blows: "down",
+    });
+  });
+
+  it("sounds a burr setting out to spread as the waves let the board go on", () => {
+    expect(
+      afterWavesOf(MOVE_FIXTURES.burrSpreads).timeline.sounds,
+    ).toContainEqual({
+      atMs: WAVES_END_MS,
+      sound: "burr-spread",
+      cents: 0,
+      volume: 1,
+    });
+  });
+
+  it("sounds the wind starting to turn as the waves let the board go on", () => {
+    expect(
+      afterWavesOf(MOVE_FIXTURES.windTurns).timeline.sounds,
+    ).toContainEqual({
+      atMs: WAVES_END_MS,
+      sound: "gust",
+      cents: 0,
+      volume: 1,
     });
   });
 

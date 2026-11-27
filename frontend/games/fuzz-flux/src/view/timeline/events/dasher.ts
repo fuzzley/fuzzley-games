@@ -1,12 +1,12 @@
-// A dasher going off: it splits into two streaks that run its line, one
-// each way, as it stretches along the line, narrows and is gone, and the
-// board shakes.
+// A dasher going off, with its rush: it splits into two streaks that run
+// its line, one each way, as it stretches along the line, narrows and is
+// gone, and the board shakes.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Blast } from "../../../rules/move/record";
 import { blastShakePx } from "../../effects/shakes";
 import { RAISED } from "../looks";
-import { type Part, moves, sets, spawns } from "../part";
+import { type Part, cue, moves, sets, spawns } from "../part";
 import type { Reach } from "../reach";
 import type { WavePlay } from "../wave_play";
 
@@ -35,6 +35,7 @@ export function dasherOff(
           },
         ];
   return [
+    cue("dash", reach.startMs, feel.dashVolume),
     ...streaksOf(blast, across, 0, reach, play),
     spawns({
       what: "shake",

@@ -1,4 +1,13 @@
-import { facing, facingAgain, moves, sets, spawns, tuftsOf } from "./part";
+import {
+  cue,
+  facing,
+  facingAgain,
+  moves,
+  noteCue,
+  sets,
+  spawns,
+  tuftsOf,
+} from "./part";
 
 describe("moves", () => {
   it("keys each number given, in the order of the look's numbers, over the while given", () => {
@@ -52,6 +61,38 @@ describe("facingAgain", () => {
       face: "rest",
       sinceMs: 100,
     });
+  });
+});
+
+describe("cue", () => {
+  it("cues a sound at its own loudness, on no rung", () => {
+    expect(cue("swap", 100)).toEqual({
+      what: "sound",
+      atMs: 100,
+      sound: "swap",
+      rung: null,
+      volume: 1,
+    });
+  });
+
+  it("cues a sound as loud as a share of its own", () => {
+    expect(cue("dash", 100, 0.9)).toMatchObject({ volume: 0.9 });
+  });
+});
+
+describe("noteCue", () => {
+  it("cues a sound on a rung of the ladder", () => {
+    expect(noteCue("pop", 100, 3, 0.8)).toEqual({
+      what: "sound",
+      atMs: 100,
+      sound: "pop",
+      rung: 3,
+      volume: 0.8,
+    });
+  });
+
+  it("cues a note at its own loudness", () => {
+    expect(noteCue("note", 100, 0)).toMatchObject({ volume: 1 });
   });
 });
 

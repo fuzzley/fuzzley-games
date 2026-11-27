@@ -1,12 +1,12 @@
-// The board shuffled, where a move left it without a bunch to make: each
-// plain fuzzball shrinks, slides to its new square and springs back to
-// its size.
+// The board shuffled, where a move left it without a bunch to make, with
+// its sound: each plain fuzzball shrinks, slides to its new square and
+// springs back to its size.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Shuffle } from "../../../rules/move/record";
 import type { GridShown } from "../../run_state";
 import type { FeelTuning } from "../feel";
-import { type Part, moves } from "../part";
+import { type Part, cue, moves } from "../part";
 
 /** Returns the parts of a shuffle from a moment, holding the board until it is done. */
 export function shuffled(
@@ -16,6 +16,7 @@ export function shuffled(
   feel: FeelTuning,
 ): readonly Part[] {
   return [
+    cue("shuffle", atMs),
     ...shuffle.moves.flatMap(({ piece, to }) => [
       ...moves(piece, atMs, feel.shuffleShrinkMs, "out", {
         scaleX: feel.shuffleShrink,

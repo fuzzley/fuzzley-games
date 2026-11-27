@@ -1,8 +1,9 @@
 // A move's timeline as its events add to it: a track for each piece on the
 // board as the move starts and each it brings in, and the lists of what
 // else it plays. Once every event is in, the draft lays each track's keys
-// in the order they start, sends what the goals count to them, holds what
-// the move plays to the design's limits, and hands back the timeline.
+// in the order they start, sends what the goals count to them, keeps what
+// Less motion keeps where the player asks for it, holds what the move
+// plays to the design's limits, and hands back the timeline.
 
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import { squareOf } from "../../rules/board/cells";
@@ -12,7 +13,15 @@ import type { GoalShown, GridShown } from "../run_state";
 import { byStart } from "./by_start";
 import type { FeelTuning } from "./feel";
 import { type Claim, flightsOf } from "./flights";
-import { limitFlashes, limitFluff, limitSounds } from "./limits";
+import { type Motion, withLessMotion } from "./less_motion";
+import {
+  type Pools,
+  limitFlashes,
+  limitFluff,
+  limitMarks,
+  limitPooledEffects,
+  limitSounds,
+} from "./limits";
 import { lookAt, restingFace } from "./looks";
 import type { Part } from "./part";
 import type {
@@ -67,9 +76,15 @@ export class Draft {
 
   /**
    * Starts a draft with a track for each piece on a board as it stands, at
-   * its square, the goals as they stand counting what it gathers.
+   * its square, the goals as they stand counting what it gathers, in a
+   * motion the player sets.
    */
-  constructor(board: GridShown, goals: readonly GoalShown[]) {
+  constructor(
+    board: GridShown,
+    goals: readonly GoalShown[],
+    /** The motion the move plays in, by which the draft keeps its effects and flights and each event plays its own version. */
+    readonly motion: Motion,
+  ) {
     this.#goals = goals;
     board.squares.forEach((square, index) => {
       const piece = square?.piece ?? null;
@@ -169,14 +184,22 @@ export class Draft {
    * Returns the timeline the draft's parts make, each list in the order it
    * starts, the flights and counts of what the goals count, and what the
    * move plays held to the design's limits: its flashes and glows, its
-   * loose bits, its flights and its sounds' gaps.
+   * loose bits, its flights and its sounds' gaps; and to a scene's pools.
    */
-  finish(restMs: number, end: EndBeats | null, feel: FeelTuning): Timeline {
-    const effects = byStart(this.#effects);
+  finish(
+    restMs: number,
+    end: EndBeats | null,
+    feel: FeelTuning,
+    pools: Pools,
+  ): Timeline {
+    const less = this.motion === "less";
+    const effects = less
+      ? withLessMotion(byStart(this.#effects), feel)
+      : byStart(this.#effects);
     const flashes = limitFlashes(
       byStart<Effect | Glow>([
         ...effects.filter(({ what }) => what === "flash"),
-        ...this.#glows,
+        ...(less ? [] : this.#glows),
       ]),
       this.#hurriedFromMs,
       feel,
@@ -192,24 +215,32 @@ export class Draft {
       }
     }
     const sprites = [...this.#sprites].sort((a, b) => a.fromMs - b.fromMs);
-    const { flights, counts } = flightsOf(this.#claims, this.#goals, feel);
+    const { flights, counts, sounds } = flightsOf(
+      this.#claims,
+      this.#goals,
+      less ? 0 : feel.mostFlights,
+      feel,
+    );
     return {
       pieces: Array.from(this.#tracks.values(), (track) =>
         finished(track, glows.get(track.id) ?? []),
       ),
       sprites,
-      effects: limitFluff(
-        effects.filter(
-          (effect) => effect.what !== "flash" || flashes.includes(effect),
+      effects: limitPooledEffects(
+        limitFluff(
+          effects.filter(
+            (effect) => effect.what !== "flash" || flashes.includes(effect),
+          ),
+          sprites,
+          feel,
         ),
-        sprites,
-        feel,
+        pools,
       ),
       flights,
       counts,
       dust: byStart(this.#dust),
-      marks: byStart(this.#marks),
-      sounds: limitSounds(byStart(this.#sounds), feel),
+      marks: limitMarks(byStart(this.#marks), pools, feel),
+      sounds: limitSounds(byStart([...this.#sounds, ...sounds]), feel),
       dim: byStart(this.#dim),
       restMs,
       end,

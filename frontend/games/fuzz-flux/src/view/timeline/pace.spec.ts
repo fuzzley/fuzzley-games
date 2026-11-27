@@ -9,11 +9,11 @@ describe("SPEEDS", () => {
 
 describe("pacedFeel", () => {
   it("plays the feel as it is at Normal", () => {
-    expect(pacedFeel(FEEL, { speed: "normal" })).toEqual(FEEL);
+    expect(pacedFeel(FEEL, "normal")).toEqual(FEEL);
   });
 
   it("shortens each time by the Fast pace at Fast", () => {
-    const fast = pacedFeel(FEEL, { speed: "fast" });
+    const fast = pacedFeel(FEEL, "fast");
 
     expect([fast.swapMs, fast.fallBaseMs, fast.flightMs]).toEqual([
       FEEL.swapMs / FEEL.fastPace,
@@ -23,7 +23,7 @@ describe("pacedFeel", () => {
   });
 
   it("keeps the limits and a tuft's flight in the player's own time at Fast", () => {
-    const fast = pacedFeel(FEEL, { speed: "fast" });
+    const fast = pacedFeel(FEEL, "fast");
 
     expect([
       fast.flashGapMs,
@@ -41,7 +41,7 @@ describe("pacedFeel", () => {
   });
 
   it("keeps a shake's fading and the life between moves in the player's own time at Fast", () => {
-    const fast = pacedFeel(FEEL, { speed: "fast" });
+    const fast = pacedFeel(FEEL, "fast");
 
     expect([
       fast.shakeHalfLifeMs,
@@ -57,7 +57,7 @@ describe("pacedFeel", () => {
   });
 
   it("keeps every number that is no time at Fast", () => {
-    const fast = pacedFeel(FEEL, { speed: "fast" });
+    const fast = pacedFeel(FEEL, "fast");
 
     expect([fast.pickUpScale, fast.mostFlights, fast.fastPace]).toEqual([
       FEEL.pickUpScale,

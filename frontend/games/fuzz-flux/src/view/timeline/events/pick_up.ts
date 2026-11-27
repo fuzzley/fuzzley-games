@@ -1,11 +1,12 @@
 // A fuzzball picked up between moves: it grows a little and overshoots,
-// raised over the board, and the fuzzballs it could bunch with if swapped
-// look its way; and one put down, as it springs back to its size.
+// raised over the board, with a pick's sound, and the fuzzballs it could
+// bunch with if swapped look its way; and one put down, as it springs back
+// to its size.
 
 import { clamp } from "@fz/core/math";
 import type { FeelTuning } from "../feel";
 import { RAISED } from "../looks";
-import { type Part, moves, sets } from "../part";
+import { type Part, cue, moves, sets } from "../part";
 import type { Standing } from "../standing";
 
 /**
@@ -22,6 +23,7 @@ export function pickedUp(
   feel: FeelTuning,
 ): readonly Part[] {
   return [
+    cue("pick", 0),
     ...sets(held.piece.id, 0, { raise: RAISED.held }),
     ...moves(held.piece.id, 0, feel.pickUpMs, "back", {
       scaleX: feel.pickUpScale,

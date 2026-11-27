@@ -1,15 +1,15 @@
-// A move's swap: the two slide past each other, overshoot a little and
-// settle, or, for two specials, the first slides onto the second and the
-// pair winds up; a special set off where it stands, after a moment's
-// wait; and a swap refused, as the two lean at each other, shake their
-// heads and go back.
+// A move's swap, with its sound: the two slide past each other, overshoot
+// a little and settle, or, for two specials, the first slides onto the
+// second and the pair winds up; a special set off where it stands, after a
+// moment's wait; and a swap refused, with its own sound, as the two lean
+// at each other, shake their heads and go back.
 
 import type { Swap } from "../../../rules/move/record";
 import type { GridShown } from "../../run_state";
 import { goesOff } from "../board_after";
 import type { FeelTuning } from "../feel";
 import { RAISED, restingFace } from "../looks";
-import { type Part, facing, moves, sets } from "../part";
+import { type Part, cue, facing, moves, sets } from "../part";
 import { type Standing, findStanding, standingOn } from "../standing";
 import type { Place } from "../timeline";
 import { pairWindUp } from "./pair";
@@ -33,6 +33,7 @@ export function swapOf(
     const from = findStanding(grid, swap.from);
     const to = findStanding(grid, swap.to);
     return [
+      cue("refuse", 0),
       ...(from === null || to === null ? [] : refused(from, to, feel)),
       { what: "hold", atMs: feel.refusedOutMs + feel.refusedBackMs },
     ];
@@ -47,6 +48,7 @@ export function swapOf(
     ...moves(from.piece.id, 0, feel.swapMs, "back", to.at),
   ];
   return [
+    cue("swap", 0),
     ...slides,
     ...(goesOff(from.piece) && goesOff(to.piece)
       ? pairWindUp(from, to, feel.swapMs, feel)

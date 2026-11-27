@@ -22,6 +22,19 @@ function streaksIn(timeline: Timeline): readonly (readonly Place[])[] {
 describe("crossOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.twoDashers, crossOff);
 
+  it("rushes as a dasher does as it goes off", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: OFF_MS, sound: "dash", cents: 0, volume: FEEL.dashVolume },
+    ]);
+  });
+
+  it("rushes and puffs at their own loudness for a dasher with a puffer", () => {
+    expect(blastTimeline(MOVE_FIXTURES.twoDashers, WIDE).sounds).toEqual([
+      { atMs: OFF_MS, sound: "dash", cents: 0, volume: 1 },
+      { atMs: OFF_MS, sound: "puff", cents: 0, volume: 1 },
+    ]);
+  });
+
   it("runs streaks both ways along the row and down the column the pair meets on", () => {
     expect(streaksIn(timeline)).toEqual([
       [

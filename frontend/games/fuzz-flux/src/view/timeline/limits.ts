@@ -1,18 +1,44 @@
 // The design's limits, which keep the board readable and safe however much
 // a move sets off: no more than one flash or glow every so often, no more
 // loose bits on the board at once than so many, and no sound of a kind
-// starting closer to the last of its kind than its gap. Each takes what
-// the move would play, in the order it starts, and keeps what fits.
+// starting closer to the last of its kind than its gap; and the scene's
+// pools, which hold no more of an effect or a wave's mark at once than the
+// busiest moves show. Each takes what the move would play, in the order it
+// starts, and keeps what fits.
 
 import { isKeyOf } from "@fz/core/records";
 import { GAPPED, type SoundName } from "../effects/sounds";
 import type { FeelTuning } from "./feel";
-import type { Effect, SoundCue, SpriteTrack } from "./timeline";
+import type { Effect, SoundCue, SpriteTrack, WaveMark } from "./timeline";
 
 /** Describes something that starts at a moment. */
 interface Timed {
   readonly atMs: number;
 }
+
+/** An effect the scene draws from a pool of its own, a pool a kind. */
+type Pooled = Extract<
+  Effect,
+  { readonly what: "ring" | "streak" | "bolt" | "flash" }
+>;
+
+/**
+ * How many of each effect, and of the waves' marks, the scene's pools
+ * hold: as many as the busiest moves a timeline plays show at once, a
+ * frizzball swapped onto a dasher, a dasher swapped with a puffer and two
+ * frizzballs swapped together on a board 8 by 9, as `limits.spec.ts`
+ * measures them.
+ */
+export const POOLS = {
+  ring: 72,
+  streak: 12,
+  bolt: 5,
+  flash: 1,
+  mark: 3,
+} as const satisfies Readonly<Record<Pooled["what"] | "mark", number>>;
+
+/** Describes how many of each effect, and of the waves' marks, a scene's pools hold, as `POOLS` sizes them. */
+export type Pools = Readonly<Record<keyof typeof POOLS, number>>;
 
 /**
  * Returns the flashes and glows that start no sooner than the feel's gap
@@ -77,22 +103,24 @@ export function limitFluff(
 
 /**
  * Returns the sound cues but those of a sound with a gap that start
- * sooner than its gap after the last kept of that sound.
+ * sooner than its gap after the last kept of that sound on that rung, as
+ * the sketch names each rung's sound apart.
  */
 export function limitSounds(
   cues: readonly SoundCue[],
   feel: FeelTuning,
 ): readonly SoundCue[] {
-  const lastMs = new Map<SoundName, number>();
-  return cues.filter(({ atMs, sound }) => {
+  const lastMs = new Map<string, number>();
+  return cues.filter(({ atMs, sound, cents }) => {
     const gap = gapOf(sound);
     if (gap === null) {
       return true;
     }
-    if (atMs - (lastMs.get(sound) ?? -Infinity) < feel[gap]) {
+    const tuned = `${sound}@${String(cents)}`;
+    if (atMs - (lastMs.get(tuned) ?? -Infinity) < feel[gap]) {
       return false;
     }
-    lastMs.set(sound, atMs);
+    lastMs.set(tuned, atMs);
     return true;
   });
 }
@@ -100,4 +128,51 @@ export function limitSounds(
 /** Returns the feel's number for the least time between two starts of a sound, or null for one with no gap. */
 function gapOf(sound: SoundName): (typeof GAPPED)[keyof typeof GAPPED] | null {
   return isKeyOf(sound, GAPPED) ? GAPPED[sound] : null;
+}
+
+/** Returns the effects but those of a pooled kind that start while their pool's every one still shows. */
+export function limitPooledEffects(
+  effects: readonly Effect[],
+  pools: Pools,
+): readonly Effect[] {
+  const showing: Pooled[] = [];
+  const kept: Effect[] = [];
+  for (const effect of effects) {
+    if (!isPooled(effect)) {
+      kept.push(effect);
+      continue;
+    }
+    const alike = showing.filter(
+      (other) =>
+        other.what === effect.what && effect.atMs < other.atMs + other.ms,
+    );
+    if (alike.length < pools[effect.what]) {
+      showing.push(effect);
+      kept.push(effect);
+    }
+  }
+  return kept;
+}
+
+/** Returns the waves' marks but those that start while the marks' pool's every one still shows, each for the feel's while. */
+export function limitMarks(
+  marks: readonly WaveMark[],
+  pools: Pools,
+  feel: FeelTuning,
+): readonly WaveMark[] {
+  const kept: WaveMark[] = [];
+  for (const mark of marks) {
+    if (
+      kept.filter((other) => mark.atMs < other.atMs + feel.markMs).length <
+      pools.mark
+    ) {
+      kept.push(mark);
+    }
+  }
+  return kept;
+}
+
+/** Returns whether an effect is of a kind the scene draws from a pool. */
+function isPooled(effect: Effect): effect is Pooled {
+  return isKeyOf(effect.what, POOLS);
 }

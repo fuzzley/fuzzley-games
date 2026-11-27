@@ -49,6 +49,7 @@ export function playWave(
     quickening,
     before: Math.max(0, wave.number - 1),
     feel,
+    motion: draft.motion,
   };
   const reaches = reachesOf(wave, play.hopsMs, feel);
   draft.add(waveCheerOf(play));

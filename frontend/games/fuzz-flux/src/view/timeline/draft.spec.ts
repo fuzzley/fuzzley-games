@@ -3,6 +3,7 @@ import { boardFrom } from "../../testing/board_picture";
 import { gridOf } from "../../testing/shown_board";
 import { Draft } from "./draft";
 import { FEEL } from "./feel";
+import { POOLS } from "./limits";
 import { lookAt } from "./looks";
 import type { Part } from "./part";
 import type { Key, PieceTrack, Timeline } from "./timeline";
@@ -12,9 +13,9 @@ const BOARD = gridOf(boardFrom({ pieces: ["rb", "f_"], marks: [".*", ".."] }));
 
 /** Returns the timeline a draft on the board makes of some parts. */
 function timelineOf(...parts: readonly Part[]): Timeline {
-  const draft = new Draft(BOARD, []);
+  const draft = new Draft(BOARD, [], "full");
   draft.add(parts);
-  return draft.finish(1000, null, FEEL);
+  return draft.finish(1000, null, FEEL, POOLS);
 }
 
 /** Returns a piece's track in a timeline. */
@@ -158,10 +159,10 @@ describe("Draft", () => {
   });
 
   it("hands on when the board comes to rest and the level's end", () => {
-    const draft = new Draft(BOARD, []);
+    const draft = new Draft(BOARD, [], "full");
     const end = { cardMs: 2000, starsMs: [2200] };
 
-    expect(draft.finish(1500, end, FEEL)).toEqual(
+    expect(draft.finish(1500, end, FEEL, POOLS)).toEqual(
       expect.objectContaining({ restMs: 1500, end }),
     );
   });
@@ -213,19 +214,27 @@ describe("Draft", () => {
       what: "effect",
       effect: { what: "flash", atMs, ms: 110, at: { x: 0, y: 0 }, radius: 2 },
     });
-    const draft = new Draft(BOARD, []);
+    const draft = new Draft(BOARD, [], "full");
     draft.add([flash(0), flash(FEEL.flashGapMs), flash(2 * FEEL.flashGapMs)]);
     draft.hurries(FEEL.flashGapMs);
 
     expect(
-      draft.finish(1000, null, FEEL).effects.map(({ atMs }) => atMs),
+      draft.finish(1000, null, FEEL, POOLS).effects.map(({ atMs }) => atMs),
     ).toEqual([0]);
   });
 
   it("sends a fuzzball gathered to the goal of its kind, and counts it as it lands", () => {
-    const draft = new Draft(BOARD, [
-      { goal: { what: "gather", kind: "red", count: 9 }, left: 4, met: false },
-    ]);
+    const draft = new Draft(
+      BOARD,
+      [
+        {
+          goal: { what: "gather", kind: "red", count: 9 },
+          left: 4,
+          met: false,
+        },
+      ],
+      "full",
+    );
     const red: Fuzzball = {
       what: "fuzzball",
       id: 1,
@@ -238,7 +247,7 @@ describe("Draft", () => {
       { what: "gathered", atMs: 100, piece: red, at: { x: 0, y: 0 } },
     ]);
 
-    const { flights, counts } = draft.finish(1000, null, FEEL);
+    const { flights, counts } = draft.finish(1000, null, FEEL, POOLS);
 
     expect([flights.map(({ drawn }) => drawn.id), counts]).toEqual([
       [1],
@@ -250,6 +259,97 @@ describe("Draft", () => {
         },
       ],
     ]);
+  });
+
+  it("ticks as the goal counts, among the move's other sounds", () => {
+    const draft = new Draft(
+      BOARD,
+      [{ goal: { what: "dust" }, left: 1, met: false }],
+      "full",
+    );
+    draft.add([
+      { what: "counted", atMs: 100, counts: { what: "dust" } },
+      { what: "sound", atMs: 50, sound: "dust", rung: null, volume: 1 },
+    ]);
+
+    expect(draft.finish(1000, null, FEEL, POOLS).sounds).toEqual([
+      { atMs: 50, sound: "dust", cents: 0, volume: 1 },
+      { atMs: 100, sound: "tick", cents: 0, volume: 1 },
+      { atMs: 100, sound: "goal", cents: 0, volume: 1 },
+    ]);
+  });
+
+  describe("with Less motion", () => {
+    const red: Fuzzball = {
+      what: "fuzzball",
+      id: 1,
+      kind: "red",
+      special: null,
+      caged: false,
+      burred: false,
+    };
+    const draft = new Draft(
+      BOARD,
+      [
+        {
+          goal: { what: "gather", kind: "red", count: 9 },
+          left: 4,
+          met: false,
+        },
+      ],
+      "less",
+    );
+    draft.add([
+      { what: "effect", effect: { what: "shake", atMs: 0, px: 4 } },
+      {
+        what: "effect",
+        effect: {
+          what: "flash",
+          atMs: 0,
+          ms: 110,
+          at: { x: 0, y: 0 },
+          radius: 2,
+        },
+      },
+      { what: "glow", piece: 1, atMs: 0, ms: 200, amount: 0.8 },
+      {
+        what: "effect",
+        effect: {
+          what: "fluff",
+          atMs: 0,
+          at: { x: 0, y: 0 },
+          tuft: "tuft-red",
+          count: 8,
+          power: 1,
+        },
+      },
+      { what: "gathered", atMs: 100, piece: red, at: { x: 0, y: 0 } },
+    ]);
+    const timeline = draft.finish(1000, null, FEEL, POOLS);
+
+    it("keeps no shake and no flash, and a quarter of the fluff", () => {
+      expect(timeline.effects).toEqual([
+        {
+          what: "fluff",
+          atMs: 0,
+          at: { x: 0, y: 0 },
+          tuft: "tuft-red",
+          count: 8 * FEEL.lessMotionFluff,
+          power: 1,
+        },
+      ]);
+    });
+
+    it("keeps no glow", () => {
+      expect(trackOf(timeline, 1)?.keys.glow).toBeUndefined();
+    });
+
+    it("flies nothing to the goal, counting it a moment on", () => {
+      expect([timeline.flights, timeline.counts]).toEqual([
+        [],
+        [{ atMs: 100 + FEEL.unflownCountMs, goal: 0, left: 3 }],
+      ]);
+    });
   });
 
   it("lists the dust swept and the waves' marks in the order they start", () => {
@@ -270,11 +370,11 @@ describe("Draft", () => {
   });
 
   it("finishes the same timeline however often it is asked", () => {
-    const draft = new Draft(BOARD, []);
+    const draft = new Draft(BOARD, [], "full");
     draft.add([{ what: "glow", piece: 1, atMs: 100, ms: 260, amount: 1 }]);
 
-    const first = draft.finish(1000, null, FEEL);
-    const second = draft.finish(1000, null, FEEL);
+    const first = draft.finish(1000, null, FEEL, POOLS);
+    const second = draft.finish(1000, null, FEEL, POOLS);
 
     expect(second).toEqual(first);
   });
@@ -302,7 +402,7 @@ describe("Draft", () => {
   });
 
   it("hands back the latest moment the parts hold the board until", () => {
-    const draft = new Draft(BOARD, []);
+    const draft = new Draft(BOARD, [], "full");
 
     expect([
       draft.add([

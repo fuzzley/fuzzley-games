@@ -1,7 +1,27 @@
+import { keysOf, recordOf } from "@fz/core/records";
+import { mostAtOnce } from "../../testing/at_once";
+import type { MoveFixture } from "../../testing/move_fixtures";
+import { moveStartOf } from "../../testing/shown_board";
+import { SKETCH_MOVES } from "../../testing/sketch_moves";
+import { timelineOf } from "./build";
 import { FEEL } from "./feel";
-import { limitFlashes, limitFluff, limitSounds } from "./limits";
+import {
+  POOLS,
+  type Pools,
+  limitFlashes,
+  limitFluff,
+  limitMarks,
+  limitPooledEffects,
+  limitSounds,
+} from "./limits";
 import { lookAt } from "./looks";
-import type { Effect, SoundCue, SpriteTrack } from "./timeline";
+import type {
+  Effect,
+  SoundCue,
+  SpriteTrack,
+  Timeline,
+  WaveMark,
+} from "./timeline";
 
 /** Returns a fluff of so many tufts at a moment. */
 function fluff(atMs: number, count: number): Effect {
@@ -29,6 +49,23 @@ function bar(fromMs: number, untilMs: number): SpriteTrack {
 /** Returns a cue of a sound at a moment. */
 function cue(sound: SoundCue["sound"], atMs: number): SoundCue {
   return { atMs, sound, cents: 0, volume: 1 };
+}
+
+/** Returns a ring spreading for a while from a moment. */
+function ring(atMs: number, ms: number): Effect {
+  return {
+    what: "ring",
+    atMs,
+    ms,
+    at: { x: 0, y: 0 },
+    radius: 1,
+    ink: "white",
+  };
+}
+
+/** Returns a wave's mark at a moment. */
+function mark(atMs: number): WaveMark {
+  return { atMs, at: { x: 0, y: 0 }, times: 2 };
 }
 
 /** The longest a tuft of fluff flies. */
@@ -114,9 +151,98 @@ describe("limitSounds", () => {
     expect(limitSounds(cues, FEEL)).toEqual(cues);
   });
 
+  it("keeps a sound's gap on each rung apart, as the sketch names each rung's sound", () => {
+    const cues = [
+      { ...cue("pop", 0), cents: 200 },
+      { ...cue("pop", 0), cents: 400 },
+      { ...cue("pop", 0), cents: 400 },
+    ];
+
+    expect(limitSounds(cues, FEEL).map(({ cents }) => cents)).toEqual([
+      200, 400,
+    ]);
+  });
+
   it("keeps every cue of a sound with no gap", () => {
     const cues = [cue("note", 0), cue("note", 1)];
 
     expect(limitSounds(cues, FEEL)).toEqual(cues);
+  });
+});
+
+/** Pools that hold any number of each effect and mark at once. */
+const UNPOOLED: Pools = recordOf(keysOf(POOLS), () => Infinity);
+
+/** Returns the timeline of a move the sketch played, as moves play unless the player sets them otherwise, held to no pool. */
+function playedUnpooled(fixture: MoveFixture): Timeline {
+  return timelineOf(
+    fixture.record,
+    moveStartOf(fixture),
+    FEEL,
+    { speed: "normal", motion: "full" },
+    null,
+    UNPOOLED,
+  );
+}
+
+describe("POOLS", () => {
+  it("holds as many of each as the busiest moves would show at once", () => {
+    const withDasher = mostAtOnce(
+      playedUnpooled(SKETCH_MOVES.frizzballAndDasher),
+      FEEL,
+    );
+    const withPuffer = mostAtOnce(
+      playedUnpooled(SKETCH_MOVES.dasherAndPuffer),
+      FEEL,
+    );
+    const two = mostAtOnce(playedUnpooled(SKETCH_MOVES.twoFrizzballs), FEEL);
+
+    expect(POOLS).toEqual({
+      ring: two.ring,
+      streak: withPuffer.streak,
+      bolt: withDasher.bolt,
+      flash: withDasher.flash,
+      mark: withDasher.mark,
+    });
+  });
+});
+
+describe("limitPooledEffects", () => {
+  it("drops an effect that starts while its pool's every one still shows", () => {
+    const rings = Array.from({ length: POOLS.ring + 1 }, () => ring(0, 100));
+
+    expect(limitPooledEffects(rings, POOLS)).toHaveLength(POOLS.ring);
+  });
+
+  it("keeps one that starts as another of its pool is done", () => {
+    const rings = [
+      ...Array.from({ length: POOLS.ring }, () => ring(0, 100)),
+      ring(100, 100),
+    ];
+
+    expect(limitPooledEffects(rings, POOLS)).toHaveLength(POOLS.ring + 1);
+  });
+
+  it("keeps every effect drawn from no pool", () => {
+    const fluffs = Array.from({ length: POOLS.ring + 1 }, () => fluff(0, 1));
+
+    expect(limitPooledEffects(fluffs, POOLS)).toEqual(fluffs);
+  });
+});
+
+describe("limitMarks", () => {
+  it("drops a mark that starts while the pool's every one still shows", () => {
+    const marks = Array.from({ length: POOLS.mark + 1 }, () => mark(0));
+
+    expect(limitMarks(marks, POOLS, FEEL)).toHaveLength(POOLS.mark);
+  });
+
+  it("keeps one that starts as another is done", () => {
+    const marks = [
+      ...Array.from({ length: POOLS.mark }, () => mark(0)),
+      mark(FEEL.markMs),
+    ];
+
+    expect(limitMarks(marks, POOLS, FEEL)).toHaveLength(POOLS.mark + 1);
   });
 });

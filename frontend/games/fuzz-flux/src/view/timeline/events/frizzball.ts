@@ -1,9 +1,10 @@
 // A frizzball going off: the board dims, and it swells, raised over the
-// rest, as a bolt of static leaps to each fuzzball of its kind in turn,
-// whose fur stands on end, each taking the special a frizzball swapped
-// with one gives; then the board brightens as it bursts into tufts with a
-// ring and a flash, and the board shakes. Its tufts are of the kind it
-// took, where the sketch's are white, since no tuft is.
+// rest, as a bolt of static leaps to each fuzzball of its kind in turn, a
+// zap each climbing the ladder, whose fur stands on end, each taking the
+// special a frizzball swapped with one gives; then, as its crackle sounds,
+// the board brightens as it bursts into tufts with a ring and a flash, and
+// the board shakes. Its tufts are of the kind it took, where the sketch's
+// are white, since no tuft is.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Piece } from "../../../rules/catalog/pieces";
@@ -15,7 +16,17 @@ import {
 import type { Blast } from "../../../rules/move/record";
 import { blastShakePx } from "../../effects/shakes";
 import { RAISED } from "../looks";
-import { type Part, facing, moves, sets, spawns, tuftsOf } from "../part";
+import { TOP_RUNG } from "../../effects/ladder";
+import {
+  type Part,
+  cue,
+  facing,
+  moves,
+  noteCue,
+  sets,
+  spawns,
+  tuftsOf,
+} from "../part";
 import type { Reach } from "../reach";
 import { standingOn } from "../standing";
 import type { WavePlay } from "../wave_play";
@@ -67,6 +78,9 @@ export function frizzballOff(
       const leapsMs = reach.startMs + index * reach.leapMs;
       const struck = standingOn(grid, square).piece;
       return [
+        ...(index < feel.mostZaps
+          ? [noteCue("zap", leapsMs, zapRungOf(index, blast, play))]
+          : []),
         spawns({
           what: "bolt",
           atMs: leapsMs,
@@ -79,6 +93,7 @@ export function frizzballOff(
         ...given(struck, leapsMs, play),
       ];
     }),
+    cue("frizz", burstMs - feel.crackleLeadMs),
     {
       what: "dim",
       key: { atMs: burstMs, ms: feel.frizzballUndimMs, to: 0, easing: "out" },
@@ -141,4 +156,12 @@ function given(struck: Piece, atMs: number, play: WavePlay): readonly Part[] {
 /** Returns whether a blast is a special's going off alone. */
 function isSpecial(what: BlastId): what is SpecialId {
   return SPECIALS.has(what);
+}
+
+/** Returns the rung of the zap a frizzball's static plays as it leaps to the fuzzball it takes in an order, from 0, climbing from its wave's rung to the ladder's top as it takes the last. */
+function zapRungOf(order: number, blast: Blast, play: WavePlay): number {
+  return (
+    play.before +
+    Math.floor((order * TOP_RUNG) / Math.max(1, blast.strikes.length - 1))
+  );
 }

@@ -55,6 +55,9 @@ export interface RungPlay {
   readonly cents: number;
 }
 
+/** The ladder's top rung, at which a sound on any rung past it plays. */
+export const TOP_RUNG = LADDER_CENTS.length - 1;
+
 /** How much softer a bunch's note plays a rung up the ladder, in dB, as the design's notes do. */
 const SOFTER_A_RUNG_DB = 0.4;
 

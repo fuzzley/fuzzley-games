@@ -5,6 +5,7 @@ import {
   onRung,
   rungCentsOf,
   takesOf,
+  TOP_RUNG,
 } from "./ladder";
 
 /** The design's words, each run of spaces and line breaks one space. */
@@ -46,6 +47,13 @@ describe("rungCentsOf", () => {
     [14, 2100],
   ])("tunes rung %i up %i cents", (rung, cents) => {
     expect(rungCentsOf(rung)).toBe(cents);
+  });
+});
+
+describe("TOP_RUNG", () => {
+  it("is the last rung, at which a rung past it plays", () => {
+    expect(rungCentsOf(TOP_RUNG + 1)).toBe(rungCentsOf(TOP_RUNG));
+    expect(rungCentsOf(TOP_RUNG - 1)).toBeLessThan(rungCentsOf(TOP_RUNG));
   });
 });
 

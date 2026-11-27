@@ -49,11 +49,7 @@ export default defineConfig(
       // certificates, hold the casual player to its floors, and time what
       // a move runs, in a folder named benchmarks in any layer, without the
       // coverage that would slow them several times over: the other specs
-      // alone hold the rules and the view to their floor. `test:coverage`
-      // runs them with `--passWithNoTests` while none is written, which
-      // passes a run that finds no spec there and never one in which a spec
-      // fails; the change that writes the first drops it, so a `sim` run
-      // that finds no spec fails.
+      // alone hold the rules and the view to their floor.
       sim: [
         "src/rules/golden",
         "src/rules/levels/every_level",

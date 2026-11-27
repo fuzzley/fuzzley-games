@@ -1,5 +1,16 @@
+import { itemAt } from "@fz/core/records";
+import type { Blast } from "../../../rules/move/record";
+import { boardFrom } from "../../../testing/board_picture";
 import { MOVE_FIXTURES } from "../../../testing/move_fixtures";
-import { HOPS_MS, blastTimeline, pieceAt } from "../../../testing/played_parts";
+import {
+  HOPS_MS,
+  blastTimeline,
+  firstWaveOf,
+  pieceAt,
+  timelineOfParts,
+} from "../../../testing/played_parts";
+import { gridOf } from "../../../testing/shown_board";
+import { reachesOf } from "../reach";
 import type { BlastEvent } from "../blasts";
 import { FEEL } from "../feel";
 import { RAISED } from "../looks";
@@ -21,6 +32,18 @@ const TWO: BlastEvent = (blast, reach, play) =>
 
 describe("pufferOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.pufferGoesOff, pufferOff);
+
+  it("puffs as it goes off", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: OFF_MS, sound: "puff", cents: 0, volume: 1 },
+    ]);
+  });
+
+  it("puffs bigger for two puffers", () => {
+    expect(blastTimeline(MOVE_FIXTURES.pufferGoesOff, TWO).sounds).toEqual([
+      { atMs: OFF_MS, sound: "big-puff", cents: 0, volume: 1 },
+    ]);
+  });
 
   it("breathes the puffer in, cross, raised over the board", () => {
     expect(pieceAt(timeline, 6, BURST_MS)).toMatchObject({
@@ -136,6 +159,31 @@ describe("pufferOff", () => {
         },
       ]);
     });
+  });
+
+  it("pushes back nothing past its reach and as far again", () => {
+    const grid = gridOf(
+      boardFrom({ pieces: ["rgbgbgbgbg"], marks: ["o........."] }),
+    );
+    const play = firstWaveOf(MOVE_FIXTURES.pufferGoesOff);
+    const blast: Blast = {
+      what: "puffer",
+      square: 0,
+      piece: 1,
+      kind: "red",
+      setOffBy: null,
+      wait: 0,
+      strikes: [{ square: 0, step: 0 }],
+    };
+    const wave = { ...play.wave, blasts: [blast] };
+    const reach = itemAt(reachesOf(wave, play.hopsMs, FEEL), 0);
+
+    const far = timelineOfParts(
+      grid,
+      pufferOff(blast, reach, { ...play, grid, wave }),
+    );
+
+    expect(far.pieces.find(({ id }) => id === 10)?.keys).toEqual({});
   });
 
   describe("a puffer a wisp carried", () => {

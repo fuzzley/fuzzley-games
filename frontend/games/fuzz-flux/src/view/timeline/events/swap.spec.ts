@@ -23,6 +23,12 @@ describe("swapOf", () => {
   describe("a swap kept", () => {
     const timeline = swapOn(["rg"], { from: 0, to: 1, refused: false });
 
+    it("sounds as it starts", () => {
+      expect(timeline.sounds).toEqual([
+        { atMs: 0, sound: "swap", cents: 0, volume: 1 },
+      ]);
+    });
+
     it("stands each of the two on the other's square once it is done", () => {
       expect([
         pieceAt(timeline, 1, FEEL.swapMs).x,
@@ -86,6 +92,12 @@ describe("swapOf", () => {
 
   describe("a swap refused", () => {
     const timeline = swapOn(["r", "g"], { from: 0, to: 1, refused: true });
+
+    it("sounds a refusal as it starts", () => {
+      expect(timeline.sounds).toEqual([
+        { atMs: 0, sound: "refuse", cents: 0, volume: 1 },
+      ]);
+    });
 
     it("leans each of the two out toward the other", () => {
       expect([

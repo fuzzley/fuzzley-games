@@ -19,6 +19,12 @@ describe("pickedUp", () => {
     ),
   );
 
+  it("sounds the pick as it is picked up", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: 0, sound: "pick", cents: 0, volume: 1 },
+    ]);
+  });
+
   it("grows the fuzzball picked up a little past its size held on the way", () => {
     expect(pieceAt(timeline, 1, FEEL.pickUpMs / 2).scaleX).toBeGreaterThan(
       FEEL.pickUpScale,

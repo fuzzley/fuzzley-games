@@ -8,6 +8,7 @@ import {
   pieceAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
+import { TOP_RUNG, rungCentsOf } from "../../effects/ladder";
 import { FEEL } from "../feel";
 import { RAISED } from "../looks";
 import { reachesOf } from "../reach";
@@ -55,8 +56,49 @@ function withDasher(given: readonly Blast[]): Timeline {
   );
 }
 
+/** Returns the timeline of the frizzball going off as though it struck the fuzzball on a square so many times over. */
+function strikingOver(times: number): Timeline {
+  const play = firstWaveOf(MOVE_FIXTURES.frizzballGoesOff);
+  const blast: Blast = {
+    ...itemAt(play.wave.blasts, 0),
+    strikes: Array.from({ length: times }, () => ({ square: 0, step: 1 })),
+  };
+  const wave = { ...play.wave, blasts: [blast] };
+  const reach = itemAt(reachesOf(wave, play.hopsMs, FEEL), 0);
+  return timelineOfParts(
+    play.grid,
+    frizzballOff(blast, reach, { ...play, wave }),
+  );
+}
+
 describe("frizzballOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.frizzballGoesOff, frizzballOff);
+
+  it("zaps no more than the most its static plays", () => {
+    const zaps = strikingOver(FEEL.mostZaps + 2).sounds.filter(
+      ({ sound }) => sound === "zap",
+    );
+
+    expect(zaps).toHaveLength(FEEL.mostZaps);
+  });
+
+  it("zaps as its static leaps to each, from its wave's rung to the ladder's top, and crackles a moment before it bursts", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: OFF_MS, sound: "zap", cents: 0, volume: 1 },
+      {
+        atMs: OFF_MS + FEEL.frizzballStepMs,
+        sound: "zap",
+        cents: rungCentsOf(TOP_RUNG),
+        volume: 1,
+      },
+      {
+        atMs: BURST_MS - FEEL.crackleLeadMs,
+        sound: "frizz",
+        cents: 0,
+        volume: 1,
+      },
+    ]);
+  });
   const dimAt = (ms: number): number =>
     sampleAt(timeline, FEEL, ms, frameFor(timeline)).board.dim;
 

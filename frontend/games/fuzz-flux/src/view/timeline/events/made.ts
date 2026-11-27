@@ -5,15 +5,26 @@
 // and everyone on it turns to look, wide-eyed.
 
 import type { KindId } from "../../../rules/catalog/kinds";
+import type { MadeId } from "../../../rules/catalog/specials";
 import type { Making } from "../../../rules/move/record";
 import { FRAMES } from "../../art/frame_names";
 import { madeShakePx } from "../../effects/shakes";
+import type { SoundName } from "../../effects/sounds";
 import { pieceMadeOf } from "../board_after";
 import type { FeelTuning } from "../feel";
 import { RAISED, lookAt, restingFace } from "../looks";
 import { type Part, facing, moves, sets, spawns } from "../part";
 import type { Standing } from "../standing";
 import type { Look, Place } from "../timeline";
+
+/** The sound each special plays as a bunch makes it. */
+export const MADE_SOUNDS = {
+  "dasher-across": "born-dasher",
+  "dasher-down": "born-dasher",
+  puffer: "born-puffer",
+  wisp: "born-wisp",
+  frizzball: "born-frizz",
+} as const satisfies Readonly<Record<MadeId, SoundName>>;
 
 /** Describes a special a bunch makes, and where. */
 export interface Made {

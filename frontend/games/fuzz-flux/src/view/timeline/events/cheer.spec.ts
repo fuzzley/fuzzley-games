@@ -8,7 +8,7 @@ import {
 } from "../../../testing/played_parts";
 import { gridOf } from "../../../testing/shown_board";
 import { FEEL } from "../feel";
-import { facing } from "../part";
+import { cue, facing } from "../part";
 import { everyStanding } from "../standing";
 import type { Timeline } from "../timeline";
 import { type WavePlay, stayingThrough } from "../wave_play";
@@ -94,6 +94,15 @@ describe("cheered", () => {
     expect(pieceAt(crossed, 1, AT_MS + FEEL.cheerHappyMs).face).toBe("cross");
   });
 
+  it("leaves the face something else gave a fuzzball just as its eyes would rest", () => {
+    const crossed = timelineOfParts(GRID, [
+      ...cheered(BIGGEST_CHEER, AT_MS, everyStanding(GRID), FEEL),
+      facing(1, AT_MS + FEEL.cheerHappyMs, "cross"),
+    ]);
+
+    expect(pieceAt(crossed, 1, AT_MS + FEEL.cheerHappyMs).face).toBe("cross");
+  });
+
   it("hops no sleepyhead, brick or caged fuzzball", () => {
     expect(
       [3, 4, 5].map((id) => timeline.pieces.find((track) => track.id === id)),
@@ -106,12 +115,21 @@ describe("cheered", () => {
 });
 
 describe("waveCheerOf", () => {
-  it("cheers wave 5 a moment after its bunches hop off, by those it leaves standing", () => {
+  it("cheers wave 5 a moment after its bunches hop off, to its chirp, by those it leaves standing", () => {
     const play = waveNumbered(5);
 
-    expect(waveCheerOf(play)).toEqual(
-      cheered(2, HOPS_MS + FEEL.cheerAfterMs, stayingThrough(play), FEEL),
-    );
+    const cheersMs = HOPS_MS + FEEL.cheerAfterMs;
+
+    expect(waveCheerOf(play)).toEqual([
+      cue("chirp-2", cheersMs),
+      ...cheered(2, cheersMs, stayingThrough(play), FEEL),
+    ]);
+  });
+
+  it("plays only the chirp with Less motion", () => {
+    expect(waveCheerOf({ ...waveNumbered(9), motion: "less" })).toEqual([
+      cue("chirp-4", HOPS_MS + FEEL.cheerAfterMs),
+    ]);
   });
 
   it("cheers no wave that doesn't", () => {

@@ -1,15 +1,15 @@
-// A wisp going off: a copy of it flies a curve to each fuzzball it takes,
-// one after another, each bowing the other way from the one before, and
-// lands in its tufts and a thin ring as the wisp is gone. Two wisps
-// swapped together send three; a wisp with a dasher or a puffer carries
-// it to where it goes off.
+// A wisp going off, with its flutter: a copy of it flies a curve to each
+// fuzzball it takes, one after another, each bowing the other way from the
+// one before, and lands in its tufts and a thin ring as the wisp is gone.
+// Two wisps swapped together send three; a wisp with a dasher or a puffer
+// carries it to where it goes off.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Piece } from "../../../rules/catalog/pieces";
 import type { Blast } from "../../../rules/move/record";
 import { curveKeys } from "../curve";
 import { RAISED, lookAt } from "../looks";
-import { type Part, spawns, tuftsOf } from "../part";
+import { type Part, cue, spawns, tuftsOf } from "../part";
 import type { Reach } from "../reach";
 import { standingOn } from "../standing";
 import type { WavePlay } from "../wave_play";
@@ -25,6 +25,7 @@ export function wispOff(
   const { piece } = standingOn(grid, blast.square);
   const drawn = asWisp(piece);
   return [
+    cue("wisp", reach.startMs),
     { what: "leaves", piece: piece.id, atMs: reach.startMs },
     ...blast.strikes.flatMap(({ square }, index): readonly Part[] => {
       const to = squareOf(square, grid.width);

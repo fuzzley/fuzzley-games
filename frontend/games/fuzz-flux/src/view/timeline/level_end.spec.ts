@@ -6,7 +6,9 @@ import { pieceAt } from "../../testing/played_parts";
 import { gridOf } from "../../testing/shown_board";
 import { Draft } from "./draft";
 import { FEEL } from "./feel";
+import { POOLS } from "./limits";
 import { BIGGEST_CHEER } from "./events/cheer";
+import type { Motion } from "./less_motion";
 import { type LevelEnd, playLevelEnd } from "./level_end";
 import type { Part } from "./part";
 import type { Timeline } from "./timeline";
@@ -25,12 +27,13 @@ interface Ended {
   readonly timeline: Timeline;
 }
 
-/** Returns a level cleared, by the encore played by hand or another, earning 2 stars, with some more parts played beside it. */
+/** Returns a level cleared, by the encore played by hand or another, earning 2 stars, with some more parts played beside it, in a motion. */
 function clearedBy(
   encore: EncoreRecord = ENCORE_FIXTURE.record,
   beside: readonly Part[] = [],
+  motion: Motion = "full",
 ): Ended {
-  const draft = new Draft(GRID, []);
+  const draft = new Draft(GRID, [], motion);
   const ended = playLevelEnd(
     draft,
     "cleared",
@@ -39,7 +42,10 @@ function clearedBy(
     FEEL,
   );
   draft.add(beside);
-  return { ended, timeline: draft.finish(ended.restMs, ended.end, FEEL) };
+  return {
+    ended,
+    timeline: draft.finish(ended.restMs, ended.end, FEEL, POOLS),
+  };
 }
 
 /** When the encore's first spare move gives its fuzzball a special's fur. */
@@ -49,7 +55,7 @@ describe("playLevelEnd", () => {
   it("ends nothing after a move with which the level plays on", () => {
     expect(
       playLevelEnd(
-        new Draft(GRID, []),
+        new Draft(GRID, [], "full"),
         "playing",
         null,
         { endMs: REST_MS, grid: GRID, blows: "down" },
@@ -61,7 +67,7 @@ describe("playLevelEnd", () => {
   it("shows the Out of moves card a while after a move that runs out, with no star", () => {
     expect(
       playLevelEnd(
-        new Draft(GRID, []),
+        new Draft(GRID, [], "full"),
         "over",
         null,
         { endMs: REST_MS, grid: GRID, blows: "down" },
@@ -73,8 +79,54 @@ describe("playLevelEnd", () => {
     });
   });
 
+  it("sounds the loss a moment after a move that runs out", () => {
+    const draft = new Draft(GRID, [], "full");
+
+    playLevelEnd(
+      draft,
+      "over",
+      null,
+      { endMs: REST_MS, grid: GRID, blows: "down" },
+      FEEL,
+    );
+
+    expect(draft.finish(REST_MS, null, FEEL, POOLS).sounds).toEqual([
+      {
+        atMs: REST_MS + FEEL.loseSoundAfterMs,
+        sound: "lose",
+        cents: 0,
+        volume: 1,
+      },
+    ]);
+  });
+
   describe("a level cleared", () => {
     const { ended, timeline } = clearedBy();
+
+    it("sounds the win a moment after the board rests", () => {
+      expect(timeline.sounds[0]).toEqual({
+        atMs: REST_MS + FEEL.winSoundAfterMs,
+        sound: "win",
+        cents: 0,
+        volume: 1,
+      });
+    });
+
+    it("sounds the encore as each spare move's fuzzball is given its fur", () => {
+      const encores = timeline.sounds.filter(({ sound }) => sound === "encore");
+
+      expect([encores.length, encores[0]?.atMs]).toEqual([
+        ENCORE_FIXTURE.record.spares.length,
+        GIVEN_MS,
+      ]);
+    });
+
+    it("plays each star's note as it lights", () => {
+      expect(timeline.sounds.slice(-2)).toEqual([
+        { atMs: ended.end?.starsMs[0], sound: "star-1", cents: 0, volume: 1 },
+        { atMs: ended.end?.starsMs[1], sound: "star-2", cents: 0, volume: 1 },
+      ]);
+    });
 
     it("cheers its biggest as the board rests", () => {
       expect(pieceAt(timeline, 1, REST_MS + FEEL.cheerUpMs).scaleY).toBe(
@@ -121,6 +173,12 @@ describe("playLevelEnd", () => {
     });
   });
 
+  it("cheers nothing with Less motion", () => {
+    const { timeline } = clearedBy(ENCORE_FIXTURE.record, [], "less");
+
+    expect(pieceAt(timeline, 1, REST_MS + FEEL.cheerUpMs).scaleY).toBe(1);
+  });
+
   it("keeps the flashes from the board's rest a gap at the hurried pace apart, as a tap may hurry the encore", () => {
     const flash = (atMs: number): Part => ({
       what: "effect",
@@ -142,7 +200,7 @@ describe("playLevelEnd", () => {
   it("refuses a move that clears its level with no encore", () => {
     expect(() =>
       playLevelEnd(
-        new Draft(GRID, []),
+        new Draft(GRID, [], "full"),
         "cleared",
         null,
         { endMs: REST_MS, grid: GRID, blows: "down" },

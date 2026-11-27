@@ -27,6 +27,12 @@ describe("shuffled", () => {
     shuffled(FIXTURE.record.shuffle, AT_MS, GRID, FEEL),
   );
 
+  it("sounds the shuffle as it starts", () => {
+    expect(timeline.sounds).toEqual([
+      { atMs: AT_MS, sound: "shuffle", cents: 0, volume: 1 },
+    ]);
+  });
+
   it("shrinks each fuzzball before it moves", () => {
     expect(
       pieceAt(timeline, 12, AT_MS + FEEL.shuffleShrinkMs).scaleX,

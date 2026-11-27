@@ -14,11 +14,6 @@ export const SPEEDS = ["normal", "fast"] as const satisfies readonly string[];
 /** A speed a player sets, such as "fast". */
 export type Speed = (typeof SPEEDS)[number];
 
-/** Describes how the player has set moves to play. */
-export interface Pace {
-  readonly speed: Speed;
-}
-
 /**
  * The feel's times that hold in the player's own time at any speed: the
  * limits on flashes and sounds; how long a tuft flies, which the scene
@@ -39,14 +34,14 @@ const UNPACED: ReadonlySet<keyof FeelTuning> = new Set([
 ]);
 
 /**
- * Returns the feel a move plays by at a pace: each of its times shortened
- * by the pace's speed, but those that hold in the player's own time.
+ * Returns the feel a move plays by at a speed: each of its times shortened
+ * by it, but those that hold in the player's own time.
  */
-export function pacedFeel(feel: FeelTuning, pace: Pace): FeelTuning {
-  const speed = pace.speed === "fast" ? feel.fastPace : 1;
+export function pacedFeel(feel: FeelTuning, speed: Speed): FeelTuning {
+  const times = speed === "fast" ? feel.fastPace : 1;
   return recordOf(keysOf(feel), (field) =>
     field.endsWith("Ms") && !UNPACED.has(field)
-      ? feel[field] / speed
+      ? feel[field] / times
       : feel[field],
   );
 }
