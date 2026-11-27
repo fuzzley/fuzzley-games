@@ -19,7 +19,8 @@
     "./fuzzball": "./src/fuzzball.ts",
     "./vite": "./src/build/vite.ts",
     "./stylelint": "./src/lint/stylelint.ts",
-    "./testing": "./src/testing/index.ts"
+    "./testing": "./src/testing/index.ts",
+    "./testing/contrast": "./src/testing/contrast.ts"
   },
   "scripts": {
     "test": "vitest run",

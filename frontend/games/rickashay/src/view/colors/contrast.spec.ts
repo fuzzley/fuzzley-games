@@ -1,5 +1,5 @@
-import { TEXT, against, holdContrast } from "@fz/brick-wall/testing/contrast";
 import { mixColors } from "@fz/phaser/color";
+import { TEXT, against, holdContrast } from "@fz/style/testing/contrast";
 import { KIND_IDS } from "../../rules/catalog/kinds";
 import { PORTAL_MARKS } from "../../rules/levels/legend";
 import { PALETTES } from "../../testing/roles";

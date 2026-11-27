@@ -1,4 +1,4 @@
-import { THEMES, type Theme } from "@fz/style/themes";
+import { THEMES, type Theme } from "../themes.ts";
 import {
   type ContrastPair,
   GRAPHIC,

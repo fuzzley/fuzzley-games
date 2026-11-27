@@ -8,7 +8,7 @@ export const GRAPHIC = 3;
 /** The contrast text keeps against what it is written on, as WCAG asks of text. */
 export const TEXT = 4.5;
 
-/** Describes a color a wall game holds to a contrast against what it lies on, in one palette. */
+/** Describes a color a game holds to a contrast against what it lies on, in one palette. */
 export interface ContrastPair {
   /** What the color draws, as a case names it, such as "guide". */
   readonly name: string;

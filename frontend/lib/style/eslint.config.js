@@ -8,7 +8,9 @@ export default defineConfig(
     root: import.meta.dirname,
     files: ["src/**/*.ts", "vitest.config.ts"],
   }),
-  tests({ files: ["src/**/*.spec.ts"] }),
+  // The contrast helpers, which specs alone load, take the library's other
+  // testing entry, as a spec does.
+  tests({ files: ["src/**/*.spec.ts", "src/testing/contrast.ts"] }),
   scripts({ files: ["eslint.config.js", "stylelint.config.js"] }),
   {
     // themes.ts and fuzzball.ts run in the apps' pages, so nothing that runs

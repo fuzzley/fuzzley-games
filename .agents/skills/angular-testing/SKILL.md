@@ -132,3 +132,7 @@ above:
   `deltaE()` tells apart two of one luminance, which `contrast()` can't.
   `paintRoles()` gives the page roles in a spec's colors until the test
   finishes.
+- **`@fz/style/testing/contrast`:** `holdContrast()` holds the colors a
+  canvas game lists for each palette, each against what it lies on, to
+  `GRAPHIC` or `TEXT`, a case of its own for each, and `against()` pairs
+  named colors with what they all lie on.

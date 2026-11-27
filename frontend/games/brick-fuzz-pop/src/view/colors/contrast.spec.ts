@@ -1,6 +1,6 @@
-import { against, holdContrast } from "@fz/brick-wall/testing/contrast";
 import { FIELD_ROLES, type KindInks } from "@fz/brick-wall/view/palette";
 import { colorNumber } from "@fz/phaser/color";
+import { against, holdContrast } from "@fz/style/testing/contrast";
 import { PALETTES } from "../../testing/roles";
 import { wallPalette } from "./palette";
 

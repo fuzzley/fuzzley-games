@@ -1,6 +1,6 @@
 import path from "node:path";
 import { stylesheetPalettes } from "@fz/style/testing";
-import { TEXT, against, holdContrast } from "../testing/contrast";
+import { TEXT, against, holdContrast } from "@fz/style/testing/contrast";
 import { FIELD_ROLES, wallPalette } from "./palette";
 
 /** The palettes every wall game draws in, as `@fz/style` sets them. */
