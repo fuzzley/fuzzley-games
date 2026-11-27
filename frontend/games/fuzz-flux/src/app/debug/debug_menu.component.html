@@ -1,0 +1,40 @@
+<fz-debug-tuning
+  [sliders]="sliders()"
+  [lines]="lines()"
+  (tune)="tune($event)"
+  (resetNumbers)="resetNumbers()"
+>
+  <p class="setting-desc status" role="status">{{ status() }}</p>
+
+  <div class="setting">
+    <label class="setting-label" for="debug-deal">Deal</label>
+    <div class="deal">
+      <select #deal id="debug-deal" aria-describedby="debug-deal-desc">
+        @for (option of deals(); track option.value) {
+          <option [value]="option.value" [selected]="option.chosen">
+            {{ option.name }}
+          </option>
+        }
+      </select>
+      <button
+        type="button"
+        class="fz-button"
+        aria-describedby="debug-deal-desc"
+        (click)="playDeal(deal.value)"
+      >
+        Play the deal
+      </button>
+    </div>
+    <p class="setting-desc" id="debug-deal-desc">
+      Plays level {{ level() }} again with the deal you pick. It keeps no
+      records, even if you press Restart.
+    </p>
+  </div>
+
+  <fz-bug-report-loader (loaded)="played.emit()">
+    <p class="setting-desc">
+      If you load a game from a report, it keeps no records. Use the build the
+      report names.
+    </p>
+  </fz-bug-report-loader>
+</fz-debug-tuning>

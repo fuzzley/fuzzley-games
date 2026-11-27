@@ -10,6 +10,8 @@ import {
 } from "../../rules/run/saved_game";
 import { BoardFrames } from "../../testing/board_frames";
 import { BLUE_LINE, SMALL_LEVELS } from "../../testing/small_levels";
+import { DebugService } from "../debug/debug.service";
+import { ProgressService } from "../stats/progress.service";
 import { GAME_LEVELS } from "../tokens";
 import { GameService } from "./game.service";
 import { SavedGameService } from "./saved_game.service";
@@ -52,6 +54,13 @@ function afterBlueLine(level: number): LevelInPlay {
   return movePlayed(dealt, BLUE_LINE, rules).inPlay;
 }
 
+/** Plays a level of the small levels, by its number, opened first by the level before it cleared, so it is played on the record. */
+async function startOpenLevel(game: GameService, level: number): Promise<void> {
+  const before = itemAt(SMALL_LEVELS, level - 2);
+  TestBed.inject(ProgressService).recordCleared(before.data.id);
+  await game.startLevel(level);
+}
+
 /** Makes the line of blue's move on the board by two taps, as a player would. */
 function playBlueLine(game: GameService): void {
   new BoardFrames(game).tap(
@@ -64,7 +73,7 @@ describe("SavedGameService", () => {
   it("keeps the level in play as a move is made", async () => {
     const storage = new MemoryStorage();
     const game = openPage(storage);
-    await game.startLevel(3);
+    await startOpenLevel(game, 3);
 
     playBlueLine(game);
     TestBed.tick();
@@ -81,7 +90,7 @@ describe("SavedGameService", () => {
     const storage = new MemoryStorage();
     const game = openPage(storage);
 
-    await game.startLevel(2);
+    await startOpenLevel(game, 2);
     TestBed.tick();
 
     expect(kept(storage)).toEqual({
@@ -89,6 +98,22 @@ describe("SavedGameService", () => {
       level: "2",
       deal: 1,
       moves: [],
+    });
+  });
+
+  it("keeps a level played off the record marked so", async () => {
+    const storage = new MemoryStorage();
+    const game = openPage(storage);
+
+    await game.playDeal(2);
+    TestBed.tick();
+
+    expect(kept(storage)).toEqual({
+      version: 1,
+      level: "1",
+      deal: 2,
+      moves: [],
+      offRecord: true,
     });
   });
 
@@ -133,6 +158,28 @@ describe("SavedGameService", () => {
       grid: gridOf(afterBlueLine(3).game),
       timeline: { restMs: 0 },
     });
+  });
+
+  it("takes up a level kept off the record off it", () => {
+    const storage = keeping({
+      version: 1,
+      level: "1",
+      deal: 2,
+      moves: [],
+      offRecord: true,
+    });
+
+    openPage(storage);
+
+    expect(TestBed.inject(DebugService).offRecord()).toBe(true);
+  });
+
+  it("takes up a level kept unmarked on the record", () => {
+    const storage = keeping({ version: 1, level: "1", deal: 2, moves: [] });
+
+    openPage(storage);
+
+    expect(TestBed.inject(DebugService).offRecord()).toBe(false);
   });
 
   it("drops a saved game it can't trust, and opens on the first level", () => {

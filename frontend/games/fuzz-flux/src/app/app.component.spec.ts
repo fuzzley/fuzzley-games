@@ -610,10 +610,10 @@ describe("AppComponent", () => {
     TestBed.inject(AnnouncerService).say("Out of moves.");
     await settle();
 
-    expect(screen.getByText("Out of moves.")).toHaveAttribute(
-      "aria-live",
-      "polite",
-    );
+    // The page's, not the one the settings drawer speaks through while open.
+    expect(
+      screen.getByText("Out of moves.", { ignore: "app-settings *" }),
+    ).toHaveAttribute("aria-live", "polite");
   });
 
   it("asks before something is lost, and hands the answer back", async () => {

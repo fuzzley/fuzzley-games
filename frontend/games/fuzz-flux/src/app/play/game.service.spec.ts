@@ -16,8 +16,10 @@ import {
   BLUE_LINE,
   PUFFER,
   REFUSED,
+  SEEDED_LEVELS,
   SMALL_LEVELS,
 } from "../../testing/small_levels";
+import { DebugService } from "../debug/debug.service";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { RecordsService } from "../stats/records.service";
@@ -42,8 +44,9 @@ interface Played {
 
 /**
  * Returns the game at a level by its number, of the small levels unless
- * given others, the board's view handed it, and its first frame played,
- * keeping what it stores in a store of its own where given one.
+ * given others, opened by the level before it cleared, the board's view
+ * handed it, and its first frame played, keeping what it stores in a
+ * store of its own where given one.
  */
 async function startGame(
   level = 1,
@@ -58,7 +61,11 @@ async function startGame(
   });
   const game = TestBed.inject(GameService);
   game.useView(VIEW_KIT);
-  if (level !== 1) await game.startLevel(level);
+  if (level !== 1) {
+    const before = itemAt(levels, level - 2);
+    TestBed.inject(ProgressService).recordCleared(before.data.id);
+    await game.startLevel(level);
+  }
   const frames = new BoardFrames(game);
   frames.frame();
   return { game, frames };
@@ -473,6 +480,99 @@ describe("GameService", () => {
       swap(played, BLUE_LINE);
 
       expect(played.game.play().feel.swapMs).toBeLessThan(FEEL.swapMs);
+    });
+  });
+
+  describe("off the record", () => {
+    it("plays the next move by the numbers the debug menu tunes", async () => {
+      const played = await startGame();
+      TestBed.inject(DebugService).tuning.tune("swapMs", 2 * FEEL.swapMs);
+
+      swap(played, BLUE_LINE);
+
+      expect(played.game.play().feel.swapMs).toBe(2 * FEEL.swapMs);
+    });
+
+    it("keeps no record of a level cleared with a number retuned", async () => {
+      const storage = new MemoryStorage();
+      const played = await startGame(1, SMALL_LEVELS, storage);
+      TestBed.inject(DebugService).tuning.tune("swapMs", 2 * FEEL.swapMs);
+
+      swap(played, BLUE_LINE);
+
+      expect({
+        records: recordsIn(storage),
+        open: TestBed.inject(ProgressService).isOpen(2),
+      }).toEqual({ records: null, open: false });
+    });
+
+    it("plays a deal the debug menu chooses, by its number, off the record", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+
+      const went = await played.game.playDeal(2);
+
+      expect({
+        went,
+        deal: played.game.inPlay().deal,
+        offRecord: TestBed.inject(DebugService).offRecord(),
+      }).toEqual({ went: true, deal: 11, offRecord: true });
+    });
+
+    it("asks before playing a deal over moves made, and plays none where the player says no", async () => {
+      const played = await startGame(3);
+      swap(played, BLUE_LINE);
+      const asked = answerQuestions(false);
+      const inPlay = played.game.inPlay();
+
+      const went = await played.game.playDeal(2);
+
+      expect({
+        asked: asked()?.title,
+        went,
+        same: played.game.inPlay() === inPlay,
+      }).toEqual({ asked: "Play deal 2?", went: false, same: true });
+    });
+
+    it("keeps a deal the debug menu chose off the record at Restart", async () => {
+      const played = await startGame(3);
+      await played.game.playDeal(2);
+
+      await played.game.restart();
+
+      expect(TestBed.inject(DebugService).offRecord()).toBe(true);
+    });
+
+    it("keeps the level begun next on the record, the numbers put back", async () => {
+      const played = await startGame();
+      const debug = TestBed.inject(DebugService);
+      debug.tuning.tune("swapMs", 2 * FEEL.swapMs);
+      debug.tuning.reset();
+
+      await played.game.newGame();
+
+      expect(debug.offRecord()).toBe(false);
+    });
+
+    it("plays the level after one cleared off the record off it too, as it is still locked", async () => {
+      const played = await startGame();
+      await played.game.playDeal(1);
+      swap(played, BLUE_LINE);
+
+      await played.game.nextLevel();
+
+      expect({
+        level: played.game.inPlay().level.number,
+        offRecord: TestBed.inject(DebugService).offRecord(),
+      }).toEqual({ level: 2, offRecord: true });
+    });
+
+    it("plays a level a bug report kept off the record", async () => {
+      const played = await startGame();
+      const rules = { elements: ELEMENT_RULES, wind: WIND_RULE };
+
+      await played.game.load(levelDealt(itemAt(SMALL_LEVELS, 2), 1, rules));
+
+      expect(TestBed.inject(DebugService).offRecord()).toBe(true);
     });
   });
 

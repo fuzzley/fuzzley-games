@@ -108,3 +108,8 @@ export const GAPPED_LEVELS: readonly LevelEntry[] = levelsOf([
     ],
   }),
 ]);
+
+/** The small levels, each dealt on seeds unlike their deals' numbers, so a spec tells a deal's number from its seed. */
+export const SEEDED_LEVELS: readonly LevelEntry[] = SMALL_LEVELS.map(
+  (entry) => ({ ...entry, data: { ...entry.data, deals: [7, 11, 13] } }),
+);

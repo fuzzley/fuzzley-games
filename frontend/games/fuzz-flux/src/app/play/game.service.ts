@@ -38,13 +38,14 @@ import type {
   MoveStart,
   PlaySettings,
 } from "../../view/timeline/build";
-import { FEEL } from "../../view/timeline/feel";
+import type { FeelTuning } from "../../view/timeline/feel";
 import type { Cleared } from "../../view/timeline/level_end";
 import { starsLitAt } from "../../view/timeline/stars_lit";
 import type { SoundName } from "../../view/effects/sounds";
 import type { SoundCue, Timeline } from "../../view/timeline/timeline";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
+import { DebugService } from "../debug/debug.service";
 import { RecordsService } from "../stats/records.service";
 import { GAME_LEVELS, GAME_RULES } from "../tokens";
 import {
@@ -79,6 +80,17 @@ const LOAD_QUESTION: ConfirmRequest = {
 /** Returns what playing a level, by its number, asks before the moves made on the level in progress are lost. */
 function levelQuestion(level: number): ConfirmRequest {
   const play = `Play level ${String(level)}`;
+  return {
+    title: `${play}?`,
+    message: MOVES_LOST,
+    confirmLabel: play,
+    tone: "danger",
+  };
+}
+
+/** Returns what playing a deal of the level in play, by its number, asks before the moves made on it are lost. */
+function dealQuestion(deal: number): ConfirmRequest {
+  const play = `Play deal ${String(deal)}`;
   return {
     title: `${play}?`,
     message: MOVES_LOST,
@@ -167,6 +179,7 @@ export class GameService extends RunLifecycle {
   private readonly records = inject(RecordsService);
   private readonly progress = inject(ProgressService);
   private readonly playerSettings = inject(SettingsService);
+  private readonly debug = inject(DebugService);
 
   private readonly inPlayState = signal<LevelInPlay>(
     this.dealtAnew(itemAt(this.levels, 0)),
@@ -304,7 +317,7 @@ export class GameService extends RunLifecycle {
       !this.movePlays() &&
       !this.ended() &&
       board.picking.held === null &&
-      board.hinting.hintsAt(nowMs, false, FEEL)
+      board.hinting.hintsAt(nowMs, false, this.feel())
     ) {
       this.showHint(board);
     }
@@ -353,7 +366,7 @@ export class GameService extends RunLifecycle {
     if (board === null || this.ended() || this.movePlays()) return;
     // Asked for, the hint shows whenever the board rests; this starts the
     // wait for the next from now.
-    board.hinting.hintsAt(this.nowMs, true, FEEL);
+    board.hinting.hintsAt(this.nowMs, true, this.feel());
     for (const command of board.picking.putDown()) this.boardCommand(command);
     this.showHint(board);
   }
@@ -382,7 +395,8 @@ export class GameService extends RunLifecycle {
   async restart(): Promise<boolean> {
     if (!(await this.mayLoseRun(RESTART_QUESTION))) return false;
     const { level, deal } = this.inPlayState();
-    this.begin(levelDealt(level, deal, this.rules));
+    // The same deal again stays off the record if it was played off it.
+    this.begin(levelDealt(level, deal, this.rules), this.debug.offRecord());
     return true;
   }
 
@@ -407,20 +421,34 @@ export class GameService extends RunLifecycle {
     return true;
   }
 
-  /** Takes up a level in play a saved game kept, at rest on the board after its last move, without saying it. */
-  takeUp(inPlay: LevelInPlay): void {
-    this.putInPlay(inPlay);
+  /** Takes up a level in play a saved game kept, at rest on the board after its last move, on the record unless `offRecord` says, without saying it. */
+  takeUp(inPlay: LevelInPlay, offRecord = false): void {
+    this.putInPlay(inPlay, offRecord);
   }
 
   /**
    * Puts a level in play a bug report kept on the board, at rest after its
    * last move, its card shown where the level had ended, asking first once
    * a move is made on the level in progress, and resolves to whether it
-   * did. It keeps no record, as no move of it is played here.
+   * did. It is played off the record, the moves made on it from here on
+   * included.
    */
   async load(inPlay: LevelInPlay): Promise<boolean> {
     if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
-    this.putInPlay(inPlay);
+    this.putInPlay(inPlay, true);
+    return true;
+  }
+
+  /**
+   * Plays the level in play again on one of its deals, by its number from
+   * 1, off the record, as the debug menu asks, asking first once a move is
+   * made, and resolves to whether it did.
+   */
+  async playDeal(deal: number): Promise<boolean> {
+    if (!(await this.mayLoseRun(dealQuestion(deal)))) return false;
+    const { level } = this.inPlayState();
+    const seed = itemAt(level.data.deals, deal - 1);
+    this.begin(levelDealt(level, seed, this.rules), true);
     return true;
   }
 
@@ -454,17 +482,21 @@ export class GameService extends RunLifecycle {
     return levelDealt(level, this.records.nextDeal(level.data), this.rules);
   }
 
-  /** Puts a level in play, at rest on the board, counts it begun, and says so. */
-  private begin(inPlay: LevelInPlay): void {
-    this.putInPlay(inPlay);
+  /** Puts a level in play, at rest on the board, on the record unless `offRecord` says or the level is still locked, counts it begun, and says so. */
+  private begin(inPlay: LevelInPlay, offRecord = false): void {
+    this.putInPlay(inPlay, offRecord);
     this.announcer.say(describeLevelBegun(this.state()));
   }
 
   /**
-   * Puts a level in play, at rest on the board, and counts it begun; the
-   * shell's cues still to play, as the button's that played it, play on.
+   * Puts a level in play, at rest on the board, on the record unless
+   * `offRecord` says or the level is still locked, and counts it begun;
+   * the shell's cues still to play, as the button's that played it, play
+   * on.
    */
-  private putInPlay(inPlay: LevelInPlay): void {
+  private putInPlay(inPlay: LevelInPlay, offRecord = false): void {
+    const locked = !this.progress.isOpen(inPlay.level.number);
+    this.debug.levelBegun(offRecord || locked);
     this.inPlayState.set(inPlay);
     this.beatsState.set(this.beatsAtRest(inPlay));
     const board = this.board;
@@ -481,7 +513,7 @@ export class GameService extends RunLifecycle {
     const { card } = this.endingOf(inPlay);
     return {
       goalsLeft,
-      movesLow: movesLow(movesLeft, FEEL),
+      movesLow: movesLow(movesLeft, this.feel()),
       card,
       starsLit: card?.what === "cleared" ? card.stars : 0,
     };
@@ -513,7 +545,7 @@ export class GameService extends RunLifecycle {
         play: this.boardPlay(
           kit,
           grid,
-          kit.heldTimelineOf(grid, NOTHING_HELD, FEEL, this.settings()),
+          kit.heldTimelineOf(grid, NOTHING_HELD, this.feel(), this.settings()),
         ),
         move: null,
       },
@@ -557,7 +589,7 @@ export class GameService extends RunLifecycle {
       play: this.boardPlay(
         kit,
         grid,
-        kit.heldTimelineOf(grid, change, FEEL, this.settings()),
+        kit.heldTimelineOf(grid, change, this.feel(), this.settings()),
       ),
       move: null,
     });
@@ -580,8 +612,8 @@ export class GameService extends RunLifecycle {
    * Plays a move once, by the rules, says what it did, and hands the board
    * its timeline, a fuzzball put down in the same frame put down as it
    * starts: a move the rules refuse costs nothing and shakes its fuzzballs'
-   * heads; a move made uses up the level's deal if it is its first, stops
-   * the hint's clock, and takes the hand away.
+   * heads; a move made keeps what it does to the records, unless the level
+   * is played off them, stops the hint's clock, and takes the hand away.
    */
   private playMove(board: LevelBoard, move: Move): void {
     const before = this.inPlayState();
@@ -599,7 +631,7 @@ export class GameService extends RunLifecycle {
     const timeline = board.kit.timelineOf(
       record,
       start,
-      FEEL,
+      this.feel(),
       this.settings(),
       cleared,
     );
@@ -616,13 +648,22 @@ export class GameService extends RunLifecycle {
     this.shownHeld.set(null);
     board.putDownNow = null;
     if (!made) return;
-    if (before.moves.length === 0) {
-      this.records.dealUsed(before.level.data, before.deal);
-    }
-    if (card?.what === "cleared") this.keepCleared(inPlay.level.data, card);
+    if (!this.debug.offRecord()) this.keepRecords(before, inPlay, card);
     this.inPlayState.set(inPlay);
     board.hinting.moves();
     board.hand = null;
+  }
+
+  /** Keeps what a move made does to the records: its level's deal used, if it is the first, and the level cleared, if it clears it. */
+  private keepRecords(
+    before: LevelInPlay,
+    after: LevelInPlay,
+    card: Card | null,
+  ): void {
+    if (before.moves.length === 0) {
+      this.records.dealUsed(before.level.data, before.deal);
+    }
+    if (card?.what === "cleared") this.keepCleared(after.level.data, card);
   }
 
   /** Keeps a level cleared, as the move that clears it is made: its stars and its moves to spare in its record, and the level after it opened. */
@@ -689,7 +730,7 @@ export class GameService extends RunLifecycle {
       before.movesLeft,
       { movesLeft, card },
       this.nowMs,
-      FEEL,
+      this.feel(),
     );
     this.announcer.say(
       describeMove(
@@ -728,11 +769,11 @@ export class GameService extends RunLifecycle {
     if (!move.record.swap.refused) {
       const { movesLeft } = this.inPlayState().game;
       const after = { movesLeft, card: move.card };
-      const low = lowMovesCue(move.movesFrom, after, this.nowMs, FEEL);
+      const low = lowMovesCue(move.movesFrom, after, this.nowMs, this.feel());
       if (low !== null) board.cues = [...board.cues, low];
       this.beatsState.update((beats) => ({
         ...beats,
-        movesLow: movesLow(movesLeft, FEEL),
+        movesLow: movesLow(movesLeft, this.feel()),
       }));
       board.hinting.rests(this.nowMs);
     }
@@ -761,11 +802,19 @@ export class GameService extends RunLifecycle {
     const { kit } = board;
     const grid = this.grid();
     this.show(board, {
-      play: this.boardPlay(kit, grid, kit.hintTimeline(grid, shown.move, FEEL)),
+      play: this.boardPlay(
+        kit,
+        grid,
+        kit.hintTimeline(grid, shown.move, this.feel()),
+      ),
       move: null,
     });
     if (shown.hand) {
-      board.hand = kit.handTimeline(shown.move, FEEL, this.settings().motion);
+      board.hand = kit.handTimeline(
+        shown.move,
+        this.feel(),
+        this.settings().motion,
+      );
     }
   }
 
@@ -787,9 +836,14 @@ export class GameService extends RunLifecycle {
     return {
       grid,
       timeline,
-      feel: kit.pacedFeel(FEEL, this.settings().speed),
+      feel: kit.pacedFeel(this.feel(), this.settings().speed),
       landed: false,
     };
+  }
+
+  /** Returns the feel's numbers each play is built by: the design's, or as the debug menu tunes them. */
+  private feel(): FeelTuning {
+    return this.debug.tuning.tuning();
   }
 
   /** Returns how the player has set moves to play: their speed, and whether with Less motion. */
