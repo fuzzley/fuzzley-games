@@ -35,7 +35,7 @@ export function dasherOff(
           },
         ];
   return [
-    ...streaksOf(blast, across, reach, play),
+    ...streaksOf(blast, across, 0, reach, play),
     spawns({
       what: "shake",
       atMs: reach.startMs,
@@ -46,17 +46,20 @@ export function dasherOff(
 }
 
 /**
- * Returns the parts of the two streaks a blast sends from its square,
- * along its row or down its column, running on past the board's edge.
+ * Returns the parts of the two streaks a blast sends along a line, a row
+ * or a column some squares off its own, one each way from beside its
+ * square, running on past the board's edge.
  */
-function streaksOf(
+export function streaksOf(
   blast: Blast,
   across: boolean,
+  off: number,
   reach: Reach,
   play: WavePlay,
 ): readonly Part[] {
   const { feel, grid } = play;
-  const from = squareOf(blast.square, grid.width);
+  const at = squareOf(blast.square, grid.width);
+  const from = across ? { x: at.x, y: at.y + off } : { x: at.x + off, y: at.y };
   const squares = Math.max(grid.width, grid.height) + feel.streakRunOnSquares;
   return [1, -1].map((way) =>
     spawns({

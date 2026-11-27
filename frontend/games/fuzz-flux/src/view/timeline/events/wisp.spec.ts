@@ -1,7 +1,16 @@
+import { itemAt } from "@fz/core/records";
 import { MOVE_FIXTURES } from "../../../testing/move_fixtures";
-import { HOPS_MS, blastTimeline } from "../../../testing/played_parts";
+import {
+  HOPS_MS,
+  blastTimeline,
+  firstWaveOf,
+  timelineOfParts,
+} from "../../../testing/played_parts";
+import { moveStartOf } from "../../../testing/shown_board";
+import { afterSwap } from "../board_after";
 import { FEEL } from "../feel";
 import { RAISED, lookAt } from "../looks";
+import { reachesOf } from "../reach";
 import { frameFor, sampleAt } from "../sample";
 import type { Timeline } from "../timeline";
 import { wispOff } from "./wisp";
@@ -18,6 +27,31 @@ function copyAt(
   ms: number,
 ): ReturnType<typeof frameFor>["sprites"][number] | undefined {
   return sampleAt(timeline, FEEL, ms, frameFor(timeline)).sprites[0];
+}
+
+/**
+ * Returns the timeline of a wisp and a dasher swapped together going off,
+ * the dasher, piece 6, swapped from square 5 onto the wisp on square 4.
+ */
+function dasherOnWisp(): Timeline {
+  const fixture = MOVE_FIXTURES.wispCarriesDasher;
+  const play = {
+    ...firstWaveOf(fixture),
+    grid: afterSwap(moveStartOf(fixture).grid, {
+      from: 5,
+      to: 4,
+      refused: false,
+    }),
+  };
+  const reach = itemAt(reachesOf(play.wave, play.hopsMs, FEEL), 0);
+  return timelineOfParts(
+    play.grid,
+    wispOff(
+      { ...itemAt(play.wave.blasts, 0), square: 4, piece: 6 },
+      reach,
+      play,
+    ),
+  );
 }
 
 describe("wispOff", () => {
@@ -75,6 +109,18 @@ describe("wispOff", () => {
         radius: FEEL.wispRingSquares,
         ink: "white",
       },
+    ]);
+  });
+
+  it("draws a special swapped onto a wisp as a wisp's copy, as it carries the special", () => {
+    const timeline = dasherOnWisp();
+
+    expect([
+      timeline.sprites,
+      timeline.pieces.find(({ id }) => id === 6)?.untilMs,
+    ]).toMatchObject([
+      [{ drawn: { piece: { id: 6, special: "wisp" } } }],
+      HOPS_MS + FEEL.pairMs,
     ]);
   });
 });

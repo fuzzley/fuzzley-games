@@ -27,6 +27,14 @@ describe("blastsOf", () => {
     ).toEqual(expect.arrayContaining(["streak", "flash"]));
   });
 
+  it("plays a pair swapped together by its own event, as one blast", () => {
+    expect(
+      blastsTimeline(MOVE_FIXTURES.twoDashers).effects.filter(
+        ({ what }) => what === "streak",
+      ),
+    ).toHaveLength(4);
+  });
+
   it("holds the board until the last blast reaches as far as the board waits for", () => {
     const dasherMs = HOPS_MS + FEEL.blastAfterMs;
     const pufferMs = dasherMs + FEEL.streaksAfterMs + 2 * FEEL.dasherSquareMs;

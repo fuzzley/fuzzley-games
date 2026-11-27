@@ -15,6 +15,10 @@ const BURST_MS = OFF_MS + FEEL.pufferInMs;
 const CARRIED: BlastEvent = (blast, reach, play) =>
   pufferOff({ ...blast, piece: null }, reach, play);
 
+/** The puffer's own event, played as two puffers swapped together. */
+const TWO: BlastEvent = (blast, reach, play) =>
+  pufferOff({ ...blast, what: "two-puffers" }, reach, play);
+
 describe("pufferOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.pufferGoesOff, pufferOff);
 
@@ -102,6 +106,36 @@ describe("pufferOff", () => {
         ink: "violet",
       },
     ]);
+  });
+
+  describe("two puffers swapped together", () => {
+    const two = blastTimeline(MOVE_FIXTURES.pufferGoesOff, TWO);
+
+    it("lean in what is past one puffer's reach", () => {
+      expect(pieceAt(two, 12, BURST_MS).leanX).toBeCloseTo(
+        (-2 / Math.hypot(2, 2)) * FEEL.pufferLean,
+      );
+    });
+
+    it("reach further, throwing more tufts harder and shaking the board harder", () => {
+      expect(two.effects).toMatchObject([
+        { what: "ring", radius: FEEL.twoPuffersReachSquares },
+        {
+          what: "fluff",
+          count: FEEL.twoPuffersTufts,
+          power: FEEL.twoPuffersTuftPower,
+        },
+        {
+          what: "flash",
+          radius: FEEL.twoPuffersReachSquares * FEEL.pufferFlashReach,
+        },
+        { what: "shake", px: FEEL.shakeTwoPuffersPx },
+        {
+          what: "ring",
+          radius: FEEL.twoPuffersReachSquares * FEEL.pufferInkRing,
+        },
+      ]);
+    });
   });
 
   describe("a puffer a wisp carried", () => {

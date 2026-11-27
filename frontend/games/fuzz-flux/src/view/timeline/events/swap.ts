@@ -1,7 +1,8 @@
 // A move's swap: the two slide past each other, overshoot a little and
-// settle, or, for two specials, the first slides onto the second; a
-// special set off where it stands, after a moment's wait; and a swap
-// refused, as the two lean at each other, shake their heads and go back.
+// settle, or, for two specials, the first slides onto the second and the
+// pair winds up; a special set off where it stands, after a moment's
+// wait; and a swap refused, as the two lean at each other, shake their
+// heads and go back.
 
 import type { Swap } from "../../../rules/move/record";
 import type { GridShown } from "../../run_state";
@@ -11,6 +12,7 @@ import { RAISED, restingFace } from "../looks";
 import { type Part, facing, moves, sets } from "../part";
 import { type Standing, findStanding, standingOn } from "../standing";
 import type { Place } from "../timeline";
+import { pairWindUp } from "./pair";
 
 /**
  * Returns the parts of a move's swap on the board as it stands at the tap,
@@ -35,34 +37,21 @@ export function swapOf(
       { what: "hold", atMs: feel.refusedOutMs + feel.refusedBackMs },
     ];
   }
-  return swap.from === swap.to
-    ? [{ what: "hold", atMs: feel.setOffWaitMs }]
-    : [
-        ...swapped(
-          standingOn(grid, swap.from),
-          standingOn(grid, swap.to),
-          feel,
-        ),
-        { what: "hold", atMs: feel.swapMs },
-      ];
-}
-
-/**
- * Returns the parts of a swap kept: the piece swapped from slides, raised,
- * to the other's square, and the other slides to its square; where both
- * go off, as two specials do, the other stays.
- */
-function swapped(
-  from: Standing,
-  to: Standing,
-  feel: FeelTuning,
-): readonly Part[] {
-  return [
+  if (swap.from === swap.to) {
+    return [{ what: "hold", atMs: feel.setOffWaitMs }];
+  }
+  const from = standingOn(grid, swap.from);
+  const to = standingOn(grid, swap.to);
+  const slides: readonly Part[] = [
     ...sets(from.piece.id, 0, { raise: RAISED.moving }),
     ...moves(from.piece.id, 0, feel.swapMs, "back", to.at),
+  ];
+  return [
+    ...slides,
     ...(goesOff(from.piece) && goesOff(to.piece)
-      ? []
+      ? pairWindUp(from, to, feel.swapMs, feel)
       : moves(to.piece.id, 0, feel.swapMs, "back", from.at)),
+    { what: "hold", atMs: feel.swapMs },
   ];
 }
 

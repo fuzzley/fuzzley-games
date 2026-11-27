@@ -1,6 +1,7 @@
 // A puffer going off: it breathes in, cross, as everything near it leans
 // in, then bursts with a white flash, two rings and its tufts, and the
 // board shakes as everything left nearby is pushed back and springs home.
+// Two puffers swapped together do the same, further and harder.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { Blast } from "../../../rules/move/record";
@@ -13,7 +14,7 @@ import { type Standing, findStanding } from "../standing";
 import type { Place } from "../timeline";
 import type { WavePlay } from "../wave_play";
 
-/** Returns the parts of a puffer going off. */
+/** Returns the parts of a puffer, or two swapped together, going off. */
 export function pufferOff(
   blast: Blast,
   reach: Reach,
@@ -21,7 +22,8 @@ export function pufferOff(
 ): readonly Part[] {
   const { feel } = play;
   const at = squareOf(blast.square, play.grid.width);
-  const far = feel.pufferReachSquares;
+  const two = blast.what === "two-puffers";
+  const far = two ? feel.twoPuffersReachSquares : feel.pufferReachSquares;
   const burstMs = reach.startMs + feel.pufferInMs;
   const others = othersOn(blast, play);
   const breathes: readonly Part[] =
@@ -67,7 +69,13 @@ export function pufferOff(
       radius: far * feel.pufferInkRing,
       ink: blast.kind ?? "white",
     }),
-    ...tuftsOf(blast.kind, burstMs, at, feel.pufferTufts, feel.pufferTuftPower),
+    ...tuftsOf(
+      blast.kind,
+      burstMs,
+      at,
+      two ? feel.twoPuffersTufts : feel.pufferTufts,
+      two ? feel.twoPuffersTuftPower : feel.pufferTuftPower,
+    ),
     spawns({
       what: "flash",
       atMs: burstMs,

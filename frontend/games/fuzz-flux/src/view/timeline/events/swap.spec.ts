@@ -46,16 +46,26 @@ describe("swapOf", () => {
     });
   });
 
-  it("slides the first of two specials onto the second, which stays", () => {
+  describe("two specials swapped together", () => {
     const timeline = swapOn(
       { pieces: ["rg"], marks: ["-o"] },
       { from: 0, to: 1, refused: false },
     );
 
-    expect([
-      pieceAt(timeline, 1, FEEL.swapMs).x,
-      pieceAt(timeline, 2, FEEL.swapMs).x,
-    ]).toEqual([1, 1]);
+    it("slides the first onto the second, which stays until the swap is done", () => {
+      expect([
+        pieceAt(timeline, 1, FEEL.swapMs).x,
+        pieceAt(timeline, 2, FEEL.swapMs).x,
+        timeline.pieces.find(({ id }) => id === 2)?.untilMs,
+      ]).toEqual([1, 1, FEEL.swapMs]);
+    });
+
+    it("winds the pair up as the swap is done", () => {
+      expect(timeline.effects).toMatchObject([
+        { what: "ring", atMs: FEEL.swapMs, radius: FEEL.pairRingSquares },
+        { what: "fluff", atMs: FEEL.swapMs },
+      ]);
+    });
   });
 
   it("moves a special set off where it stands not at all, and holds the board a moment", () => {
