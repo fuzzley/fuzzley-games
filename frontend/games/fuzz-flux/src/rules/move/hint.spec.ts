@@ -17,7 +17,7 @@ import { legalMoves } from "./swap";
 /** The kinds the boards of the careful player's moves play with. */
 const KINDS: readonly KindId[] = ["blue", "red", "amber", "green"];
 
-/** A board on which swapping 10 and 11, its last move, bunches the blues along the bottom, and its first bunches none. */
+/** A board whose first move, swapping 1 and 5, bunches the greens across the top, and whose last, swapping 10 and 11, the blues along the bottom. */
 const BLUES_LAST: BoardPicture = { pieces: ["gagr", "rgab", "bbrb"] };
 
 /** A goal of gathering 3 blues, which a bunch of blues meets. */
