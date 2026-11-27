@@ -22,6 +22,7 @@ export const HELD_AS_RULES = [
   "src/testing/dice.ts",
   "src/testing/play_out.ts",
   "src/testing/casual.ts",
+  "src/testing/careful.ts",
 ];
 
 export default defineConfig(
