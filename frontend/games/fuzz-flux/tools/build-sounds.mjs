@@ -21,6 +21,7 @@ import { join } from "node:path";
 import { CONSOLE, isStop, readArgs, stopWith } from "@fz/dev/script";
 import { SR, centered, dB, fade, normalize, wav } from "@fz/dev/synth";
 import { RECIPES as MOVE } from "./sounds/move.mjs";
+import { RECIPES as SPECIALS } from "./sounds/specials.mjs";
 
 /** @import { Printer } from "@fz/dev/script" */
 /** @import { Signal } from "@fz/dev/synth" */
@@ -31,6 +32,7 @@ import { RECIPES as MOVE } from "./sounds/move.mjs";
  * @typedef {object} Recipe
  * @property {string} name Its name in the sprite, one of the view's `SOUNDS`.
  * @property {number} peak Its loudest sample, in dB below full scale.
+ * @property {number} [fadeOut] How long its end fades out, in seconds, 12 ms unless given.
  * @property {() => Signal} make Returns its samples, at any level.
  */
 
@@ -54,7 +56,7 @@ import { RECIPES as MOVE } from "./sounds/move.mjs";
  *
  * @type {readonly Recipe[]}
  */
-export const RECIPES = [...MOVE];
+export const RECIPES = [...MOVE, ...SPECIALS];
 
 /** Where the WAVs are written, which git ignores. */
 const WAV_FOLDER = join(import.meta.dirname, "sounds/wav");
@@ -65,7 +67,7 @@ const TAIL_FLOOR = -52;
 /** How long a sound's start fades in, in seconds, so it never clicks. */
 const FADE_IN = 0.0015;
 
-/** How long a sound's end fades out, in seconds. */
+/** How long a sound's end fades out, in seconds, unless its recipe says. */
 const FADE_OUT = 0.012;
 
 const USAGE = `Usage: yarn build:sounds [options]
@@ -82,12 +84,12 @@ Renders every sound into tools/sounds/wav/.
  * @param {Recipe} recipe
  * @returns {Signal}
  */
-export function finished({ peak, make }) {
+export function finished({ peak, fadeOut = FADE_OUT, make }) {
   const x = normalize(fade(centered(make()), FADE_IN, 0), peak);
   const floor = dB(TAIL_FLOOR);
   let end = x.length - 1;
   while (end > 0 && Math.abs(x[end] ?? 0) < floor) end--;
-  return fade(x.subarray(0, end + 1 + Math.round(FADE_OUT * SR)), 0, FADE_OUT);
+  return fade(x.subarray(0, end + 1 + Math.round(fadeOut * SR)), 0, fadeOut);
 }
 
 /**

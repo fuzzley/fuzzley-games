@@ -169,24 +169,31 @@ describe("each sound, held to the design's measures", () => {
 });
 
 describe("finished", () => {
-  it("brings a sound to its peak, and keeps 12 ms of its tail once it has died away under -52 dB", () => {
-    // A tone that falls 200 dB a second.
-    const make = (): Signal =>
-      osc("sine", 1000, 0.3).map((v, i) => v * 10 ** ((-10 * i) / SR));
+  // How long a recipe's fade-out is, as it gives it, and in seconds.
+  it.each([
+    ["12 ms unless its recipe says", {}, 0.012],
+    ["as long as its recipe's fade-out", { fadeOut: 0.05 }, 0.05],
+  ] as const)(
+    "brings a sound to its peak, and keeps %s of its tail once it has died away under -52 dB",
+    (_, fading, seconds) => {
+      // A tone that falls 200 dB a second.
+      const make = (): Signal =>
+        osc("sine", 1000, 0.3).map((v, i) => v * 10 ** ((-10 * i) / SR));
 
-    const x = finished({ name: "tone", peak: -6, make });
+      const x = finished({ name: "tone", peak: -6, make, ...fading });
 
-    const kept = Math.round(0.012 * SR);
-    expect({
-      peak: loudness(x).peak,
-      lastOverTheFloor: loudness(x.subarray(-kept - 1, -kept)).peak >= -52,
-      tail: loudness(x.subarray(-kept)).peak < -52,
-    }).toEqual({
-      peak: expect.closeTo(-6, 6) as unknown,
-      lastOverTheFloor: true,
-      tail: true,
-    });
-  });
+      const kept = Math.round(seconds * SR);
+      expect({
+        peak: loudness(x).peak,
+        lastOverTheFloor: loudness(x.subarray(-kept - 1, -kept)).peak >= -52,
+        tail: loudness(x.subarray(-kept)).peak < -52,
+      }).toEqual({
+        peak: expect.closeTo(-6, 6) as unknown,
+        lastOverTheFloor: true,
+        tail: true,
+      });
+    },
+  );
 
   it("centers a sound and fades its ends in and out, so it never clicks", () => {
     // A tone off the middle, as loud at its end as at its start.

@@ -1,11 +1,28 @@
 // What the recipes share: the envelope each part of a sound is shaped by,
-// a value that settles toward another, and the voices several sounds are
-// made of, a soft mallet's note and a rush of air, each built of
+// a value that settles toward another, the voices several sounds are made
+// of (a soft mallet's note, a small bell, a buzz, a rush of air and a
+// sparkle) and the small room many are heard in, each built of
 // `@fz/dev/synth`'s signals.
 
-import { cents, filter, gain, mix, noise, osc } from "@fz/dev/synth";
+import {
+  SR,
+  TAU,
+  cents,
+  degree,
+  fade,
+  filter,
+  gain,
+  mix,
+  modes,
+  noise,
+  osc,
+  read,
+  reverb,
+  samples,
+  scatter,
+} from "@fz/dev/synth";
 
-/** @import { Signal } from "@fz/dev/synth" */
+/** @import { Param, Signal } from "@fz/dev/synth" */
 
 /**
  * Describes how a part of a sound swells and dies away, each time in
@@ -15,6 +32,7 @@ import { cents, filter, gain, mix, noise, osc } from "@fz/dev/synth";
  * @property {number} attack How long it takes to reach its full level.
  * @property {number} [hold] How long it stays there, none unless given.
  * @property {number} decay How long it then takes to fall to about a third, and a third of that again in as long.
+ * @property {number} [curve] How its attack bows: above 1 it starts softly, 1 unless given.
  */
 
 /**
@@ -25,9 +43,9 @@ import { cents, filter, gain, mix, noise, osc } from "@fz/dev/synth";
  * @param {Envelope} envelope
  * @returns {Signal}
  */
-export function shaped(x, { attack, hold = 0, decay }) {
+export function shaped(x, { attack, hold = 0, decay, curve = 1 }) {
   return gain(x, (t) => {
-    if (t < attack) return t / attack;
+    if (t < attack) return (t / attack) ** curve;
     if (t < attack + hold) return 1;
     return Math.exp(-(t - attack - hold) / decay);
   });
@@ -150,4 +168,122 @@ export function whoosh({
     const u = t / seconds;
     return u < lean ? (u / lean) ** 1.6 : (1 - (u - lean) / (1 - lean)) ** 1.8;
   });
+}
+
+/**
+ * Returns a small bell at a pitch, in Hz: three partials a little out of
+ * tune with one another, the higher ones dying first, and none above 6 kHz.
+ *
+ * @param {number} freq
+ * @param {number} [decay] How long its lowest partial takes to fall to a third, in seconds.
+ * @returns {Signal}
+ */
+export function bell(freq, decay = 0.16) {
+  const partials = [
+    { ratio: 1, gain: 0.8, decay: 1 },
+    { ratio: 2.76, gain: 0.26, decay: 0.5 },
+    { ratio: 4.07, gain: 0.1, decay: 0.3 },
+  ];
+  return fade(
+    modes(
+      partials
+        .filter(({ ratio }) => freq * ratio <= 6000)
+        .map((partial) => ({
+          freq: freq * partial.ratio,
+          gain: partial.gain,
+          // A fall to a third every `decay` is 60 dB down, as a mode's decay
+          // is told, after ln(1000) of them.
+          decay: decay * partial.decay * Math.log(1000),
+        })),
+      Math.min(1.2, decay * 5),
+    ),
+    0.005,
+    0,
+  );
+}
+
+/**
+ * Describes the small, soft room a sound is heard in.
+ *
+ * @typedef {object} RoomHow
+ * @property {number} seconds How long it rings, until 60 dB down.
+ * @property {number} wet How much of it is heard under the sound.
+ */
+
+/** How the room's walls dull its echoes: by a corner near 3.8 kHz. */
+const ROOM_DAMP = Math.exp((-2 * Math.PI * 3800) / SR);
+
+/**
+ * Returns a sound in a small, soft room, its echoes dull, so it never stops
+ * dead.
+ *
+ * @param {Signal} x
+ * @param {RoomHow} how
+ * @returns {Signal}
+ */
+export function room(x, { seconds, wet }) {
+  // The house's room made as near the design's as it comes: smaller, its
+  // tail starting at once, and a quarter quieter, as eight combs ring on
+  // more than four.
+  return reverb(x, {
+    decay: seconds,
+    mix: wet * 0.75,
+    damp: ROOM_DAMP,
+    size: 0.8,
+    predelay: 0,
+  });
+}
+
+/**
+ * Returns a few bright specks scattered at random over a time, each a quick
+ * sine an octave above a step of the ladder's top octave, the earliest the
+ * loudest.
+ *
+ * @param {number} seconds
+ * @param {number} count
+ * @param {number} seed
+ * @returns {Signal}
+ */
+export function sparkle(seconds, count, seed) {
+  return filter(
+    scatter({
+      count,
+      seconds,
+      seed,
+      bias: 1,
+      grain: (_, random) =>
+        shaped(osc("sine", degree(10 + Math.floor(random() * 5)), 0.09), {
+          attack: 0.004,
+          decay: 0.022,
+        }),
+      level: (share) => 0.35 + 0.3 * (1 - share),
+    }),
+    "lp",
+    5600,
+  );
+}
+
+/**
+ * Returns a buzz at a pitch, in Hz, that may move: its harmonics as sines,
+ * as many as fit under `top`, 24 at most, the nth at 1/n to the power of
+ * `tilt`, 1 being a saw's, so it never aliases however high it goes.
+ *
+ * @param {Param} freq
+ * @param {number} seconds
+ * @param {number} top In Hz.
+ * @param {number} tilt
+ * @returns {Signal}
+ */
+export function buzz(freq, seconds, top, tilt) {
+  const out = new Float64Array(samples(seconds));
+  let phase = 0;
+  for (let i = 0; i < out.length; i++) {
+    const f = read(freq, i);
+    phase = (phase + f / SR) % 1;
+    const count = Math.max(1, Math.min(24, Math.floor(top / f)));
+    let v = 0;
+    for (let n = 1; n <= count; n++) v += Math.sin(TAU * n * phase) / n ** tilt;
+    out[i] = 0.6 * v;
+  }
+  return out;
 }
