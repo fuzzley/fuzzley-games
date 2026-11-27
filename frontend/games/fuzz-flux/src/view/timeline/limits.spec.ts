@@ -1,6 +1,6 @@
 import { keysOf, recordOf } from "@fz/core/records";
 import { mostAtOnce } from "../../testing/at_once";
-import type { MoveFixture } from "../../testing/move_fixtures";
+import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
 import { moveStartOf } from "../../testing/shown_board";
 import { SKETCH_MOVES } from "../../testing/sketch_moves";
 import { TOP_RUNG } from "../effects/ladder";
@@ -194,12 +194,14 @@ describe("POOLS", () => {
       FEEL,
     );
     const two = mostAtOnce(playedUnpooled(SKETCH_MOVES.twoFrizzballs), FEEL);
+    const gust = mostAtOnce(playedUnpooled(MOVE_FIXTURES.windTurns), FEEL);
 
     expect(POOLS).toEqual({
       ring: two.ring,
       streak: withPuffer.streak,
       bolt: withDasher.bolt,
       flash: withDasher.flash,
+      "gust-line": gust["gust-line"],
       mark: withDasher.mark,
     });
   });

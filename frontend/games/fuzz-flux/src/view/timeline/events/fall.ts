@@ -17,7 +17,7 @@ import type { Place } from "../timeline";
 import type { WavePlay } from "../wave_play";
 
 /** The way each wind blows on the screen, a square at a time. */
-const WAYS = {
+export const WAYS = {
   down: { x: 0, y: 1 },
   right: { x: 1, y: 0 },
   up: { x: 0, y: -1 },

@@ -11,6 +11,7 @@ import type { GridShown } from "../run_state";
 import { afterShuffle, afterSpread } from "./board_after";
 import type { Draft } from "./draft";
 import { burrSpreads } from "./events/burr";
+import { gustCrosses } from "./events/gust";
 import { gustSound } from "./events/gust_sound";
 import { shuffled } from "./events/shuffle";
 import { spreadSound } from "./events/spread_sound";
@@ -41,7 +42,7 @@ export type GustEvent = (gust: Gust, play: AfterPlay) => readonly Part[];
 const SPREAD_EVENTS: readonly SpreadEvent[] = [spreadSound, burrSpreads];
 
 /** Each event the wind's turn plays by. */
-const GUST_EVENTS: readonly GustEvent[] = [gustSound];
+const GUST_EVENTS: readonly GustEvent[] = [gustSound, gustCrosses];
 
 /** Describes a move played to its end: when the board may go on, how it is left, and the way the wind blows. */
 export interface MovePlayed extends WavePlayed {

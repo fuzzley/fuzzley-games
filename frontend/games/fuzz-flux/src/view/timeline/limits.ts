@@ -21,21 +21,22 @@ interface Timed {
 /** An effect the scene draws from a pool of its own, a pool a kind. */
 type Pooled = Extract<
   Effect,
-  { readonly what: "ring" | "streak" | "bolt" | "flash" }
+  { readonly what: "ring" | "streak" | "bolt" | "flash" | "gust-line" }
 >;
 
 /**
  * How many of each effect, and of the waves' marks, the scene's pools
  * hold: as many as the busiest moves a timeline plays show at once, a
  * frizzball swapped onto a dasher, a dasher swapped with a puffer and two
- * frizzballs swapped together on a board 8 by 9, as `limits.spec.ts`
- * measures them.
+ * frizzballs swapped together on a board 8 by 9, and a gust's lines of
+ * wind, as `limits.spec.ts` measures them.
  */
 export const POOLS = {
   ring: 72,
   streak: 12,
   bolt: 5,
   flash: 1,
+  "gust-line": 16,
   mark: 3,
 } as const satisfies Readonly<Record<Pooled["what"] | "mark", number>>;
 

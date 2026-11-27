@@ -193,7 +193,7 @@ export class EffectsPainter implements Painter {
           break;
         }
         // Fluff is the loose painter's, and a shake the camera's. A gust's
-        // lines have no painter yet, as no event spawns one.
+        // lines have no painter yet: the wind's package draws them.
         case "fluff":
         case "shake":
         case "gust-line":
