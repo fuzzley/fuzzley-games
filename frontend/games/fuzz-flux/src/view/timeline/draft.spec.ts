@@ -160,7 +160,7 @@ describe("Draft", () => {
 
   it("hands on when the board comes to rest and the level's end", () => {
     const draft = new Draft(BOARD, [], "full");
-    const end = { cardMs: 2000, starsMs: [2200] };
+    const end = { cardMs: 2000, starsMs: [2200], hurriedFromMs: 1000 };
 
     expect(draft.finish(1500, end, FEEL, POOLS)).toEqual(
       expect.objectContaining({ restMs: 1500, end }),

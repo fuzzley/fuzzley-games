@@ -395,7 +395,11 @@ describe("sampleFlight", () => {
 });
 
 describe("starsLitAt", () => {
-  const end = { cardMs: 1000, starsMs: [1200, 1500, 1800] };
+  const end = {
+    cardMs: 1000,
+    starsMs: [1200, 1500, 1800],
+    hurriedFromMs: 500,
+  };
 
   it.each([
     [1199, 0],

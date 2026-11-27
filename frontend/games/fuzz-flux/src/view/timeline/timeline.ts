@@ -237,6 +237,13 @@ export interface EndBeats {
   readonly cardMs: number;
   /** When each star the card shows lights, in order. */
   readonly starsMs: readonly number[];
+  /**
+   * The earliest moment a tap hurries the rest of the timeline at the
+   * feel's `hurriedPace`, as the flashes from it are kept a gap at that
+   * pace apart, a tap before it hurrying nothing; or null where no tap
+   * does, as after a move that runs out.
+   */
+  readonly hurriedFromMs: number | null;
 }
 
 /** Describes everything a move plays as, each at its time from the tap. */

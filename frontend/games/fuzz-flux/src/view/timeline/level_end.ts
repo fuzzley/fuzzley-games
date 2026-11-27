@@ -63,13 +63,18 @@ export function playLevelEnd(
       draft.add([cue("lose", played.endMs + feel.loseSoundAfterMs)]);
       return {
         restMs: played.endMs,
-        end: { cardMs: played.endMs + feel.overCardAfterMs, starsMs: [] },
+        end: {
+          cardMs: played.endMs + feel.overCardAfterMs,
+          starsMs: [],
+          hurriedFromMs: null,
+        },
       };
     case "cleared": {
       if (cleared === null) {
         throw new RangeError("A move that clears its level needs its encore.");
       }
-      draft.hurries(played.endMs);
+      const hurriedFromMs = played.endMs;
+      draft.hurries(hurriedFromMs);
       draft.add([
         cue("win", played.endMs + feel.winSoundAfterMs),
         ...(draft.motion === "less"
@@ -95,7 +100,10 @@ export function playLevelEnd(
       draft.add(
         starsMs.map((atMs, star) => cue(itemAt(STAR_SOUNDS, star), atMs)),
       );
-      return { restMs: encored.endMs, end: { cardMs, starsMs } };
+      return {
+        restMs: encored.endMs,
+        end: { cardMs, starsMs, hurriedFromMs },
+      };
     }
   }
 }

@@ -267,6 +267,7 @@ describe("timelineOf", () => {
     expect(timeline.end).toEqual({
       cardMs: timeline.restMs + FEEL.overCardAfterMs,
       starsMs: [],
+      hurriedFromMs: null,
     });
   });
 });

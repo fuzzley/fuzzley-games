@@ -75,7 +75,11 @@ describe("playLevelEnd", () => {
       ),
     ).toEqual({
       restMs: REST_MS,
-      end: { cardMs: REST_MS + FEEL.overCardAfterMs, starsMs: [] },
+      end: {
+        cardMs: REST_MS + FEEL.overCardAfterMs,
+        starsMs: [],
+        hurriedFromMs: null,
+      },
     });
   });
 
@@ -160,7 +164,7 @@ describe("playLevelEnd", () => {
       expect(secondMs).toBeGreaterThan(GIVEN_MS + FEEL.encoreSpareMs);
     });
 
-    it("shows the Cleared card a while after the encore, lighting each star it earned a beat apart", () => {
+    it("shows the Cleared card a while after the encore, lighting each star it earned a beat apart, a tap hurrying all from the move's rest", () => {
       const cardMs = ended.restMs + FEEL.clearedCardAfterMs;
 
       expect(ended.end).toEqual({
@@ -169,6 +173,7 @@ describe("playLevelEnd", () => {
           cardMs + FEEL.starsAfterMs + FEEL.starGapMs,
           cardMs + FEEL.starsAfterMs + 2 * FEEL.starGapMs,
         ],
+        hurriedFromMs: REST_MS,
       });
     });
   });
