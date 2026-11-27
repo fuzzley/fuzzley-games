@@ -85,6 +85,20 @@ describe("pieceInks", () => {
     },
   );
 
+  it.each([
+    ["light", [0x735a3d, 0x634935, 0x523a2e, 0x412a27]],
+    ["dark", [0xb5a68a, 0xa38f7c, 0x917b71, 0x7e6a67]],
+  ] as const)(
+    "shades each cushion's underside a fifth of the way from its ink to black, in a %s palette",
+    (mode, undersides) => {
+      const { cushionUndersides } = pieceInks(mode);
+
+      expect(BRICK_LAYERS.map((place) => cushionUndersides[place])).toEqual(
+        undersides,
+      );
+    },
+  );
+
   it("draws a cage's bars in the eyes' ink in every palette", () => {
     const palettes = [pieceInks("light"), pieceInks("dark")];
 

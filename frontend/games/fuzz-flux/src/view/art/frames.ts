@@ -1,9 +1,9 @@
 // Every frame the atlas holds, and the scale it is baked at.
 
 import { type ArtFrame, type ArtScale, centered } from "@fz/phaser/shapes";
-import { BRICK_LAYERS } from "../../rules/catalog/elements";
 import type { BoardPalette } from "../colors/palette";
 import { bodyFrames } from "./bodies";
+import { brickFrames } from "./elements/brick";
 import { burrFrames } from "./elements/burr";
 import { dustFrames } from "./elements/dust";
 import { sleepyheadFrame } from "./elements/sleepyhead";
@@ -34,10 +34,6 @@ export function bakedScale(square: ArtScale): ArtScale {
 
 /** The frames an element's own package draws, each an empty stand-in until that package removes it from this list. */
 const STAND_INS: readonly FrameName[] = [
-  ...BRICK_LAYERS.map((layers) => FRAMES.brick(layers)),
-  ...BRICK_LAYERS.map((layers) => FRAMES.cushion(layers)),
-  ...BRICK_LAYERS.map((layers) => FRAMES.cushionTuft(layers)),
-  FRAMES.button,
   FRAMES.cage,
   FRAMES.cageBar,
   FRAMES.gustLine,
@@ -55,6 +51,7 @@ export function atlasFrames(
     ...eyesFrames(scale),
     wellFrame(palette, scale),
     ...dustFrames(palette, scale),
+    ...brickFrames(palette, scale),
     ...burrFrames(palette, scale),
     ...fluffFrames(palette, scale),
     ...markFrames(palette, scale),

@@ -53,7 +53,8 @@ const DUST_PICTURES: readonly `picture-dust-${Dusty}`[] = DUSTY.map((layers) =>
  * The frame each picture is, as `Pictures` takes them: each kind's
  * fuzzball, a fuzzball in each special's fur, the frizzball, the
  * sleepyhead, a caged fuzzball, a burred one, a square under each layer
- * of dust in turn, and a brick of the most layers, its own frame.
+ * of dust in turn, and a brick of 1 layer, its own frame, as the design
+ * pictures the bricks' goal.
  */
 export const PICTURE_FRAMES = {
   kinds: recordOf(KIND_IDS, pictureOf),
@@ -63,7 +64,7 @@ export const PICTURE_FRAMES = {
   caged: pictureOf("caged"),
   burred: pictureOf("burred"),
   dust: DUST_PICTURES,
-  brick: FRAMES.brick(itemAt(BRICK_LAYERS, BRICK_LAYERS.length - 1)),
+  brick: FRAMES.brick(itemAt(BRICK_LAYERS, 0)),
 } as const;
 
 /** Holds a picture of each frame {@link PICTURE_FRAMES} names, as a `data:` URL, in the same records. */

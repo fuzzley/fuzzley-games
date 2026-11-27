@@ -53,6 +53,8 @@ interface ElementInks {
 
 /** Describes the inks the board's pieces are drawn in, in one mode. */
 export interface PieceInks extends ElementInks {
+  /** The underside of each of a brick's cushions, by its place in its pile from the bottom: its own ink, as `CUSHION_UNDERSIDE` darkens it. */
+  readonly cushionUndersides: Readonly<Record<BrickLayers, number>>;
   /** Each kind's ink. */
   readonly kinds: Readonly<Record<KindId, number>>;
   /**
@@ -94,6 +96,13 @@ const SECOND_FUR: Readonly<
 };
 
 /**
+ * How far a cushion's underside is mixed from its ink toward black, as the
+ * design's art shades it, in every mode: the pile's floor, its bottom
+ * cushion's underside, still keeps 3:1 against the square and dust.
+ */
+const CUSHION_UNDERSIDE = 0.2;
+
+/**
  * A cage's bars: the eyes' ink, the same in every palette, since both lie
  * on a fuzzball, which every kind's ink keeps 3:1 against.
  */
@@ -123,11 +132,20 @@ export function pieceInks(mode: ColorMode): PieceInks {
     itemAt(FUZZBALL_INKS[mode], KIND_INK_PLACES[kind]),
   );
   const { toward, share } = SECOND_FUR[mode];
+  const elements = ELEMENT_INKS[mode];
+  const underside = (place: BrickLayers): number =>
+    mixColors(0x000000, elements.cushions[place], CUSHION_UNDERSIDE);
   return {
     kinds,
     secondFurs: recordOf(KIND_IDS, (kind) =>
       mixColors(toward, kinds[kind], share),
     ),
-    ...ELEMENT_INKS[mode],
+    cushionUndersides: {
+      1: underside(1),
+      2: underside(2),
+      3: underside(3),
+      4: underside(4),
+    },
+    ...elements,
   };
 }

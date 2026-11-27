@@ -4,7 +4,6 @@ import {
   atlasSize,
   extentOf,
 } from "@fz/phaser/shapes";
-import { BRICK_LAYERS } from "../../rules/catalog/elements";
 import {
   ART_PALETTE,
   ART_SCALE,
@@ -62,15 +61,7 @@ describe("atlasFrames", () => {
       .filter(({ commands }) => commands.length === 0)
       .map(({ name }) => name);
 
-    expect(empty).toEqual([
-      ...BRICK_LAYERS.map((layers) => FRAMES.brick(layers)),
-      ...BRICK_LAYERS.map((layers) => FRAMES.cushion(layers)),
-      ...BRICK_LAYERS.map((layers) => FRAMES.cushionTuft(layers)),
-      FRAMES.button,
-      FRAMES.cage,
-      FRAMES.cageBar,
-      FRAMES.gustLine,
-    ]);
+    expect(empty).toEqual([FRAMES.cage, FRAMES.cageBar, FRAMES.gustLine]);
   });
 
   it(`fits the atlas at its largest, at a pixel ratio of 3, in the room of ${String(PAGES)} pages of ${String(PAGE)} × ${String(PAGE)}`, () => {

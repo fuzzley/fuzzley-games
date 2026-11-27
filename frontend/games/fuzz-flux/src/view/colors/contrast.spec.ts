@@ -55,6 +55,14 @@ const EYES = colorNumber(FUZZBALL.ink);
 // 3:1 against both a dark palette's square and every kind: the frame tells
 // the cage there.
 //
+// A brick's darker undersides keep 3:1 only where one draws the pile's
+// edge: the bottom cushion's, the floor the pile stands on, against the
+// square, dust and thick dust. Each other cushion's meets the square only
+// in the thin gap beneath it and at its ears: shading a player needn't
+// tell from the square, since the cushion's face, held against it, tells
+// the cushion. A dark palette's darkest undersides keep about 2:1
+// against thick dust.
+//
 // Two more keep less, which a player needn't tell apart. A kind against
 // its burr: the ring of thorns stands round its fuzzball, off it, as the
 // design draws it, so the fuzzball lies on the square. And the sleepyhead's
@@ -135,6 +143,12 @@ describe("the board's contrast", () => {
           ])),
       ...dusts.flatMap(([dust, color]) =>
         against(dust, color, [["specks", palette.specks]]),
+      ),
+      ...[["square", palette.square] as const, ...dusts].flatMap(
+        ([ground, color]) =>
+          against(ground, color, [
+            ["brick's floor", palette.cushionUndersides[1]],
+          ]),
       ),
     ];
   });
