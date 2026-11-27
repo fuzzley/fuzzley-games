@@ -1,8 +1,9 @@
 // The swap: which pieces can be picked up, which swaps of two neighbors are
-// moves, every move a board allows, and which fuzzballs could bunch with
-// one picked up. What keeps a piece from being swapped is each element's
-// rule; a swap is a move where it moves a special or the frizzball, or
-// makes a bunch, but never the frizzball with a piece that is no fuzzball.
+// moves, every move a board allows, which fuzzballs could bunch with one
+// picked up, and which are plain. What keeps a piece from being swapped is
+// each element's rule; a swap is a move where it moves a special or the
+// frizzball, or makes a bunch, but never the frizzball with a piece that is
+// no fuzzball.
 
 import { itemAt } from "@fz/core/records";
 import type { Board, Game } from "../board/board";
@@ -10,7 +11,7 @@ import { neighborsOf } from "../board/cells";
 import { fromScreen, onScreen } from "../board/orientation";
 import { bunchesAs, findBunches, standsInBunch } from "../bunches/find";
 import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
-import type { Piece } from "../catalog/pieces";
+import type { Fuzzball, Piece } from "../catalog/pieces";
 import type { ElementRule } from "../elements/element_rule";
 import type { Swap } from "./record";
 
@@ -26,6 +27,26 @@ export function canSwap(
   }
   const state = { piece, dust: itemAt(board.dust, square) };
   return !ELEMENT_IDS.some((id) => rules[id].holdsSwap?.(state) === true);
+}
+
+/** Describes a fuzzball on its square. */
+export interface PlacedFuzzball {
+  readonly square: number;
+  readonly piece: Fuzzball;
+}
+
+/** Returns a board's plain fuzzballs, those that wear no special and that no element's rule holds, in the board's order. */
+export function plainFuzzballs(
+  board: Board,
+  rules: Readonly<Record<ElementId, ElementRule>>,
+): readonly PlacedFuzzball[] {
+  return board.pieces.flatMap((piece, square) =>
+    piece?.what === "fuzzball" &&
+    piece.special === null &&
+    canSwap(board, square, rules)
+      ? [{ square, piece }]
+      : [],
+  );
 }
 
 /**

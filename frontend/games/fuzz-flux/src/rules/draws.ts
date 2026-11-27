@@ -1,7 +1,9 @@
 // What each of the rules' draws is for. Every draw is `@fz/core/random`'s
 // `hashOf()` of four whole numbers, the last a salt named here, so a draw
-// hangs on no draw before it and two kinds of draw never meet. The deals
-// proven for every level rely on these numbers, bit for bit.
+// hangs on no draw before it and two kinds of draw never meet; the careful
+// player guesses at what falls in on seeds of its own, the deal's with the
+// bits flipped that the masks here set. The deals proven for every level
+// rely on these numbers, bit for bit.
 
 /** The salt each kind of draw takes as the last of `hashOf()`'s four numbers. */
 export const SALTS = {
@@ -46,3 +48,10 @@ export const SALTS = {
  * quarter turns times this, and its place.
  */
 export const LANE_KEYS_A_TURN = 64;
+
+/**
+ * The masks of the careful player's two guesses at what falls in, a guess
+ * each: it pictures a move played on the deal's seed with the mask's bits
+ * flipped, so it can't see what will fall in.
+ */
+export const GUESS_MASKS = [0x5bd1e995, 0x1b873593] as const;

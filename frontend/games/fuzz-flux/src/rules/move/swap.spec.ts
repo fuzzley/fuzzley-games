@@ -2,7 +2,13 @@ import { boardFrom, gameFrom } from "../../testing/board_picture";
 import { DESIGN_HOLDS, NO_PART } from "../../testing/made_up_rules";
 import { turnFrame } from "../board/orientation";
 import type { SquareState } from "../elements/element_rule";
-import { bunchMatesOf, canSwap, legalMoves, swapWorks } from "./swap";
+import {
+  bunchMatesOf,
+  canSwap,
+  legalMoves,
+  plainFuzzballs,
+  swapWorks,
+} from "./swap";
 
 /** Returns whether each square of a board drawn as a picture can be picked up, by the rules given. */
 function pickable(
@@ -178,5 +184,18 @@ describe("bunchMatesOf", () => {
     bunchMatesOf(game, 0, NO_PART);
 
     expect(game).toEqual(before);
+  });
+});
+
+describe("plainFuzzballs", () => {
+  it("finds the fuzzballs that wear no special and that no rule holds, in the board's order", () => {
+    // A caged fuzzball, a brick, a dasher, the frizzball, a sleepyhead and
+    // a burred fuzzball stand among the plain.
+    const board = boardFrom({ pieces: ["bB1rfzgb"], marks: ["...|...*"] });
+
+    expect(plainFuzzballs(board, DESIGN_HOLDS)).toEqual([
+      { square: 0, piece: board.pieces[0] },
+      { square: 6, piece: board.pieces[6] },
+    ]);
   });
 });

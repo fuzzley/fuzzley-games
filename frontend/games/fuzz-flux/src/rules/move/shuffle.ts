@@ -12,7 +12,7 @@ import { SALTS } from "../draws";
 import type { ElementRule } from "../elements/element_rule";
 import { SHUFFLE_TRIES } from "../tuning";
 import type { Shuffled } from "./record";
-import { canSwap, legalMoves } from "./swap";
+import { legalMoves, plainFuzzballs } from "./swap";
 
 /** Describes a game whose plain fuzzballs have traded places, and how. */
 export interface ShuffledGame {
@@ -22,24 +22,18 @@ export interface ShuffledGame {
 }
 
 /**
- * Returns a game with its plain fuzzballs, those that wear no special and
- * that no element's rule holds, traded among their squares: at each try,
- * each draws a key from the deal's seed, the moves played and its place in
- * the board's order, and they take their squares in the order of their
- * keys, until a try leaves a move and no bunch, or the last try stays.
+ * Returns a game with its plain fuzzballs traded among their squares: at
+ * each try, each draws a key from the deal's seed, the moves played and its
+ * place in the board's order, and they take their squares in the order of
+ * their keys, until a try leaves a move and no bunch, or the last try
+ * stays.
  */
 export function shuffle(
   game: Game,
   rules: Readonly<Record<ElementId, ElementRule>>,
 ): ShuffledGame {
   const { board } = game;
-  const plain = board.pieces.flatMap((piece, square) =>
-    piece?.what === "fuzzball" &&
-    piece.special === null &&
-    canSwap(board, square, rules)
-      ? [{ square, piece }]
-      : [],
-  );
+  const plain = plainFuzzballs(board, rules);
   const squares = plain.map(({ square }) => square);
   let order: readonly number[] = squares;
   let shuffled = board;
