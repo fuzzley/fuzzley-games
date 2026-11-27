@@ -11,7 +11,6 @@ import {
   type DrawCommand,
   type Point,
   circle,
-  inset,
   polygon,
   stroke,
 } from "@fz/phaser/shapes";
@@ -183,48 +182,3 @@ export const SPECIAL_ART = {
 
 /** How wide the rim between a special's fuzzball and its second fur is, in the design's units, where that is more than a CSS pixel. */
 export const RIM = BODY * 0.08;
-
-/**
- * Returns a drawing widened by a width, in a color: the rim a special's
- * fuzzball wears between it and its second fur, in the square's color, so
- * its outline reads where its second fur's ink lies close to its own, as on
- * a dark palette it does.
- *
- * A line is widened either side, its ends left as they are, as `stroke()`'s
- * round dots end every strand of fur, and are widened all round.
- */
-export function rimOf(
-  commands: readonly DrawCommand[],
-  width: number,
-  color: number,
-): readonly DrawCommand[] {
-  return commands.flatMap((command): readonly DrawCommand[] => {
-    switch (command.kind) {
-      case "rect":
-        return [{ ...command, ...inset(command, -width), color }];
-      case "roundRect":
-        return [
-          {
-            ...command,
-            ...inset(command, -width),
-            radius: command.radius + width,
-            color,
-          },
-        ];
-      case "circle":
-        return [{ ...command, radius: command.radius + width, color }];
-      case "ring":
-      case "line":
-      case "polyline":
-        return [{ ...command, width: command.width + 2 * width, color }];
-      case "polygon":
-        return [
-          { ...command, color },
-          ...stroke([...command.points, ...command.points.slice(0, 1)], {
-            color,
-            width: 2 * width,
-          }),
-        ];
-    }
-  });
-}

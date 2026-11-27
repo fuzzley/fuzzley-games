@@ -20,7 +20,7 @@ import {
 } from "@fz/phaser/shapes";
 import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
 import type { BoardPalette } from "../colors/palette";
-import { BODY, SQUARE, inPixels } from "./design_square";
+import { BODY, atLeastAPixel, inPixels } from "./design_square";
 import { FRAMES, FURS, type Fur, LIFTS, type Lift } from "./frame_names";
 import { AMBER } from "./kinds/amber";
 import { BLUE } from "./kinds/blue";
@@ -29,7 +29,8 @@ import type { KindArt } from "./kinds/kind_art";
 import { PINK } from "./kinds/pink";
 import { RED } from "./kinds/red";
 import { VIOLET } from "./kinds/violet";
-import { RIM, SPECIAL_ART, rimOf } from "./specials";
+import { rimOf } from "./rim";
+import { RIM, SPECIAL_ART } from "./specials";
 
 /** Each kind's art, by its id, so a kind cataloged without art fails to compile. */
 const KIND_ART = {
@@ -114,10 +115,7 @@ export function bodyFrames(
   palette: BoardPalette,
   scale: ArtScale,
 ): readonly ArtFrame[] {
-  const rim = Math.max(
-    RIM,
-    (Math.ceil(scale.pixelRatio) * SQUARE) / scale.unit,
-  );
+  const rim = atLeastAPixel(RIM, scale);
   return KIND_IDS.flatMap((kind) => {
     const inks = bodyInksOf(palette, kind);
     return FURS.flatMap((fur) =>

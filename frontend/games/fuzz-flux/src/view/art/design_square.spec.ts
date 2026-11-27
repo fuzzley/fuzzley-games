@@ -1,6 +1,6 @@
 import { circle } from "@fz/phaser/shapes";
 import { billionths } from "../../testing/art_frames";
-import { BODY, SQUARE, inPixels, polar } from "./design_square";
+import { BODY, SQUARE, atLeastAPixel, inPixels, polar } from "./design_square";
 
 describe("polar", () => {
   it.each([
@@ -29,4 +29,17 @@ describe("inPixels", () => {
 
     expect(body).toEqual(circle({ x: 25, y: 0 }, 14.5, { color: 1 }));
   });
+});
+
+describe("atLeastAPixel", () => {
+  it.each([
+    [3, { unit: 100, pixelRatio: 2 }, 3],
+    [1, { unit: 100, pixelRatio: 2 }, 2],
+    [1, { unit: 80, pixelRatio: 1.5 }, 2.5],
+  ])(
+    "keeps %f of the design's units at %o, or widens it to a CSS pixel, %f",
+    (units, scale, widened) => {
+      expect(atLeastAPixel(units, scale)).toBe(widened);
+    },
+  );
 });

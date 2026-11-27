@@ -43,6 +43,10 @@ describe("boardPalette", () => {
     expect(boardPalette(ROLES, "light").spark).toBe(0xffa500);
   });
 
+  it("draws the hint's hand and a wave's mark in the text", () => {
+    expect(boardPalette(ROLES, "light").marks).toBe(0x101010);
+  });
+
   it.each(["light", "dark"] as const)(
     "takes in the pieces' inks of a %s palette",
     (mode) => {

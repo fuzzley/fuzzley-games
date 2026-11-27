@@ -55,6 +55,8 @@ export interface BoardPalette extends PieceInks {
   readonly frizzball: FrizzballColors;
   /** The sparks of static, and the frizzball's bolts: the warning color. */
   readonly spark: number;
+  /** What lies over the pieces to be read, the hint's hand and a wave's mark: the text, each with a rim of the page's color. */
+  readonly marks: number;
 }
 
 /**
@@ -85,6 +87,7 @@ export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
     specks: colorNumber(roles.muted),
     frizzball: { body: text, eyes: page },
     spark: colorNumber(roles.warning),
+    marks: text,
     ...pieceInks(mode),
   };
 }

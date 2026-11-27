@@ -31,3 +31,8 @@ export function inPixels(
   const by = scale.unit / SQUARE;
   return commands.map((command) => scaledBy(command, by));
 }
+
+/** Returns a width in the design's units, or a CSS pixel's whole device pixels where it would draw less at a scale. */
+export function atLeastAPixel(units: number, scale: ArtScale): number {
+  return Math.max(units, (Math.ceil(scale.pixelRatio) * SQUARE) / scale.unit);
+}
