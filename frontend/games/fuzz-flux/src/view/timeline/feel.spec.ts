@@ -414,6 +414,54 @@ const PORTED = {
   ],
   cheerHappyMs: [420, "at(now + wait + «420», () => {"],
   dustPuffMs: [320, "tween(sq, { puff: 0 }, «320», ease.out);"],
+  pileSpread: [1.07, "s.sy = 0.84; s.sx = «1.07»;"],
+  pileSpreadMs: [320, "tween(s, { sx: 1, sy: 1 }, «320», ease.spring);"],
+  pileWobble: [0.5, "s.shake = «0.5»; tween(s, { shake: 0 }, 200, ease.out);"],
+  pileWobbleMs: [
+    200,
+    "s.shake = 0.5; tween(s, { shake: 0 }, «200», ease.out);",
+  ],
+  cushionAsideSpeed: [
+    1.2,
+    "vx: settings.calm ? 0 : side * («1.2» + Math.random() * 0.8),",
+  ],
+  cushionAsideSpread: [
+    0.8,
+    "vx: settings.calm ? 0 : side * (1.2 + Math.random() * «0.8»),",
+  ],
+  cushionRiseSpeed: [3.3, "vy: settings.calm ? -0.6 : -«3.3»,"],
+  cushionSpin: [
+    2,
+    "spin: settings.calm ? 0 : side * («2» + Math.random() * 2),",
+  ],
+  cushionSpinSpread: [
+    2,
+    "spin: settings.calm ? 0 : side * (2 + Math.random() * «2»),",
+  ],
+  cushionPlumpMs: [
+    180,
+    "const plump = 1 + 0.7 * ease.out(Math.min(1, b.age / «180»));",
+  ],
+  cushionMostHeight: [
+    46,
+    "const h = Math.round(Math.min(«46», (b.h ?? 20) * plump) * 2) / 2;",
+  ],
+  cushionShrink: [0.2, "const shrink = (size / 100) * (1 - u * «0.2»);"],
+  cushionTuftPower: [0.85, "fluff(x, y + top.y / 100, color, 6, «0.85»);"],
+  lastLayerTuftPower: [1.3, "fluff(x, y, color, 16, «1.3»);"],
+  lastLayerRingSquares: [0.85, "ring(x, y, «0.85», color);"],
+  buttonAsideSpeed: [
+    0.5,
+    "vx: (s.id % 2 ? 1 : -1) * («0.5» + Math.random() * 0.9),",
+  ],
+  buttonAsideSpread: [
+    0.9,
+    "vx: (s.id % 2 ? 1 : -1) * (0.5 + Math.random() * «0.9»),",
+  ],
+  buttonRiseSpeed: [4.4, "vy: -«4.4»,"],
+  buttonMs: [640, "life: «640»,"],
+  thrownGravity: [9, "} else b.vy += «9» * s;"],
+  looseBitFade: [1.8, "ctx.globalAlpha = Math.min(1, (1 - u) * «1.8»);"],
   ruffledWobble: [
     0.6,
     "s.shake = «0.6»; tween(s, { shake: 0 }, 300, ease.out);",

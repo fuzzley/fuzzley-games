@@ -62,6 +62,7 @@ const SHARES: ReadonlySet<keyof FeelTuning> = new Set([
   "refusedReach",
   "hopFadeFrom",
   "runInFadeFrom",
+  "cushionShrink",
   "lessMotionFluff",
   "quickest",
   "frizzballMadeDim",

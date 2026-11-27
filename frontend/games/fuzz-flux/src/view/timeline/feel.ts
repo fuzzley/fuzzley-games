@@ -6,8 +6,9 @@
 // script plays a bunch's chord by, as one record of numbers, which the view
 // is handed and the debug menu's `createTuning()` takes. Nothing in the view
 // reads one from a module, so retuning changes numbers, never code. Times
-// are in milliseconds, lengths in squares, shakes in pixels across their
-// whole width, and a sound's volume 1 at its own loudness.
+// are in milliseconds; lengths in squares, but a brick's cushion's height,
+// in the design's units as its art draws it; shakes in pixels across their
+// whole width; and a sound's volume 1 at its own loudness.
 
 /** Describes the feel of a move, each number named for its moment. */
 export interface FeelTuning {
@@ -453,6 +454,52 @@ export interface FeelTuning {
   readonly cheerHappyMs: number;
   /** How long a square's puff of dust lasts as a layer comes off. */
   readonly dustPuffMs: number;
+  /** How much wider a brick's pile spreads as it ducks under a hit. */
+  readonly pileSpread: number;
+  /** How long its spread takes to spring back. */
+  readonly pileSpreadMs: number;
+  /** How hard it wobbles side to side as it is hit, dying away. */
+  readonly pileWobble: number;
+  /** How long its wobble takes to die away. */
+  readonly pileWobbleMs: number;
+  /** How fast a brick's top cushion flies aside as it tumbles off, at the least, in squares a second, the way its brick's id gives. */
+  readonly cushionAsideSpeed: number;
+  /** How much faster it may fly aside. */
+  readonly cushionAsideSpread: number;
+  /** How fast it is thrown up, in squares a second. */
+  readonly cushionRiseSpeed: number;
+  /** How fast it turns at the least, in radians a second, the way it flies. */
+  readonly cushionSpin: number;
+  /** How much faster it may turn. */
+  readonly cushionSpinSpread: number;
+  /** How long it takes to plump up. */
+  readonly cushionPlumpMs: number;
+  /** The tallest it plumps up to, in the design's units, a hundredth of a square, as its art draws a cushion. */
+  readonly cushionMostHeight: number;
+  /** How much of its size it loses over its tumble. */
+  readonly cushionShrink: number;
+  /** How hard its tufts fly. */
+  readonly cushionTuftPower: number;
+  /** How hard the tufts of a brick's last cushion fly as it bursts. */
+  readonly lastLayerTuftPower: number;
+  /** How far its thin ring spreads. */
+  readonly lastLayerRingSquares: number;
+  /** How fast the button it throws up flies aside, at the least, in squares a second, the way its brick's id gives. */
+  readonly buttonAsideSpeed: number;
+  /** How much faster it may fly aside. */
+  readonly buttonAsideSpread: number;
+  /** How fast it is thrown up, in squares a second. */
+  readonly buttonRiseSpeed: number;
+  /** How long it flies. */
+  readonly buttonMs: number;
+  /** How fast a cushion or a button thrown off a brick falls faster, in squares a second each second. */
+  readonly thrownGravity: number;
+  /**
+   * How many times its share of its life left a loose bit's opacity is, up
+   * to wholly, so it fades only toward its end: a tuft, or a cushion or a
+   * button thrown off a brick.
+   */
+  readonly looseBitFade: number;
   /** How hard a sleepyhead a blast ruffles shakes its head, dying away. */
   readonly ruffledWobble: number;
   /** How long it shakes its head. */
@@ -835,6 +882,27 @@ export const FEEL: FeelTuning = {
   cheerDownMs: 220,
   cheerHappyMs: 420,
   dustPuffMs: 320,
+  pileSpread: 1.07,
+  pileSpreadMs: 320,
+  pileWobble: 0.5,
+  pileWobbleMs: 200,
+  cushionAsideSpeed: 1.2,
+  cushionAsideSpread: 0.8,
+  cushionRiseSpeed: 3.3,
+  cushionSpin: 2,
+  cushionSpinSpread: 2,
+  cushionPlumpMs: 180,
+  cushionMostHeight: 46,
+  cushionShrink: 0.2,
+  cushionTuftPower: 0.85,
+  lastLayerTuftPower: 1.3,
+  lastLayerRingSquares: 0.85,
+  buttonAsideSpeed: 0.5,
+  buttonAsideSpread: 0.9,
+  buttonRiseSpeed: 4.4,
+  buttonMs: 640,
+  thrownGravity: 9,
+  looseBitFade: 1.8,
   ruffledWobble: 0.6,
   ruffledMs: 300,
   bedAfterMs: 20,
