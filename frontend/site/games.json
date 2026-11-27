@@ -8,6 +8,9 @@
   "brick-fuzz-pop": {
     "workspace": "games/brick-fuzz-pop"
   },
+  "fuzz-flux": {
+    "workspace": "games/fuzz-flux"
+  },
   "minesweeper": {
     "workspace": "games/minesweeper"
   },

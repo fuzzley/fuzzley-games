@@ -5,8 +5,9 @@ the [Solitaire Collection](frontend/games/solitaire/), plus
 [Minesweeper](frontend/games/minesweeper/), [Sudoku](frontend/games/sudoku/),
 [Snake](frontend/games/snake/), [Brick Breaker](frontend/games/brick-breaker/),
 [Asteroid Breaker](frontend/games/asteroid-breaker/),
-[Brick Fuzz Pop](frontend/games/brick-fuzz-pop/) and
-[Rickaashay](frontend/games/rickashay/).
+[Brick Fuzz Pop](frontend/games/brick-fuzz-pop/),
+[Rickaashay](frontend/games/rickashay/) and
+[Fuzz Flux](frontend/games/fuzz-flux/).
 
 Play at https://fuzzley.games.
 
@@ -21,9 +22,9 @@ on Google Cloud Run. The games are built here too, the Solitaire Collection in
 Sudoku in `frontend/games/sudoku/`, Snake in `frontend/games/snake/`, Brick
 Breaker in `frontend/games/brick-breaker/`, Asteroid Breaker in
 `frontend/games/asteroid-breaker/`, Brick Fuzz Pop in
-`frontend/games/brick-fuzz-pop/` and Rickaashay in
-`frontend/games/rickashay/`, and served as static pages under
-`/play/<slug>/`.
+`frontend/games/brick-fuzz-pop/`, Rickaashay in
+`frontend/games/rickashay/` and Fuzz Flux in `frontend/games/fuzz-flux/`,
+and served as static pages under `/play/<slug>/`.
 
 Dependency management and development scripts use [Yarn](https://yarnpkg.com/)
 (Berry v4) on Node 26 (`.node-version`). `frontend/` is the workspace root for
@@ -56,6 +57,7 @@ yarn workspace brick-breaker dev    # work on Brick Breaker alone, on http://loc
 yarn workspace asteroid-breaker dev # work on Asteroid Breaker alone, on http://localhost:9005
 yarn workspace brick-fuzz-pop dev   # work on Brick Fuzz Pop alone, on http://localhost:9006
 yarn workspace rickashay dev        # work on Rickaashay alone, on http://localhost:9007
+yarn workspace fuzz-flux dev        # work on Fuzz Flux alone, on http://localhost:9008
 ```
 
 No dev server opens a browser by itself. Add `--open` to any of them
@@ -70,8 +72,9 @@ http://localhost:4200/play/sudoku/, Snake at
 http://localhost:4200/play/snake/, Brick Breaker at
 http://localhost:4200/play/brick-breaker/, Asteroid Breaker at
 http://localhost:4200/play/asteroid-breaker/, Brick Fuzz Pop at
-http://localhost:4200/play/brick-fuzz-pop/ and Rickaashay at
-http://localhost:4200/play/rickashay/.
+http://localhost:4200/play/brick-fuzz-pop/, Rickaashay at
+http://localhost:4200/play/rickashay/ and Fuzz Flux at
+http://localhost:4200/play/fuzz-flux/.
 
 The portal application code lives in `frontend/site/src/app/` (bootstrapped
 by `frontend/site/src/app/main.ts`), with theme palettes and shared styles in
