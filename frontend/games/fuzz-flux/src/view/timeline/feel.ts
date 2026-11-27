@@ -453,6 +453,20 @@ export interface FeelTuning {
   readonly cheerHappyMs: number;
   /** How long a square's puff of dust lasts as a layer comes off. */
   readonly dustPuffMs: number;
+  /** How hard a sleepyhead a blast ruffles shakes its head, dying away. */
+  readonly ruffledWobble: number;
+  /** How long it shakes its head. */
+  readonly ruffledMs: number;
+  /** How long after the board lands a sleepyhead on a bed starts to sink to it. */
+  readonly bedAfterMs: number;
+  /** How long it takes to sink, shrink and fade away. */
+  readonly bedMs: number;
+  /** How far it sinks, past the board's edge. */
+  readonly bedSinkSquares: number;
+  /** How small it shrinks as it sinks, as a scale. */
+  readonly bedScale: number;
+  /** How far apart the sleepyheads a wave puts to bed sink, the board waiting as long for each. */
+  readonly bedGapMs: number;
   /** How long before its hop a fuzzball of a bunch sheds what it wears, such as a burr brushed off. */
   readonly hopShedLeadMs: number;
   /** How many tufts of a burr fly as a fuzzball of a bunch sheds it. */
@@ -821,6 +835,13 @@ export const FEEL: FeelTuning = {
   cheerDownMs: 220,
   cheerHappyMs: 420,
   dustPuffMs: 320,
+  ruffledWobble: 0.6,
+  ruffledMs: 300,
+  bedAfterMs: 20,
+  bedMs: 520,
+  bedSinkSquares: 1.3,
+  bedScale: 0.8,
+  bedGapMs: 300,
   hopShedLeadMs: 70,
   burrInBunchTufts: 6,
   burrOffTufts: 7,

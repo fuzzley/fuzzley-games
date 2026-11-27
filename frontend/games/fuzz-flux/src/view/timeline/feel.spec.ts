@@ -414,6 +414,25 @@ const PORTED = {
   ],
   cheerHappyMs: [420, "at(now + wait + «420», () => {"],
   dustPuffMs: [320, "tween(sq, { puff: 0 }, «320», ease.out);"],
+  ruffledWobble: [
+    0.6,
+    "s.shake = «0.6»; tween(s, { shake: 0 }, 300, ease.out);",
+  ],
+  ruffledMs: [300, "s.shake = 0.6; tween(s, { shake: 0 }, «300», ease.out);"],
+  bedAfterMs: [20, 'sfx("bed", rest + «20»);'],
+  bedMs: [
+    520,
+    "tween(s, { y: s.y + 1.3, a: 0, sx: 0.8, sy: 0.8 }, «520», ease.in);",
+  ],
+  bedSinkSquares: [
+    1.3,
+    "tween(s, { y: s.y + «1.3», a: 0, sx: 0.8, sy: 0.8 }, 520, ease.in);",
+  ],
+  bedScale: [
+    0.8,
+    "tween(s, { y: s.y + 1.3, a: 0, sx: «0.8», sy: 0.8 }, 520, ease.in);",
+  ],
+  bedGapMs: [300, "rest += «300»;"],
   hopShedLeadMs: [70, "at(t - «70», () => { if (s.cage) openCage(s);"],
   burrInBunchTufts: [
     6,
