@@ -9,10 +9,9 @@
       <fz-icon name="close" />
     </button>
     <h2>Levels</h2>
-    <p>
-      Choose a level to start a new game there. Clear a level to unlock the next
-      one.
-    </p>
+    @for (paragraph of intro(); track $index) {
+      <p>{{ paragraph }}</p>
+    }
 
     @for (set of sets(); track set.id) {
       <section [attr.aria-labelledby]="set.headingId">

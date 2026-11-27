@@ -6,6 +6,7 @@ import { LevelsComponent, type ListedLevel } from "./levels.component";
 /** What a spec renders the dialog with, but what it leaves to the defaults. */
 interface LevelsInputs {
   readonly open?: boolean;
+  readonly intro?: readonly string[];
   readonly marks?: Readonly<Record<string, LevelMark>>;
   readonly current?: number | null;
   readonly mostStars?: number;
@@ -41,11 +42,12 @@ const TWO_SETS = [
 
 /**
  * Renders the dialog over {@link TWO_SETS}, its best called "Longest", with
- * the inputs given: open, every level locked and a level earning 3 stars at
- * most unless they say.
+ * the inputs given: open, saying a line of its own under its heading, every
+ * level locked and a level earning 3 stars at most unless they say.
  */
 async function renderLevels({
   open = true,
+  intro = ["Choose a level."],
   marks = {},
   current = null,
   mostStars = 3,
@@ -55,6 +57,7 @@ async function renderLevels({
   await render(LevelsComponent, {
     inputs: {
       open,
+      intro,
       marks,
       current,
       levels: TWO_SETS,
@@ -83,6 +86,18 @@ describe("LevelsComponent", () => {
     await renderLevels({ open: false });
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("says under its heading what choosing a level does, a paragraph for each the game hands it", async () => {
+    await renderLevels({
+      intro: ["Choose a level to start there.", "Clear it to open the next."],
+    });
+
+    expect(
+      within(screen.getByRole("dialog"))
+        .getAllByRole("paragraph")
+        .map((paragraph) => paragraph.textContent),
+    ).toEqual(["Choose a level to start there.", "Clear it to open the next."]);
   });
 
   it("lists each set's levels under its name, by number and name", async () => {

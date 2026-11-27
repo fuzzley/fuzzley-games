@@ -42,12 +42,13 @@ interface SetChoice {
 }
 
 /**
- * Shows a wall game's Levels dialog: each set of levels under its name, its
- * levels as buttons in a grid, each with its number and name, the stars it
- * earned and its best of the figure the game names once cleared, "Locked"
- * until the one before it is, and the run's own marked.
+ * Shows a game's Levels dialog: what choosing a level does, in the game's
+ * words, then each set of levels under its name, its levels as buttons in a
+ * grid, each with its number and name, the stars it earned and its best of
+ * the figure the game names once cleared, "Locked" until the one before it
+ * is, and the run's own marked.
  *
- * Choosing an open level hands its number on through `chosen`; the board
+ * Choosing an open level hands its number on through `chosen`; the game
  * starts a run there, asking first if one is under way, and closes the
  * dialog once it has. A locked level is shown and can't be chosen.
  */
@@ -60,6 +61,13 @@ interface SetChoice {
 export class LevelsComponent {
   /** Whether the dialog is showing. */
   readonly open = input.required<boolean>();
+
+  /**
+   * What choosing a level does, said under the heading: the text of each
+   * paragraph, which the dialog sets in a `<p>` of its own, so it takes the
+   * dialog's styles rather than the game's.
+   */
+  readonly intro = input.required<readonly string[]>();
 
   /** How far each level has been played, by its id; a level not here is locked. */
   readonly marks = input.required<Readonly<Record<string, LevelMark>>>();

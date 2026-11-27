@@ -48,6 +48,17 @@ describe("levelMarksOf", () => {
     ]);
   });
 
+  it("reads a level's stars and best from a record of any shape, through the game's own reader, such as its stars and most moves to spare", () => {
+    const marks = levelMarksOf(
+      LEVELS,
+      new Set(["a"]),
+      { a: { stars: 3, spare: 4 } },
+      ({ stars, spare }) => ({ stars, best: spare }),
+    );
+
+    expect(marks["a"]).toEqual({ open: true, stars: 3, best: 4 });
+  });
+
   it("shows no stars or best of a level the progress hasn't cleared, whatever the records keep", () => {
     const marks = levelMarksOf(
       LEVELS,

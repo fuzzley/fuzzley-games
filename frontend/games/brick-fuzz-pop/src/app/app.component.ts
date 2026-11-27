@@ -12,9 +12,10 @@ import {
   signal,
   viewChild,
 } from "@angular/core";
-import { LevelsComponent, levelMarksOf } from "@fz/brick-wall/app/levels";
+import { LEVELS_INTRO } from "@fz/brick-wall/app/levels_intro";
 import { ResultComponent, type RunEnd } from "@fz/brick-wall/app/result";
 import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
+import { LevelsComponent, levelMarksOf } from "@fz/game-ui/levels";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
@@ -146,6 +147,9 @@ export class AppComponent {
       }),
     ],
   );
+
+  /** What the Levels dialog says under its heading: what choosing a level does. */
+  protected readonly levelsIntro = LEVELS_INTRO;
 
   /** The most stars a level earns, as the Levels dialog counts them. */
   protected readonly mostStars = MOST_STARS;
