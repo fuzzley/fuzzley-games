@@ -114,7 +114,7 @@ const FINISHED: readonly Finished[] = RECIPES.map((recipe) => ({
 const TAKES_UP = new Set<string>(
   LADDERED.flatMap((sound) =>
     takesOf(sound)
-      .filter(({ rung }) => rung > 1)
+      .filter(({ rung }) => rung > 0)
       .map((take) => take.sound),
   ),
 );
@@ -177,16 +177,15 @@ function recipeOf(sound: LadderedSound): LadderedRecipe {
   return recipe;
 }
 
-/** Returns a laddered sound made at a rung, 1 at the foot, at its own pitch, and finished. */
+/** Returns a laddered sound made at a rung, 0 at the foot, at its own pitch, and finished. */
 function madeOn(sound: LadderedSound, rung: number): Signal {
   const recipe = recipeOf(sound);
-  return finished({ ...recipe, make: () => recipe.makeAt(rung - 1) });
+  return finished({ ...recipe, make: () => recipe.makeAt(rung) });
 }
 
 /** Every rung of every laddered sound, as the scene plays it. */
 const RUNGS: readonly Rung[] = LADDERED.flatMap((sound) =>
-  LADDER_CENTS.map((_, step) => {
-    const rung = step + 1;
+  LADDER_CENTS.map((_, rung) => {
     const { sound: take, cents: tuned } = onRung(sound, rung);
     const speed = cents(tuned);
     return {

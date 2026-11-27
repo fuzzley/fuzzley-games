@@ -22,12 +22,12 @@ const DESIGN = designSounds(designTable);
 const TAKES_UP = new Map<string, string>(
   LADDERED.flatMap((sound) =>
     takesOf(sound)
-      .filter(({ rung }) => rung > 1)
+      .filter(({ rung }) => rung > 0)
       .map(
         (take) =>
           [
             take.sound,
-            `${DESIGN.get(sound)?.when ?? ""} Made on rung ${String(take.rung)} of the ladder, for the rungs nearest it.`,
+            `${DESIGN.get(sound)?.when ?? ""} Made ${String(take.rung)} rungs up the ladder, for the rungs nearest it.`,
           ] as const,
       ),
   ),

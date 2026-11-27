@@ -155,7 +155,7 @@ function puffed(big) {
 
 /**
  * Static leaping from a frizzball to one fuzzball: a blip an octave above
- * its step of the ladder, and a tick. A frizzball's zaps climb the ladder
+ * its rung of the ladder, and a tick. A frizzball's zaps climb the ladder
  * a fuzzball at a time.
  *
  * @type {LadderedRecipe}
@@ -163,19 +163,19 @@ function puffed(big) {
 export const ZAP = {
   name: "zap",
   peak: -16,
-  makeAt: (step) =>
+  makeAt: (rung) =>
     filter(
       mix([
         {
           // From the bottom of its swing, as the design's triangles start.
-          x: shaped(osc("tri", degree(step + 5), 0.07, { phase: 0.75 }), {
+          x: shaped(osc("tri", degree(rung + 5), 0.07, { phase: 0.75 }), {
             attack: 0.002,
             decay: 0.012,
           }),
           gain: 0.7,
         },
         {
-          x: shaped(filter(noise("white", 0.02, 21 + step), "bp", 3600, 1.2), {
+          x: shaped(filter(noise("white", 0.02, 21 + rung), "bp", 3600, 1.2), {
             attack: 0.001,
             decay: 0.004,
           }),

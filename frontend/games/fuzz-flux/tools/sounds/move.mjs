@@ -12,15 +12,15 @@ import { mallet, shaped, toward, whoosh } from "./voices.mjs";
 /** @import { LadderedRecipe } from "./ladder.mjs" */
 
 /**
- * Returns a bubble's blip at a step of the ladder: the step's note and its
+ * Returns a bubble's blip on a rung of the ladder: the rung's note and its
  * octave, rising an octave in 70 ms.
  *
- * @param {number} step
+ * @param {number} rung
  * @returns {Signal}
  */
-function bubble(step) {
+function bubble(rung) {
   const rising = (/** @type {number} */ t) =>
-    degree(step) * 2 ** Math.min(1, t / 0.07);
+    degree(rung) * 2 ** Math.min(1, t / 0.07);
   return mix([
     {
       x: shaped(osc("sine", rising, 0.16), {
@@ -48,7 +48,7 @@ function bubble(step) {
 export const NOTE = {
   name: "note",
   peak: -10,
-  makeAt: (step) => mallet(degree(step), { air: 0.32 }),
+  makeAt: (rung) => mallet(degree(rung), { air: 0.32 }),
 };
 
 /**

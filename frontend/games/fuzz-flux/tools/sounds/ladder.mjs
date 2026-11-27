@@ -13,18 +13,18 @@
  * @typedef {object} LadderedRecipe
  * @property {string} name Its name, and its take's at the foot.
  * @property {number} peak Each take's loudest sample, in dB below full scale.
- * @property {(step: number) => Signal} makeAt Returns its samples, at any level, at a step of the scale above the foot, 0 at the foot itself, as `@fz/dev/synth`'s `degree()` counts them.
+ * @property {(rung: number) => Signal} makeAt Returns its samples, at any level, at a rung of the ladder, 0 at its foot, which is the step of the scale `@fz/dev/synth`'s `degree()` counts.
  */
 
 /**
  * Each take up the ladder, by what its name adds to its sound's, and the
- * step of the scale it is made at, 0 at the foot.
+ * rung it is made at, 0 at the foot.
  */
 const TAKES = [
-  { named: "", step: 0 },
-  { named: "-g5", step: 3 },
-  { named: "-d6", step: 6 },
-  { named: "-a6", step: 9 },
+  { named: "", rung: 0 },
+  { named: "-g5", rung: 3 },
+  { named: "-d6", rung: 6 },
+  { named: "-a6", rung: 9 },
 ];
 
 /**
@@ -34,9 +34,9 @@ const TAKES = [
  * @returns {Recipe[]}
  */
 export function takesUpTheLadder({ name, peak, makeAt }) {
-  return TAKES.map(({ named, step }) => ({
+  return TAKES.map(({ named, rung }) => ({
     name: `${name}${named}`,
     peak,
-    make: () => makeAt(step),
+    make: () => makeAt(rung),
   }));
 }
