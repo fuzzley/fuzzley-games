@@ -1,12 +1,14 @@
 // The things on a board beside its fuzzballs that How to play lists: the
-// gaps, then each element whose rule is in play, in the order the levels
-// bring them in. Each one's words are in a file of its own in entries/, so
-// the change that brings an element into play adds a file and a line here,
-// and fails to compile until it does.
+// gaps, then each element whose rule is in play, and the wind and the wind
+// that turns, in the order the levels bring them in. Each one's words are
+// in a file of its own in entries/, so the change that brings an element
+// into play adds a file and a line here, and fails to compile until it
+// does.
 
 import type { HelpEntry } from "@fz/game-ui/help_catalog";
 import type { ElementId } from "../../rules/catalog/elements";
 import type { STAND_INS } from "../../rules/elements/element_rules";
+import type { NewThing } from "../../rules/levels/level";
 import type { Pictures } from "../../scene/pictures";
 import { type CatalogHelp, catalogEntries } from "./catalog_entries";
 import { BRICK_HELP } from "./entries/brick";
@@ -15,9 +17,13 @@ import { CAGE_HELP } from "./entries/cage";
 import { DUST_HELP } from "./entries/dust";
 import { GAP_HELP } from "./entries/gap";
 import { SLEEPYHEAD_HELP } from "./entries/sleepyhead";
+import { TURNING_WIND_HELP, WIND_HELP } from "./entries/wind";
 
-/** A thing How to play lists: a gap, or an element whose rule is in play. */
-type ThingId = "gap" | Exclude<ElementId, (typeof STAND_INS)[number]>;
+/** A thing How to play lists: a gap, an element whose rule is in play, or a wind. */
+type ThingId =
+  | "gap"
+  | Exclude<ElementId, (typeof STAND_INS)[number]>
+  | Extract<NewThing, "wind" | "turning-wind">;
 
 /** Every thing How to play lists, by id, in the order the levels bring them in. */
 const HELP_THINGS = {
@@ -27,6 +33,8 @@ const HELP_THINGS = {
   cage: CAGE_HELP,
   sleepyhead: SLEEPYHEAD_HELP,
   burr: BURR_HELP,
+  wind: WIND_HELP,
+  "turning-wind": TURNING_WIND_HELP,
 } as const satisfies Readonly<Record<ThingId, CatalogHelp>>;
 
 /** Returns How to play's entries for the things on a board, each with its picture once the scene has drawn them. */

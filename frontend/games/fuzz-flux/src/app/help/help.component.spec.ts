@@ -181,6 +181,8 @@ describe("HelpComponent", () => {
       "Cage. Holds a fuzzball in place, so you can't swap it. Free it with a bunch or a special.",
       "Sleepyhead. Can't be swapped. Falls when you clear what's under it, and goes to bed at the bottom.",
       "Burr. Keeps you from swapping a fuzzball. Line up 3 next to a burr to brush it off, or burrs spread.",
+      "Wind. Makes fuzzballs fall the way its arrow points. New ones come in from the other side.",
+      "Turning wind. Makes a quarter turn every few moves. The number under its arrow counts down the moves.",
     ]);
   });
 
@@ -203,7 +205,7 @@ describe("HelpComponent", () => {
     ]);
   });
 
-  it("shows each thing's picture as the bar shows its goal's, and none for a gap", async () => {
+  it("shows each thing's picture as the bar shows its goal's, and none for a gap or a wind", async () => {
     await renderHelp(PICTURES);
 
     expect(entriesOf("On the board").map(([, picture]) => picture)).toEqual([
@@ -213,6 +215,8 @@ describe("HelpComponent", () => {
       PICTURES.caged,
       PICTURES.sleepyhead,
       PICTURES.burred,
+      null,
+      null,
     ]);
   });
 });
