@@ -1,5 +1,5 @@
 import type { Goal } from "../catalog/goals";
-import { countedOff } from "./goals";
+import { countedOff, stillCounts } from "./goals";
 
 /** A level's goals: two that gather blue, one red, and every cage. */
 const GOALS: readonly Goal[] = [
@@ -50,5 +50,26 @@ describe("countedOff", () => {
     countedOff({ goals: GOALS, goalsLeft }, { what: "cage" });
 
     expect(goalsLeft).toEqual([4, 4, 2, 1]);
+  });
+});
+
+describe("stillCounts", () => {
+  it("finds a goal still open that counts something taken", () => {
+    const game = { goals: GOALS, goalsLeft: [0, 4, 1, 1] };
+
+    expect([
+      stillCounts(game, { what: "gather", kind: "blue" }),
+      stillCounts(game, { what: "cage" }),
+    ]).toEqual([true, true]);
+  });
+
+  it("finds none where each goal that counts it is met, or none counts it", () => {
+    const game = { goals: GOALS, goalsLeft: [0, 4, 0, -1] };
+
+    expect([
+      stillCounts(game, { what: "gather", kind: "blue" }),
+      stillCounts(game, { what: "cage" }),
+      stillCounts(game, { what: "brick" }),
+    ]).toEqual([false, false, false]);
   });
 });

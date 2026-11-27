@@ -28,3 +28,12 @@ export const DASHER_AND_PUFFER_SPREAD = 1;
 
 /** How many wisps two wisps swapped together send flying, each to a square of its own. */
 export const TWO_WISPS_FLIGHTS = 3;
+
+/** What a fuzzball of a kind a goal still gathers is worth to a wisp choosing where to fly, where no element weighs its square. */
+export const WISP_WANTED_WORTH = 40;
+
+/** What any other fuzzball is worth to a wisp. */
+export const WISP_FUZZBALL_WORTH = 10;
+
+/** How many values the draw takes that puts one of a wisp's equally good squares first. */
+export const WISP_TIE_DRAWS = 10;

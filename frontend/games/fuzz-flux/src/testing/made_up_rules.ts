@@ -2,7 +2,7 @@
 // with an element that takes part in it, or with none, whichever of the
 // elements' own rules have been brought in.
 
-import { recordOf } from "@fz/core/records";
+import { itemAt, recordOf } from "@fz/core/records";
 import type { Board } from "../rules/board/board";
 import {
   type BrickLayers,
@@ -77,8 +77,10 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
  * `DESIGN_HOLDS_AND_GOALS` does, and taking the part the design's sketch
  * gives it as a wave strikes: a bunch opens a cage and brushes off a burr
  * on each fuzzball it takes in, and knocks a brick or brushes off a burr
- * beside it; and a layer of dust is swept from under each fuzzball
- * gathered or made special.
+ * beside it; a layer of dust is swept from under each fuzzball gathered
+ * or made special; and a wisp weighs a caged fuzzball, a brick, whatever
+ * holds a sleepyhead up, a burr and a dusty square, in that order, each
+ * worth more where its goal is open.
  */
 export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
   dust: {
@@ -91,19 +93,82 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
             hit: "dusted",
             counts: true,
           },
+    wisp: {
+      rank: 4,
+      worth: ({ pieces, dust }, square, goalOpen) => {
+        const layers = itemAt(dust, square);
+        const piece = itemAt(pieces, square);
+        return goalOpen &&
+          layers > 0 &&
+          piece !== null &&
+          piece.what !== "sleepyhead"
+          ? 50 + layers
+          : null;
+      },
+    },
   },
-  brick: { ...DESIGN_HOLDS_AND_GOALS.brick, besideBunch: knocked },
+  brick: {
+    ...DESIGN_HOLDS_AND_GOALS.brick,
+    besideBunch: knocked,
+    wisp: {
+      rank: 1,
+      worth: ({ pieces }, square, goalOpen) => {
+        const piece = itemAt(pieces, square);
+        if (piece?.what !== "brick") {
+          return null;
+        }
+        return goalOpen ? 80 - piece.layers : 24;
+      },
+    },
+  },
   cage: {
     ...DESIGN_HOLDS_AND_GOALS.cage,
     inBunch: (square) => uncaged(square, null),
+    wisp: {
+      rank: 0,
+      worth: ({ pieces }, square, goalOpen) => {
+        if (!isCaged({ piece: itemAt(pieces, square) })) {
+          return null;
+        }
+        return goalOpen ? 90 : 30;
+      },
+    },
   },
-  sleepyhead: DESIGN_HOLDS_AND_GOALS.sleepyhead,
+  sleepyhead: {
+    ...DESIGN_HOLDS_AND_GOALS.sleepyhead,
+    wisp: {
+      rank: 2,
+      worth: (board, square, goalOpen) =>
+        goalOpen && holdsSleepyheadUp(board, square) ? 70 : null,
+    },
+  },
   burr: {
     ...DESIGN_HOLDS_AND_GOALS.burr,
     inBunch: (square) => unburred(square, null),
     besideBunch: (square) => unburred(square, "unburred"),
+    wisp: {
+      rank: 3,
+      worth: ({ pieces }, square) => {
+        const piece = itemAt(pieces, square);
+        return piece?.what === "fuzzball" && piece.burred ? 60 : null;
+      },
+    },
   },
 };
+
+/** Returns whether a square holds up a sleepyhead: the nearest piece above it, past gaps and empty squares, is one. */
+function holdsSleepyheadUp(board: Board, square: number): boolean {
+  if (itemAt(board.pieces, square) === null) {
+    return false;
+  }
+  for (let above = square - board.width; above >= 0; above -= board.width) {
+    const piece = itemAt(board.pieces, above);
+    if (itemAt(board.open, above) && piece !== null) {
+      return piece.what === "sleepyhead";
+    }
+  }
+  return false;
+}
 
 /** The layers a brick has left once knocked, by the layers it had. */
 const LAYERS_LEFT = { 2: 1, 3: 2, 4: 3 } as const satisfies Readonly<

@@ -23,6 +23,16 @@ export function countedOff(
   );
 }
 
+/** Returns whether a goal still open, one that still needs more, counts something taken. */
+export function stillCounts(
+  game: Pick<Game, "goals" | "goalsLeft">,
+  taken: Taken,
+): boolean {
+  return game.goals.some(
+    (goal, place) => counts(goal, taken) && itemAt(game.goalsLeft, place) > 0,
+  );
+}
+
 /** Returns whether a goal counts something taken. */
 function counts(goal: Goal, taken: Taken): boolean {
   return goal.what === "gather"
