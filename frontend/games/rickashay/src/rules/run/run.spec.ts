@@ -1,6 +1,5 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { parOf } from "@fz/brick-wall/rules/par";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
@@ -8,6 +7,7 @@ import {
   takeRound,
 } from "@fz/brick-wall/rules/run";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import { levelAt } from "@fz/core/levels";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import warmUpMarks from "../../testing/warm_up_marks.json";
 import { WARM_UP_LEVELS } from "../../testing/warm_up_levels";

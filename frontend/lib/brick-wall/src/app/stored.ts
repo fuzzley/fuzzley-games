@@ -5,6 +5,11 @@
 // hands in.
 
 import { type Signal, type WritableSignal, computed } from "@angular/core";
+import {
+  type IdentifiedLevel,
+  clearedOf,
+  isOpen as isLevelOpen,
+} from "@fz/core/levels";
 import type { RunStage } from "@fz/core/run";
 import {
   type StoredFields,
@@ -12,11 +17,6 @@ import {
   keepSaved,
   storedSignal,
 } from "@fz/ui/storage";
-import {
-  type IdentifiedLevel,
-  clearedOf,
-  isOpen as isLevelOpen,
-} from "../rules/progress";
 import type { Run } from "../rules/run";
 import type { RunKeeping, TakenUp } from "../rules/saved_wall";
 import {

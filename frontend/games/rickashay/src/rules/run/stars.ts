@@ -8,8 +8,8 @@
 // the game hands in; Brick Fuzz Pop's tiers against par are its own.
 
 import type { Pars } from "@fz/brick-wall/rules/par";
-import { type IdentifiedLevel, levelIdOf } from "@fz/brick-wall/rules/progress";
 import type { LevelPlay } from "@fz/brick-wall/rules/run";
+import { type IdentifiedLevel, levelIdOf } from "@fz/core/levels";
 import type { LevelTally } from "./scoring";
 
 /** Every star a level earns, by its id, in the order the Cleared card names them: cleared, within par, and the rally mark. */

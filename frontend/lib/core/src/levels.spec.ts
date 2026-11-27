@@ -1,4 +1,4 @@
-import { clearedOf, isOpen, levelAt, levelIdOf, levelsOf } from "./progress";
+import { clearedOf, isOpen, levelAt, levelIdOf, levelsOf } from "./levels";
 
 /** Four levels made up for the spec, "a" to "d", numbered 1 to 4. */
 const LEVELS = ["a", "b", "c", "d"].map((id) => ({ data: { id } }));

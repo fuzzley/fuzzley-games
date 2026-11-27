@@ -1,7 +1,7 @@
 import { parOf } from "@fz/brick-wall/rules/par";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { takeRound } from "@fz/brick-wall/rules/run";
 import type { Kept, RunKeeping } from "@fz/brick-wall/rules/saved_wall";
+import { levelAt } from "@fz/core/levels";
 import { LEVELS, type Level, levelStart, parseLevel } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import type { Brick } from "../wall/wall";

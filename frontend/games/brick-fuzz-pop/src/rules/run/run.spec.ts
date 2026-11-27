@@ -1,11 +1,11 @@
 import { parOf } from "@fz/brick-wall/rules/par";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
   startLevel,
   takeRound,
 } from "@fz/brick-wall/rules/run";
+import { levelAt } from "@fz/core/levels";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { LEVELS, levelStart, parseLevel } from "../levels/levels";
 import type { RoundOutcome } from "../round/round";

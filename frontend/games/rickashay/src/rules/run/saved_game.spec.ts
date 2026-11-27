@@ -1,7 +1,7 @@
 import { parOf } from "@fz/brick-wall/rules/par";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { takeRound } from "@fz/brick-wall/rules/run";
 import type { Kept, RunKeeping } from "@fz/brick-wall/rules/saved_wall";
+import { levelAt } from "@fz/core/levels";
 import warmUpMarks from "../../testing/warm_up_marks.json";
 import type { Brick } from "../catalog/kinds";
 import type { RoundStart } from "../flight/events";

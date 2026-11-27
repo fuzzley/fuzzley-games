@@ -1,6 +1,6 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { parFrom } from "@fz/brick-wall/rules/par";
-import { levelAt } from "@fz/brick-wall/rules/progress";
+import { levelAt } from "@fz/core/levels";
 import { LEVELS, parseLevel } from "../rules/levels/levels";
 import { PAR_SHARE } from "../rules/tuning";
 import type { CertifyApi } from "./script_api";

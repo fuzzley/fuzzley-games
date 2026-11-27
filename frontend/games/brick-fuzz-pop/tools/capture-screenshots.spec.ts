@@ -1,5 +1,5 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { formatPoints } from "@fz/core/format";
+import { levelAt } from "@fz/core/levels";
 import { recordingPrinter } from "@fz/dev/script";
 import { LEVELS } from "../src/rules/levels/levels";
 import { describeShot } from "../src/rules/run/describe";

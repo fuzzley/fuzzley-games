@@ -4,12 +4,12 @@
 // earns it (C11). The records are kept as each flight lands (C10), by the
 // shell, from the run as `afterLanding()` leaves it.
 
-import type { IdentifiedLevel } from "@fz/brick-wall/rules/progress";
 import type {
   StatsRules,
   Stats as WallStats,
 } from "@fz/brick-wall/rules/stats";
 import { isCount, isRecord } from "@fz/core/json";
+import type { IdentifiedLevel } from "@fz/core/levels";
 import type { LevelTally } from "./scoring";
 import {
   type Marks,

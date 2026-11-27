@@ -1,11 +1,11 @@
 import { signal } from "@angular/core";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
   startLevel,
   takeRound,
 } from "@fz/brick-wall/rules/run";
+import { levelAt } from "@fz/core/levels";
 import type { Round, RoundStart } from "../../rules/flight/events";
 import { parseLevel } from "../../rules/levels/levels";
 import { describeCleared, describeRound } from "../../rules/run/describe";

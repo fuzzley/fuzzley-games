@@ -1,10 +1,10 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   createRun,
   landRound,
   startLevel,
   takeRound,
 } from "@fz/brick-wall/rules/run";
+import { levelAt } from "@fz/core/levels";
 import { LEVELS } from "../levels/levels";
 import {
   RULES,

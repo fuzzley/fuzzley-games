@@ -1,11 +1,11 @@
-// A wall game's levels, numbered from its sets and found by their number,
-// and how far a player has come through them: the levels they have
-// cleared, kept by id, which open the levels a run may start at. Which
-// levels the game has, and in what order, is the game's own.
+// A game's levels, numbered from its sets and found by their number, and
+// how far a player has come through them: the levels they have cleared,
+// kept by id, which open the levels a run may start at. Which levels the
+// game has, and in what order, is the game's own.
 
-import { knownIdsOf } from "@fz/core/json";
+import { knownIdsOf } from "./json";
 
-/** Describes a level of a wall game as its progress and its records know it: by the id its data gives it for good. */
+/** Describes a level as a game's progress and its records know it: by the id its data gives it for good. */
 export interface IdentifiedLevel {
   readonly data: { readonly id: string };
 }
@@ -32,12 +32,12 @@ export function levelIdOf(
   return levelAt(levels, level).data.id;
 }
 
-/** Describes a set of a wall game's levels, so far as its list numbers them: its levels, in the order played. */
+/** Describes a set of a game's levels, so far as its list numbers them: its levels, in the order played. */
 export interface LevelSet<D> {
   readonly levels: readonly D[];
 }
 
-/** Describes a level in a wall game's list: its place in the game, from 1, its set, and its data. */
+/** Describes a level in a game's list: its place in the game, from 1, its set, and its data. */
 export interface NumberedLevel<S, D> {
   readonly number: number;
   readonly set: S;

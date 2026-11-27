@@ -1,8 +1,8 @@
 import { Injectable, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { isCount, isRecord } from "@fz/core/json";
+import type { IdentifiedLevel } from "@fz/core/levels";
 import { provideMemoryStorage } from "@fz/ui/testing";
-import type { IdentifiedLevel } from "../rules/progress";
 import {
   type Run,
   type RunRules,

@@ -4,9 +4,9 @@
 // jumps, the stars a level cleared earns and what a star is worth are the
 // game's own, in the RunRules it hands in.
 
+import { type IdentifiedLevel, levelIdOf } from "@fz/core/levels";
 import { type RunStage, hasEnded } from "@fz/core/run";
 import { type Pars, parOf } from "./par";
-import { type IdentifiedLevel, levelIdOf } from "./progress";
 
 /** Names how a round in flight ends its level as it lands: cleared or lost. */
 export type LevelEnding = "cleared" | "lost";

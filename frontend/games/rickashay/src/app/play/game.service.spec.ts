@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { createRun } from "@fz/brick-wall/rules/run";
+import { levelAt } from "@fz/core/levels";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";

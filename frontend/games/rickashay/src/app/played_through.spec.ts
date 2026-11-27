@@ -1,5 +1,4 @@
 import { TestBed } from "@angular/core/testing";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { aimToward } from "@fz/brick-wall/view/aiming";
 import { STRAIGHT_UP } from "@fz/brick-wall/view/aim_settings";
 import { RADIUS } from "@fz/brick-wall/rules/field";
@@ -9,6 +8,7 @@ import {
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
 import { AIMS_PER_DEGREE, type Aim } from "@fz/brick-wall/rules/aims";
+import { levelAt } from "@fz/core/levels";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import type { HostedScene } from "@fz/phaser/host";

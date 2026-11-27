@@ -1,4 +1,4 @@
-import { type IdentifiedLevel, isOpen } from "../../rules/progress";
+import { type IdentifiedLevel, isOpen } from "@fz/core/levels";
 
 /**
  * Describes how far a level has been played, as the Levels dialog shows it,

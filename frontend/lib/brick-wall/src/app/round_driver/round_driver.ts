@@ -7,6 +7,7 @@ import {
   signal,
   untracked,
 } from "@angular/core";
+import { type IdentifiedLevel, levelAt } from "@fz/core/levels";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
@@ -15,7 +16,6 @@ import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
 import type { ConfirmRequest } from "@fz/ui/confirm";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
-import { type IdentifiedLevel, levelAt } from "../../rules/progress";
 import type {
   PlayedGame,
   ReleasedRound,

@@ -1,5 +1,5 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import type { Run as WallRun, RunRules } from "@fz/brick-wall/rules/run";
+import { levelAt } from "@fz/core/levels";
 import {
   type Level,
   type LevelEntry,

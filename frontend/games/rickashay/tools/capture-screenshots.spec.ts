@@ -1,7 +1,7 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { STRAIGHT_UP as STARTING_AIM } from "@fz/brick-wall/view/aim_settings";
 import { AIMS_PER_DEGREE } from "@fz/brick-wall/rules/aims";
 import { formatPoints } from "@fz/core/format";
+import { levelAt } from "@fz/core/levels";
 import { recordingPrinter } from "@fz/dev/script";
 import { LEVELS } from "../src/rules/levels/levels";
 import { playRound } from "../src/rules/round/round";

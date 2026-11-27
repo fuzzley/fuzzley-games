@@ -1,5 +1,5 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import { levelAt } from "@fz/core/levels";
 import { parseLevel } from "../rules/levels/levels";
 import { levelStart } from "../rules/run/run";
 import { roundPoints } from "../rules/run/scoring";

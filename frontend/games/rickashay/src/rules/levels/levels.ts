@@ -7,8 +7,8 @@ import {
   pictureProblem,
   wallFrom,
 } from "@fz/brick-wall/rules/level_picture";
-import { type NumberedLevel, levelsOf } from "@fz/brick-wall/rules/progress";
 import { unknownKey } from "@fz/core/json";
+import { type NumberedLevel, levelsOf } from "@fz/core/levels";
 import type { KindId } from "../catalog/kinds";
 import angles from "./angles.json";
 import { PICTURE_RULES } from "./level_rules";

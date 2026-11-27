@@ -1,4 +1,4 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
+import { levelAt } from "@fz/core/levels";
 import { LEVELS, parseLevel } from "../rules/levels/levels";
 import { playRound } from "../rules/round/round";
 import { levelStart } from "../rules/run/run";

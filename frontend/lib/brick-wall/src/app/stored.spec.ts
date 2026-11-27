@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { isCount, isRecord, isWhole } from "@fz/core/json";
+import type { IdentifiedLevel } from "@fz/core/levels";
 import {
   MemoryStorage,
   provideMemoryStorage,
@@ -8,7 +9,6 @@ import {
 } from "@fz/ui/testing";
 import { isDepth } from "../rules/field";
 import type { Pars } from "../rules/par";
-import type { IdentifiedLevel } from "../rules/progress";
 import {
   type LevelEnding,
   type Run,

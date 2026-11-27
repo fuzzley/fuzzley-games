@@ -1,5 +1,5 @@
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { createRun, startLevel, takeRound } from "@fz/brick-wall/rules/run";
+import { levelAt } from "@fz/core/levels";
 import warmUpMarks from "../../testing/warm_up_marks.json";
 import type { Wall } from "../catalog/kinds";
 import type { RoundOutcome, RoundStart } from "../flight/events";

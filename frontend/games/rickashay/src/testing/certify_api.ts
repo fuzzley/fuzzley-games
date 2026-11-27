@@ -10,7 +10,6 @@
 import type { Aim } from "@fz/brick-wall/rules/aims";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { parFrom } from "@fz/brick-wall/rules/par";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import {
   type PlayedCarelessly,
   playCarelessly,
@@ -22,6 +21,7 @@ import {
   replayLine,
   solveLine,
 } from "@fz/brick-wall/testing/solver";
+import { levelAt } from "@fz/core/levels";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import { PAR_SHARE } from "../rules/tuning";
 import { type RoundPlay, levelPlayOf } from "./line_play";

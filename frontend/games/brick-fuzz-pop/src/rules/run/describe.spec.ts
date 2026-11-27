@@ -1,6 +1,6 @@
 import { CEILINGWARD, FLOORWARD, RIGHT } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import { levelAt } from "@fz/brick-wall/rules/progress";
+import { levelAt } from "@fz/core/levels";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { PORTAL_BADGES, PORTAL_MARKS, WALL_LEGEND } from "../levels/legend";
 import { LEVELS } from "../levels/levels";

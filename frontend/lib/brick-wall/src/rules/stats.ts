@@ -4,7 +4,7 @@
 // result beats it are the game's own, in the StatsRules it hands in.
 
 import { isCount, isRecord } from "@fz/core/json";
-import type { IdentifiedLevel } from "./progress";
+import type { IdentifiedLevel } from "@fz/core/levels";
 import { type LevelPlay, type Run, isLevelCleared } from "./run";
 
 /** Holds a wall game's records, over what it keeps of a level cleared, `L`: the runs, and each level's record. */

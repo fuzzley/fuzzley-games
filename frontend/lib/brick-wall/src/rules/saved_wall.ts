@@ -6,10 +6,10 @@
 // SavedRules it hands in.
 
 import { isCount, isRecord, isWhole } from "@fz/core/json";
+import { type IdentifiedLevel, levelIdOf } from "@fz/core/levels";
 import { COLUMNS, LEAST_DEPTH, isDepth } from "./field";
 import type { LevelWall } from "./level_picture";
 import { parOf } from "./par";
-import { type IdentifiedLevel, levelIdOf } from "./progress";
 import { type Run, type RunRules, afterLanding, isInProgress } from "./run";
 import {
   type Brick,

@@ -4,8 +4,8 @@
 // takes off the record.
 
 import type { Signal } from "@angular/core";
+import { type IdentifiedLevel, levelIdOf } from "@fz/core/levels";
 import { hasEnded } from "@fz/core/run";
-import { type IdentifiedLevel, levelIdOf } from "../rules/progress";
 import {
   type Run,
   type RunRules,

@@ -7,8 +7,8 @@
 // round plays are.
 
 import { isFiniteNumber, isRecord, unknownKey } from "@fz/core/json";
+import type { IdentifiedLevel } from "@fz/core/levels";
 import { isDepth } from "./field";
-import type { IdentifiedLevel } from "./progress";
 import { type Run, type RunRules, type TakenRound, takeRound } from "./run";
 import {
   type Kept,

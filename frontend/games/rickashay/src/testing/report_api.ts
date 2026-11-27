@@ -7,10 +7,10 @@
 // are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { DEPTHS } from "@fz/brick-wall/rules/field";
-import { levelAt } from "@fz/brick-wall/rules/progress";
 import { isNeeded } from "@fz/brick-wall/rules/wall";
 import { playCarelessly } from "@fz/brick-wall/testing/careless";
 import { solveLine } from "@fz/brick-wall/testing/solver";
+import { levelAt } from "@fz/core/levels";
 import { WALL_RULES } from "../rules/bricks/wall_rules";
 import type { Brick } from "../rules/catalog/kinds";
 import { LEVELS, type LevelEntry, parseLevel } from "../rules/levels/levels";

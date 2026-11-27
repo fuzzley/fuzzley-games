@@ -1,5 +1,5 @@
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import { levelAt } from "@fz/brick-wall/rules/progress";
+import { levelAt } from "@fz/core/levels";
 import {
   FLIGHT_FIXTURES,
   type FixtureName,

@@ -1,6 +1,6 @@
 import type { Signal } from "@angular/core";
 import type { RoundWords } from "@fz/brick-wall/app/round_driver";
-import { levelAt, levelIdOf } from "@fz/brick-wall/rules/progress";
+import { levelAt, levelIdOf } from "@fz/core/levels";
 import type { Round, RoundStart } from "../../rules/flight/events";
 import type { LevelEntry } from "../../rules/levels/levels";
 import {
