@@ -13,7 +13,13 @@ import {
 import { fluffFrames } from "../fluff";
 import { FRAMES } from "../frame_names";
 import { wellFrame } from "../well";
-import { brickFrames } from "./brick";
+import {
+  LAST_BUTTON,
+  PILE_FLOOR,
+  brickFrames,
+  heightUnderTop,
+  topCushionOf,
+} from "./brick";
 
 /** A brick's frames in the specs' palette, at their scale, a design's unit a device pixel. */
 const BRICK = brickFrames(ART_PALETTE, ART_SCALE);
@@ -139,5 +145,47 @@ describe("brickFrames", () => {
       color: ART_PALETTE.cushionUndersides[1],
       rest: [],
     });
+  });
+});
+
+describe("topCushionOf", () => {
+  it.each([
+    [1, 0, 0],
+    [2, -0.012, -0.224],
+    [3, 0.014, -0.29867],
+    [4, -0.01, -0.336],
+  ] as const)(
+    "lays the top cushion of a pile of %i where the pile draws it, in squares about its square's middle",
+    (layers, x, y) => {
+      const top = topCushionOf(layers);
+
+      expect([top.x, top.y]).toEqual([expect.closeTo(x), expect.closeTo(y)]);
+    },
+  );
+});
+
+describe("heightUnderTop", () => {
+  it.each([
+    [1, 0],
+    [2, 0.49091],
+    [3, 0.66061],
+    [4, 0.74545],
+  ] as const)(
+    "fills the share of the pile's height under the top cushion of a pile of %i that its cushions and their gaps do",
+    (layers, share) => {
+      expect(heightUnderTop(layers)).toBeCloseTo(share);
+    },
+  );
+});
+
+describe("PILE_FLOOR", () => {
+  it("stands a pile on a floor half its height, 0.44 of a square, below its square's middle", () => {
+    expect(PILE_FLOOR).toBe(0.44);
+  });
+});
+
+describe("LAST_BUTTON", () => {
+  it("lays the last cushion's button at the middle of its face, 0.04 of a square above its square's middle", () => {
+    expect([LAST_BUTTON.x, LAST_BUTTON.y]).toEqual([0, expect.closeTo(-0.04)]);
   });
 });

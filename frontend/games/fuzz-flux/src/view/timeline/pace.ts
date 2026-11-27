@@ -17,16 +17,21 @@ export type Speed = (typeof SPEEDS)[number];
 /**
  * The feel's times that hold in the player's own time at any speed: the
  * limits on flashes and sounds; how long a tuft flies, which the scene
- * keeps and the limit on loose bits counts by; how fast a shake dies
- * away, which the sketch takes off a frame at a time; and the board's
- * life between moves, its blinks, its breaths and its hints, which no
- * move plays.
+ * keeps and the limit on loose bits counts by; how long a cushion and a
+ * button thrown off a brick fly, beside the tufts thrown with them, their
+ * speeds given in the player's own seconds as a tuft's are; how fast a
+ * shake dies away, which the sketch takes off a frame at a time; and the
+ * board's life between moves, its blinks, its breaths and its hints,
+ * which no move plays.
  */
 const UNPACED: ReadonlySet<keyof FeelTuning> = new Set([
   "flashGapMs",
   ...Object.values(GAPPED),
   "tuftLifeMs",
   "tuftLifeSpreadMs",
+  "cushionMs",
+  "cushionPlumpMs",
+  "buttonMs",
   "shakeHalfLifeMs",
   "blinkLeastMs",
   "blinkMostMs",

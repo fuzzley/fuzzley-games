@@ -28,7 +28,8 @@ import {
   type BrickLayers,
 } from "../../../rules/catalog/elements";
 import type { BoardPalette } from "../../colors/palette";
-import { inPixels } from "../design_square";
+import type { Place } from "../../timeline/timeline";
+import { SQUARE, inPixels } from "../design_square";
 import { tuftOf } from "../fluff";
 import { FRAMES } from "../frame_names";
 
@@ -104,7 +105,7 @@ interface Cushion {
 }
 
 /** Returns how tall each cushion of a pile of some layers is, in the design's units. */
-function cushionHeight(layers: BrickLayers): number {
+export function cushionHeight(layers: BrickLayers): number {
   return (PILE_HEIGHT - CUSHION_GAP * (layers - 1)) / layers;
 }
 
@@ -132,6 +133,43 @@ function topOf(layers: BrickLayers): Cushion {
 function sizeOf({ share, least, most }: Sized, height: number): number {
   return clamp(height * share, least, most);
 }
+
+/**
+ * Returns how far up from a cushion's middle its button lies, in the
+ * design's units, by its height: at the middle of its face, which is the
+ * pad less the underside that shows below it.
+ */
+function buttonRiseOf(height: number): number {
+  return sizeOf(PARTS.underside, height) / 2;
+}
+
+/** How far below its square's middle a pile stands, in squares: the floor it ducks down onto. */
+export const PILE_FLOOR = PILE_HEIGHT / 2 / SQUARE;
+
+/** Returns where the top cushion of a pile of some layers lies about its square's middle, in squares, where a hit knocks it off from. */
+export function topCushionOf(layers: BrickLayers): Place {
+  const { middle } = topOf(layers);
+  return { x: middle.x / SQUARE, y: middle.y / SQUARE };
+}
+
+/**
+ * Returns how much of its pile's height the cushions under the top one of
+ * a pile of some layers fill, from its floor up: how tall the pile a hit
+ * leaves stands before it springs up to fill its square again.
+ */
+export function heightUnderTop(layers: BrickLayers): number {
+  const under = layers - 1;
+  return (
+    (under * cushionHeight(layers) + Math.max(0, under - 1) * CUSHION_GAP) /
+    PILE_HEIGHT
+  );
+}
+
+/** Where a brick's last cushion's button lies about its square's middle, in squares, where the cushion throws it up from as it bursts. */
+export const LAST_BUTTON: Place = {
+  x: topOf(1).middle.x / SQUARE,
+  y: (topOf(1).middle.y - buttonRiseOf(topOf(1).height)) / SQUARE,
+};
 
 /**
  * Returns the outline of a pad about its middle, a rounded box whose sides
@@ -198,7 +236,6 @@ function cushionOf(
 ): readonly DrawCommand[] {
   const corner = sizeOf(PARTS.corner, height);
   const bow = sizeOf(PARTS.bow, height);
-  const below = sizeOf(PARTS.underside, height);
   const button = sizeOf(PARTS.button, height);
   const tie = button + sizeOf(PARTS.tie, height);
   const ear = sizeOf(PARTS.ear, height);
@@ -207,9 +244,10 @@ function cushionOf(
   const earX = width / 2 - EAR_INSET;
   const shineY = top + shine * SHINE_DROP;
   const shineX = width / 2 - corner - 1;
+  const below = sizeOf(PARTS.underside, height);
   // The face is the pad less its underside, which shows below it, its
-  // middle where the tie pinches it in.
-  const faceMiddle = -below / 2;
+  // button at its middle, where the tie pinches it in.
+  const faceMiddle = -buttonRiseOf(height);
   return [
     circle({ x: -earX, y: height / 2 - ear * EAR_DROP }, ear, {
       color: underside,

@@ -71,9 +71,6 @@ const SIZE = {
 /** How much of its width a tuft loses over its life. */
 const THINNING = 0.5;
 
-/** How many times its share of life left a tuft's opacity is, up to wholly, so it fades only toward its end. */
-const FADE = 1.8;
-
 /** How many of a fluff's tufts in turn hold one of the frizzball's color, the first of them. */
 const FRIZZY_EVERY = 3;
 
@@ -127,7 +124,7 @@ export function tuftAt(
     ((SIZE.width.least + drawOf(seed, DRAWS.width) * SIZE.width.spread) *
       (1 - THINNING * life)) /
     (SIZE.width.least + SIZE.width.spread);
-  into.alpha = Math.min(1, (1 - life) * FADE);
+  into.alpha = Math.min(1, (1 - life) * feel.looseBitFade);
   into.frizzy = index % FRIZZY_EVERY === 0;
   return true;
 }

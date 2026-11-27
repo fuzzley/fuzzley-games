@@ -51,6 +51,28 @@ describe("hitsOf", () => {
     );
   });
 
+  it("knocks a layer off a brick beside a bunch a moment after it hops off", () => {
+    expect(hitsTimeline(MOVE_FIXTURES.rollAndRefill).sounds).toEqual([
+      {
+        atMs: HOPS_MS + FEEL.struckAfterBunchMs,
+        sound: "knock-1",
+        cents: 0,
+        volume: 1,
+      },
+    ]);
+  });
+
+  it("bursts a brick of 1 layer beside a bunch a moment after it hops off", () => {
+    expect(hitsTimeline(MOVE_FIXTURES.brickBroken).sounds).toEqual([
+      {
+        atMs: HOPS_MS + FEEL.struckAfterBunchMs,
+        sound: "break",
+        cents: 0,
+        volume: 1,
+      },
+    ]);
+  });
+
   it("sweeps the dust off each square of a bunch a moment after it hops off", () => {
     expect(
       hitsTimeline(MOVE_FIXTURES.dustSwept).dust.map(({ atMs, layers }) => [

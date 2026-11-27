@@ -40,6 +40,16 @@ describe("pacedFeel", () => {
     ]);
   });
 
+  it("keeps the flight of a cushion and a button thrown off a brick in the player's own time at Fast, as their speeds are", () => {
+    const fast = pacedFeel(FEEL, "fast");
+
+    expect([fast.cushionMs, fast.cushionPlumpMs, fast.buttonMs]).toEqual([
+      FEEL.cushionMs,
+      FEEL.cushionPlumpMs,
+      FEEL.buttonMs,
+    ]);
+  });
+
   it("keeps a shake's fading and the life between moves in the player's own time at Fast", () => {
     const fast = pacedFeel(FEEL, "fast");
 
