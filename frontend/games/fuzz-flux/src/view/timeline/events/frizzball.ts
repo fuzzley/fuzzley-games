@@ -131,8 +131,8 @@ export function frizzballOff(
 /**
  * Returns the parts of a plain fuzzball a frizzball strikes taking the
  * special its blast of its own names, as a frizzball's pair gives it, its
- * second fur growing in; none for one with no blast of its own, as none
- * has that a frizzball alone strikes.
+ * second fur growing in and any burr it wore gone; none for one with no
+ * blast of its own, as none has that a frizzball alone strikes.
  */
 function given(struck: Piece, atMs: number, play: WavePlay): readonly Part[] {
   const special = play.wave.blasts.find(({ piece }) => piece === struck.id);
@@ -145,7 +145,7 @@ function given(struck: Piece, atMs: number, play: WavePlay): readonly Part[] {
           what: "becomes",
           piece: struck.id,
           atMs,
-          drawn: { ...struck, special: special.what },
+          drawn: { ...struck, special: special.what, burred: false },
         },
         ...sets(struck.id, atMs, { furIn: 0 }),
         ...moves(struck.id, atMs, play.feel.givenFurMs, "back", { furIn: 1 }),

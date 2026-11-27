@@ -9,6 +9,7 @@ import {
   timelineOfParts,
 } from "../../../testing/played_parts";
 import { TOP_RUNG, onRung } from "../../effects/ladder";
+import type { GridShown } from "../../run_state";
 import { FEEL } from "../feel";
 import { RAISED } from "../looks";
 import { reachesOf } from "../reach";
@@ -38,9 +39,25 @@ function givenOn(piece: number, square: number, step: number): Blast {
   };
 }
 
-/** Returns the timeline of the frizzball going off with a dasher, giving a dasher to each red fuzzball it strikes that goes off as one. */
-function withDasher(given: readonly Blast[]): Timeline {
-  const play = firstWaveOf(MOVE_FIXTURES.frizzballGoesOff);
+/** Returns a board with the fuzzball on a square wearing a burr. */
+function burredOn(grid: GridShown, square: number): GridShown {
+  return {
+    ...grid,
+    squares: grid.squares.map((shown, index) =>
+      index === square && shown?.piece?.what === "fuzzball"
+        ? { ...shown, piece: { ...shown.piece, burred: true } }
+        : shown,
+    ),
+  };
+}
+
+/** Returns the timeline of the frizzball going off with a dasher, giving a dasher to each red fuzzball it strikes that goes off as one, on its board or one a spec changes. */
+function withDasher(
+  given: readonly Blast[],
+  changed: (grid: GridShown) => GridShown = (grid) => grid,
+): Timeline {
+  const first = firstWaveOf(MOVE_FIXTURES.frizzballGoesOff);
+  const play = { ...first, grid: changed(first.grid) };
   const pair: Blast = {
     ...itemAt(play.wave.blasts, 0),
     what: "frizzball-and-dasher",
@@ -195,6 +212,16 @@ describe("frizzballOff", () => {
         pieceAt(paired, 2, PAIR_MS).furIn,
         pieceAt(paired, 2, PAIR_MS + FEEL.givenFurMs).furIn,
       ]).toEqual([0, 1]);
+    });
+
+    it("takes the burr off a burred fuzzball it gives the special, as the special's fur comes", () => {
+      const burred = withDasher([givenOn(7, 6, 2)], (grid) =>
+        burredOn(grid, 6),
+      );
+
+      expect(burred.pieces.find(({ id }) => id === 7)?.becomes).toMatchObject([
+        { piece: { id: 7, special: "dasher-down", burred: false } },
+      ]);
     });
 
     it("gives nothing to a fuzzball it strikes that goes off as no special", () => {

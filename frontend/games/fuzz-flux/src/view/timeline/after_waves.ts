@@ -10,6 +10,7 @@ import type { BurrSpread, Gust, MoveRecord } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
 import { afterShuffle, afterSpread } from "./board_after";
 import type { Draft } from "./draft";
+import { burrSpreads } from "./events/burr";
 import { gustSound } from "./events/gust_sound";
 import { shuffled } from "./events/shuffle";
 import { spreadSound } from "./events/spread_sound";
@@ -37,7 +38,7 @@ export type SpreadEvent = (
 export type GustEvent = (gust: Gust, play: AfterPlay) => readonly Part[];
 
 /** Each event a burr's spread plays by. */
-const SPREAD_EVENTS: readonly SpreadEvent[] = [spreadSound];
+const SPREAD_EVENTS: readonly SpreadEvent[] = [spreadSound, burrSpreads];
 
 /** Each event the wind's turn plays by. */
 const GUST_EVENTS: readonly GustEvent[] = [gustSound];

@@ -6,6 +6,7 @@
 
 import { itemAt } from "@fz/core/records";
 import type { Hit } from "../../rules/move/record";
+import { brushedOff } from "./events/burr";
 import { dusted } from "./events/dust";
 import { gathered } from "./events/gathered";
 import type { Part } from "./part";
@@ -62,6 +63,7 @@ function isOf<What extends StruckWhat>(
 const HIT_EVENTS: readonly Listed[] = [
   playing("gathered", gathered),
   playing("dusted", dusted),
+  playing("unburred", brushedOff),
 ];
 
 /**

@@ -53,13 +53,13 @@ export function hopOff(
   ];
 }
 
-/** Returns the part of a fuzzball gathered from where it stands, which the goal of its kind counts, or none for any other piece. */
+/** Returns the part of a fuzzball gathered from where it stands, which the goal of its kind counts, its copy bare of the burr gathering brushes off, or none for any other piece. */
 export function gatheredFrom(
   { piece, at }: Standing,
   atMs: number,
 ): readonly Part[] {
   return piece.what === "fuzzball"
-    ? [{ what: "gathered", atMs, piece, at }]
+    ? [{ what: "gathered", atMs, piece: { ...piece, burred: false }, at }]
     : [];
 }
 

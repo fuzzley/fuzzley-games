@@ -2,7 +2,9 @@
 // chord as each of it hops off in turn along it with a bubble's pop, or,
 // where it makes a special, the rest run into the one that stays as the
 // special shows to its own sound, though with Less motion they hop off as
-// ever; and over it, in a move's later waves, its wave's mark.
+// ever; and over it, in a move's later waves, its wave's mark. One that
+// hops off sheds what it wears a moment before, by each element's event in
+// the list, as a burr.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { KindId } from "../../../rules/catalog/kinds";
@@ -13,10 +15,21 @@ import { type Part, cue, facing, moves, noteCue, sets, tuftsOf } from "../part";
 import { type Standing, standingOn } from "../standing";
 import type { Place } from "../timeline";
 import { type WavePlay, stayingThrough } from "../wave_play";
+import { shedBeforeHop } from "./burr";
 import { gatheredFrom, hopOff } from "./hop";
 import { chordOf } from "./chord";
 import { MADE_SOUNDS, type Made, madeOf } from "./made";
 import { waveMarkOf } from "./mark";
+
+/** Returns the parts of a fuzzball of a bunch shedding what it wears before it hops off at a moment, as a burr, or none for one that wears nothing. */
+type ShedEvent = (
+  standing: Standing,
+  hopMs: number,
+  feel: FeelTuning,
+) => readonly Part[];
+
+/** Each element's event for what a fuzzball of a bunch sheds before it hops off. */
+const SHED_EVENTS: readonly ShedEvent[] = [shedBeforeHop];
 
 /** Describes a fuzzball of a bunch gathered from its square. */
 interface Member {
@@ -66,12 +79,11 @@ export function bunchOf(
         feel.bubbleVolume,
       ),
       ...(runInto === null
-        ? hopOff(
+        ? shedAndHopOff(
             standing,
             kind,
             hopsMs + (index + 1) * feel.hopGapMs,
-            play.before,
-            feel,
+            play,
           )
         : runIn(standing, kind, runInto, hopsMs, feel)),
     ]),
@@ -146,6 +158,19 @@ function huddle(
       scaleX: feel.huddleScale,
       scaleY: feel.huddleScale,
     }),
+  ];
+}
+
+/** Returns the parts of a fuzzball of a bunch hopping off at a moment, shedding what it wears first. */
+function shedAndHopOff(
+  standing: Standing,
+  kind: KindId | null,
+  hopMs: number,
+  play: WavePlay,
+): readonly Part[] {
+  return [
+    ...SHED_EVENTS.flatMap((event) => event(standing, hopMs, play.feel)),
+    ...hopOff(standing, kind, hopMs, play.before, play.feel),
   ];
 }
 
