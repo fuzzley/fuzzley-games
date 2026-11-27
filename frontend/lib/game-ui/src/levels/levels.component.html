@@ -21,12 +21,8 @@
           @for (level of set.levels; track level.number) {
             <li>
               <!--
-                Named by its number and its name, "1 Gravel", as a
-                voice command reads it, then its stars and what it says
-                under them: `&ngsp;` keeps the spaces between them, which a
-                template otherwise drops. A locked level is marked
-                `aria-disabled` rather than disabled, so it is still found
-                and read.
+                A locked level is marked `aria-disabled` rather than
+                disabled, so it is still found and read.
               -->
               <button
                 type="button"
@@ -35,22 +31,35 @@
                 [attr.aria-disabled]="level.open ? null : 'true'"
                 (click)="choose(level)"
               >
-                <span class="number">{{ level.number }}</span>&ngsp;<span
-                  class="name"
-                  >{{ level.name }}</span
-                >
-                @if (level.cleared) {
-                  &ngsp;<span class="stars">
-                    @for (star of level.stars; track star) {
-                      <fz-icon name="star" />
-                    }
-                    <span class="fz-visually-hidden">{{
-                      level.starsWords
-                    }}</span></span
+                @if (tile(); as gameTile) {
+                  <ng-container
+                    [ngTemplateOutlet]="gameTile.template"
+                    [ngTemplateOutletContext]="{ $implicit: level }"
+                  />
+                } @else {
+                  <!--
+                    Named by its number and its name, "1 Gravel", as a
+                    voice command reads it, then its stars and what it says
+                    under them: `&ngsp;` keeps the spaces between them,
+                    which a template otherwise drops.
+                  -->
+                  <span class="number">{{ level.number }}</span>&ngsp;<span
+                    class="name"
+                    >{{ level.name }}</span
                   >
-                }
-                @if (level.status; as status) {
-                  &ngsp;<span class="status">{{ status }}</span>
+                  @if (level.cleared) {
+                    &ngsp;<span class="stars">
+                      @for (star of level.stars; track star) {
+                        <fz-icon name="star" />
+                      }
+                      <span class="fz-visually-hidden">{{
+                        level.starsWords
+                      }}</span></span
+                    >
+                  }
+                  @if (level.status; as status) {
+                    &ngsp;<span class="status">{{ status }}</span>
+                  }
                 }
               </button>
             </li>

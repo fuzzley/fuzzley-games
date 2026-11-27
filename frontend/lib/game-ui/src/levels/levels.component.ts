@@ -1,8 +1,16 @@
-import { Component, computed, input, output } from "@angular/core";
+import { NgTemplateOutlet } from "@angular/common";
+import {
+  Component,
+  computed,
+  contentChild,
+  input,
+  output,
+} from "@angular/core";
 import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import type { LevelMark } from "./level_marks";
+import { LevelTileDirective } from "./level_tile.directive";
 
 /** Describes a level as the Levels dialog lists it: by its number, its set and its own name and id. */
 export interface ListedLevel {
@@ -14,9 +22,11 @@ export interface ListedLevel {
 /** What a level not marked shows: locked, never cleared. */
 const UNMARKED: LevelMark = { open: false, stars: 0, best: null };
 
-/** Describes a level as the dialog offers it. */
-interface LevelChoice {
+/** Describes a level as the Levels dialog offers it, which a game's tile is handed. */
+export interface OfferedLevel {
   readonly number: number;
+  /** The id its data gives it, by which a game's tile finds what else it shows of it. */
+  readonly id: string;
   readonly name: string;
   /** Whether it is the level of the run on the board. */
   readonly current: boolean;
@@ -38,7 +48,7 @@ interface SetChoice {
   readonly name: string;
   /** The id of its heading, which names its section. */
   readonly headingId: string;
-  readonly levels: readonly LevelChoice[];
+  readonly levels: readonly OfferedLevel[];
 }
 
 /**
@@ -48,13 +58,16 @@ interface SetChoice {
  * the figure the game names once cleared, "Locked" until the one before it
  * is, and the run's own marked.
  *
+ * A game that shows more of a level draws its tile itself, from an
+ * `<ng-template fzLevelTile let-level>` inside `<fz-levels>`.
+ *
  * Choosing an open level hands its number on through `chosen`; the game
  * starts a run there, asking first if one is under way, and closes the
  * dialog once it has. A locked level is shown and can't be chosen.
  */
 @Component({
   selector: "fz-levels",
-  imports: [DialogComponent, IconComponent],
+  imports: [DialogComponent, IconComponent, NgTemplateOutlet],
   templateUrl: "./levels.component.html",
   styleUrl: "./levels.component.scss",
 })
@@ -90,15 +103,18 @@ export class LevelsComponent {
   /** Emitted when the dialog asks to close. */
   readonly closed = output();
 
+  /** The template the game draws each level's tile with, if it hands one in. */
+  protected readonly tile = contentChild(LevelTileDirective);
+
   protected readonly sets = computed<readonly SetChoice[]>(() => {
     const marks = this.marks();
     const current = this.current();
     const words = { mostStars: this.mostStars(), figure: this.figure() };
-    const bySet = new Map<string, { name: string; levels: LevelChoice[] }>();
+    const bySet = new Map<string, { name: string; levels: OfferedLevel[] }>();
     for (const { number, set, data } of this.levels()) {
       const choices = bySet.get(set.id) ?? { name: set.name, levels: [] };
       choices.levels.push(
-        choiceOf(number, data.name, marks[data.id] ?? UNMARKED, current, words),
+        offeredLevel(number, data, marks[data.id] ?? UNMARKED, current, words),
       );
       bySet.set(set.id, choices);
     }
@@ -111,7 +127,7 @@ export class LevelsComponent {
   });
 
   /** Hands an open level's number on; a locked one does nothing. */
-  protected choose(level: LevelChoice): void {
+  protected choose(level: OfferedLevel): void {
     if (level.open) this.chosen.emit(level.number);
   }
 }
@@ -123,16 +139,17 @@ interface TileWords {
 }
 
 /** Returns a level as the dialog offers it, from its mark. */
-function choiceOf(
+function offeredLevel(
   number: number,
-  name: string,
+  { id, name }: ListedLevel["data"],
   { open, stars, best }: LevelMark,
   current: number | null,
   { mostStars, figure }: TileWords,
-): LevelChoice {
+): OfferedLevel {
   const cleared = stars > 0;
   return {
     number,
+    id,
     name,
     current: number === current,
     open,
