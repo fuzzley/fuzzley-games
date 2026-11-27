@@ -1,3 +1,9 @@
-<main>
+<main class="stage">
   <h1>Fuzz Flux</h1>
 </main>
+
+<!-- In the page from the start, so a screen reader is listening to it. -->
+<fz-announcer />
+
+<fz-confirm-dialog />
+<fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />
