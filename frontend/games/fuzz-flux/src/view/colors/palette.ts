@@ -1,0 +1,87 @@
+// The board's colors from the palette's roles, as the numbers Phaser takes.
+// The board lies on the page, each square a well of the panel, a shade off
+// it, dust a wash of the text over the square; and the frizzball wears the
+// text, its eyes the page's color, so it turns with the palette as the
+// house's own fuzzball does.
+
+import { colorNumber, mixColors } from "@fz/phaser/color";
+import type { ColorMode, PaletteRole } from "@fz/style/themes";
+import type { Dusty } from "../art/frame_names";
+
+/** Describes the palette roles the board is drawn in, as the page sets them, in hex. */
+export interface BoardRoles {
+  readonly page: string;
+  readonly panel: string;
+  readonly text: string;
+  readonly muted: string;
+  readonly warning: string;
+}
+
+/** The page's role for each of the colors the board is drawn in, which the shell reads the roles by. */
+export const BOARD_ROLES: Readonly<Record<keyof BoardRoles, PaletteRole>> = {
+  page: "page",
+  panel: "panel",
+  text: "text",
+  muted: "muted",
+  warning: "warning",
+};
+
+/** Describes the frizzball's colors. */
+export interface FrizzballColors {
+  /** Its body and its fur: the text. */
+  readonly body: number;
+  /** Its eyes, which the text's contrast with the page keeps apart from its body: the page's color. */
+  readonly eyes: number;
+}
+
+/** Describes the board's colors from the palette's roles, as the numbers Phaser takes. */
+export interface BoardPalette {
+  /** The page the board lies on, which shows round its squares and through its gaps. */
+  readonly page: number;
+  /** A square's well, a shade off the page: the panel. */
+  readonly square: number;
+  /**
+   * A square's dust, by its layers: the text washed over the square, as
+   * `DUST_WASHES` says, so each layer stands a shade further off the page,
+   * paler on a dark palette and grayer on a light one, as the design's art
+   * draws it.
+   */
+  readonly dust: Readonly<Record<Dusty, number>>;
+  /** The specks that tell a dusty square from a clean one, more and larger on thick dust: the muted text. */
+  readonly specks: number;
+  /** The frizzball, which wears the text, dark on a light palette and pale on a dark one, as the design's art draws it. */
+  readonly frizzball: FrizzballColors;
+  /** The sparks of static, and the frizzball's bolts: the warning color. */
+  readonly spark: number;
+}
+
+/**
+ * How much of the text each layer of dust takes over the square, in each
+ * mode: little in a light palette, whose kinds' inks keep 3:1 against thick
+ * dust with little to spare, and more in a dark one.
+ */
+const DUST_WASHES: Readonly<
+  Record<ColorMode, Readonly<Record<Dusty, number>>>
+> = {
+  light: { 1: 0.04, 2: 0.08 },
+  dark: { 1: 0.07, 2: 0.12 },
+};
+
+/** Returns the board's colors in a palette's roles, with the washes of its mode. */
+export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
+  const page = colorNumber(roles.page);
+  const square = colorNumber(roles.panel);
+  const text = colorNumber(roles.text);
+  const washes = DUST_WASHES[mode];
+  return {
+    page,
+    square,
+    dust: {
+      1: mixColors(text, square, washes[1]),
+      2: mixColors(text, square, washes[2]),
+    },
+    specks: colorNumber(roles.muted),
+    frizzball: { body: text, eyes: page },
+    spark: colorNumber(roles.warning),
+  };
+}
