@@ -9,16 +9,6 @@ describe("LevelTitleComponent", () => {
     await render(LevelTitleComponent, { inputs: { level: LEVEL } });
 
     expect(screen.getByText("Level 16")).toBeInTheDocument();
-    expect(screen.getByText("Checkerboard")).not.toHaveClass(
-      "fz-visually-hidden",
-    );
-  });
-
-  it("leaves the name heard but not seen beside the number alone", async () => {
-    await render(LevelTitleComponent, {
-      inputs: { level: LEVEL, numberAlone: true },
-    });
-
-    expect(screen.getByText("Checkerboard")).toHaveClass("fz-visually-hidden");
+    expect(screen.getByText("Checkerboard")).toBeInTheDocument();
   });
 });

@@ -6,12 +6,10 @@
   <div fzBarTitle class="title">
     <!-- The page's one <h1>, heard rather than seen: the level is the title. -->
     <h1 class="fz-visually-hidden">Fuzz Flux</h1>
+    <!-- Heard but not seen on a compact screen, so the figures keep their room. -->
     @if (!panelled()) {
-      <p class="level">
-        <app-level-title
-          [level]="state().level"
-          [numberAlone]="viewport.isCompact()"
-        />
+      <p class="level" [class.fz-visually-hidden]="viewport.isCompact()">
+        <app-level-title [level]="state().level" />
       </p>
     }
   </div>
@@ -39,7 +37,7 @@
     </button>
   }
 
-  @if (!panelled()) {
+  @if (!panelled() && !viewport.isCompact()) {
     <button
       fzBarActions
       type="button"

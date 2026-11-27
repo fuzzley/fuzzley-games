@@ -15,7 +15,4 @@ import type { LevelShown } from "../../view/run_state";
 export class LevelTitleComponent {
   /** The level, as the shell names it. */
   readonly level = input.required<LevelShown>();
-
-  /** Whether to show the number alone, in the text around it, the name heard but not seen, as a compact bar does. */
-  readonly numberAlone = input(false);
 }

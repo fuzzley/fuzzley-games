@@ -63,7 +63,9 @@ describe("BarComponent", () => {
   it("shows the level's number and name", async () => {
     await renderBar();
 
-    expect(screen.getByText("Level 3")).toBeInTheDocument();
+    expect(screen.getByText("Level 3").closest("p")).not.toHaveClass(
+      "fz-visually-hidden",
+    );
     expect(screen.getByText("Show me")).toBeInTheDocument();
   });
 
@@ -179,12 +181,30 @@ describe("BarComponent", () => {
       installFakeViewport(390, 844);
     });
 
-    it("moves Sound, Choose a level, How to play and Settings into the menu", async () => {
+    it("leaves the level's number and name to a screen reader", async () => {
+      await renderBar();
+
+      expect(screen.getByText("Level 3").closest("p")).toHaveClass(
+        "fz-visually-hidden",
+      );
+    });
+
+    it("keeps Hint in the bar and moves Restart into the menu", async () => {
+      await renderBar();
+
+      expect(screen.getByRole("button", { name: "Hint" })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Restart" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("moves Restart, Sound, Choose a level, How to play and Settings into the menu", async () => {
       await renderBar();
 
       const items = await openBarMenu(userEvent.setup());
 
       expect(items).toEqual([
+        "Restart",
         "Turn sound off",
         "Choose a level",
         "How to play",
@@ -205,7 +225,7 @@ describe("BarComponent", () => {
 
       const items = await openBarMenu(userEvent.setup());
 
-      expect(items[0]).toBe("Turn sound on");
+      expect(items).toContain("Turn sound on");
     });
 
     it("moves the link home into the menu where there is no room for it", async () => {
@@ -218,6 +238,7 @@ describe("BarComponent", () => {
     });
 
     it.each([
+      ["to restart", "Restart", "restart"],
       ["the sound", "Turn sound off", "toggleSound"],
       ["Choose a level", "Choose a level", "chooseLevel"],
       ["How to play", "How to play", "openHelp"],

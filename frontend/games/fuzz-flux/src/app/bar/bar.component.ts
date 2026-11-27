@@ -23,7 +23,7 @@ import { LevelFiguresComponent } from "./level_figures.component";
 import { LevelTitleComponent } from "./level_title.component";
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "sound" | "levels" | "help" | "settings";
+type MenuAction = "restart" | "sound" | "levels" | "help" | "settings";
 
 /**
  * Shows the game bar (`<fz-game-bar>`): the link home, the page's heading,
@@ -31,11 +31,10 @@ type MenuAction = "sound" | "levels" | "help" | "settings";
  * level's number and name, its figures, and Hint and Restart; then Sound,
  * Choose a level, How to play and Settings, asking the app for each.
  *
- * A compact bar shows the level's number alone, and a rail, as narrow as
- * a button, neither, each left to the board's name, so the goals and the
- * moves keep their room. There Sound, Choose a level, How to play and
- * Settings move into the overflow menu, as on the narrowest the link home
- * does too.
+ * A compact bar leaves the level's number and name to a screen reader, so
+ * the goals and the moves keep their room beside Hint. Restart, Sound,
+ * Choose a level, How to play and Settings move into the overflow menu, as
+ * on the narrowest the link home does.
  */
 @Component({
   selector: "app-bar",
@@ -93,6 +92,7 @@ export class BarComponent {
   /** The overflow menu, led by the link home where the bar has no room for it. */
   protected readonly overflowItems = computed(() => {
     const actions: readonly BarOverflowItem<MenuAction>[] = [
+      { id: "restart", label: "Restart", icon: "restart" },
       soundMenuAction(this.soundOn()),
       { id: "levels", label: "Choose a level", icon: "grid" },
       HELP_MENU_ACTION,
@@ -107,6 +107,9 @@ export class BarComponent {
   /** Asks for the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {
     switch (id) {
+      case "restart":
+        this.restart.emit();
+        return;
       case "sound":
         this.toggleSound.emit();
         return;

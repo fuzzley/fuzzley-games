@@ -13,29 +13,15 @@
   margin: 0;
 }
 
-// A compact bar shows the level's number alone, as its title, and its
-// figures smaller.
-:host(.compact) {
-  .title {
-    font-size: var(--fz-font-sm);
-  }
-
-  app-level-figures {
-    --figures-gap: var(--fz-space-2);
-    --goal-picture: 22px;
-    --count-size: var(--fz-font-md);
-    --moves-size: var(--fz-font-lg);
-  }
+// A compact bar shows the figures smaller.
+:host(.compact) app-level-figures {
+  --figures-gap: var(--fz-space-2);
+  --goal-picture: 22px;
+  --count-size: var(--fz-font-md);
+  --moves-size: var(--fz-font-lg);
 }
 
-// A rail, as narrow as a button, shows neither, and stands the figures one
-// over the next.
-:host(.rail) {
-  .level {
-    @include visually-hidden;
-  }
-
-  app-level-figures {
-    --figures-direction: column;
-  }
+// A rail, as narrow as a button, stands the figures one over the next.
+:host(.rail) app-level-figures {
+  --figures-direction: column;
 }
