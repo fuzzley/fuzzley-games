@@ -39,6 +39,51 @@ describe("timelineOf", () => {
     ]).toEqual(["rest", "eep"]);
   });
 
+  it("comes to rest a wave's gap after the last fuzzball has landed", () => {
+    const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, NORMAL);
+
+    expect(timeline.restMs).toBe(
+      FEEL.swapMs +
+        FEEL.huddleMs +
+        3 * FEEL.hopGapMs +
+        FEEL.hopMs * FEEL.fallAfterHop +
+        FEEL.fallWaitMs +
+        2 * FEEL.laneGapMs +
+        FEEL.fallBaseMs +
+        FEEL.fallPerSquareMs +
+        FEEL.waveGapMs,
+    );
+  });
+
+  it("comes to rest a while after a wave that lets nothing fall", () => {
+    const [wave] = BUNCH.record.waves;
+    const record = {
+      ...BUNCH.record,
+      waves: [{ ...wave, falls: [] }],
+    };
+
+    const timeline = timelineOf(record, moveStartOf(BUNCH), FEEL, NORMAL);
+
+    expect(timeline.restMs).toBe(
+      FEEL.swapMs +
+        FEEL.huddleMs +
+        3 * FEEL.hopGapMs +
+        FEEL.hopMs * FEEL.fallAfterHop +
+        FEEL.restWithoutFallMs,
+    );
+  });
+
+  it("lets fuzzballs in from the edge the wind blows from", () => {
+    const timeline = timelineOf(
+      BUNCH.record,
+      { ...moveStartOf(BUNCH), wind: { blows: "up", turnsIn: null } },
+      FEEL,
+      NORMAL,
+    );
+
+    expect(timeline.pieces.find(({ id }) => id === 10)?.look.y).toBe(3);
+  });
+
   it("swaps faster at the Fast pace, by the feel's", () => {
     const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, {
       speed: "fast",

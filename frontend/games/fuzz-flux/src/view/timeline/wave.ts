@@ -1,29 +1,42 @@
-// A wave of a move laid out in time: its bunches huddle and hop off, a
-// little quicker each wave after the move's first.
+// A wave of a move laid out in time, a little quicker each wave after the
+// move's first: its bunches huddle and hop off, then, after a moment's
+// wait, the board falls, and the next wave waits for the last to land.
 
+import type { Wind } from "../../rules/board/board";
 import type { Wave } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
+import { afterWave } from "./board_after";
 import type { Draft } from "./draft";
 import { bunchOf } from "./events/bunch";
+import { fallsOf } from "./events/fall";
 import type { FeelTuning } from "./feel";
 import { quickeningOf } from "./pace";
 import type { WavePlay } from "./wave_play";
 
+/** Describes a wave played: when the board may go on, and how the wave leaves it. */
+export interface WavePlayed {
+  readonly endMs: number;
+  readonly grid: GridShown;
+}
+
 /**
  * Adds the parts of a wave, from a moment, on the board as it starts, to a
- * move's draft, and returns when the board may go on.
+ * move's draft, and returns when the board may go on and how the wave
+ * leaves it.
  */
 export function playWave(
   draft: Draft,
   wave: Wave,
   grid: GridShown,
+  blows: Wind,
   startMs: number,
   feel: FeelTuning,
-): number {
+): WavePlayed {
   const quickening = quickeningOf(wave.number, feel);
   const play: WavePlay = {
     wave,
     grid,
+    blows,
     startMs,
     hopsMs:
       wave.bunches.length > 0 ? startMs + feel.huddleMs * quickening : startMs,
@@ -31,9 +44,19 @@ export function playWave(
     before: Math.max(0, wave.number - 1),
     feel,
   };
-  return wave.bunches.reduce(
+  const letGoMs = wave.bunches.reduce(
     (heldMs, bunch, order) =>
       Math.max(heldMs, draft.add(bunchOf(bunch, order, play))),
     startMs,
   );
+  const landedMs = draft.add(
+    fallsOf(play, letGoMs + feel.fallWaitMs * quickening),
+  );
+  return {
+    endMs:
+      landedMs === -Infinity
+        ? letGoMs + feel.restWithoutFallMs
+        : landedMs + feel.waveGapMs * quickening,
+    grid: afterWave(grid, wave),
+  };
 }

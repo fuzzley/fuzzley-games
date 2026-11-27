@@ -1,9 +1,10 @@
+import { itemAt } from "@fz/core/records";
 import type { Wave } from "../../rules/move/record";
 import { boardFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
 import { gridOf, moveStartOf } from "../../testing/shown_board";
 import type { GridShown } from "../run_state";
-import { afterSwap, afterWave, goesOff } from "./board_after";
+import { afterSwap, afterWave, fallingIn, goesOff } from "./board_after";
 import { standingOn } from "./standing";
 
 /** Returns the id of the piece on each square of a board, or null for none or a gap. */
@@ -166,6 +167,23 @@ describe("afterWave", () => {
         }),
       ),
     ).toThrow(RangeError);
+  });
+});
+
+describe("fallingIn", () => {
+  it("finds each piece a wave's falls bring down, in their order, one put to bed after among them", () => {
+    const fixture = MOVE_FIXTURES.sleepyheadBedded;
+    const grid = afterSwap(moveStartOf(fixture).grid, fixture.record.swap);
+
+    const falling = fallingIn(grid, itemAt(fixture.record.waves, 0));
+
+    expect(falling.map(({ what, id }) => [what, id])).toEqual([
+      ["sleepyhead", 2],
+      ["fuzzball", 13],
+      ["fuzzball", 14],
+      ["fuzzball", 15],
+      ["fuzzball", 16],
+    ]);
   });
 });
 

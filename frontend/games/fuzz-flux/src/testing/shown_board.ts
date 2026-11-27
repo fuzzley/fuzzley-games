@@ -21,7 +21,11 @@ export function gridOf(board: Board): GridShown {
   };
 }
 
-/** Returns how a move played by hand starts: on its game's board, as yet unturned, with no fuzzball picked up. */
+/** Returns how a move played by hand starts: on its game's board, as yet unturned, the wind blowing down, with no fuzzball picked up. */
 export function moveStartOf({ picture, options }: MoveFixture): MoveStart {
-  return { grid: gridOf(gameFrom(picture, options).board), held: null };
+  return {
+    grid: gridOf(gameFrom(picture, options).board),
+    wind: null,
+    held: null,
+  };
 }

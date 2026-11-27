@@ -1,37 +1,18 @@
 import { itemAt } from "@fz/core/records";
-import type { Wave } from "../../../rules/move/record";
 import {
   MOVE_FIXTURES,
   type MoveFixture,
 } from "../../../testing/move_fixtures";
-import { pieceAt, timelineOfParts } from "../../../testing/played_parts";
-import { moveStartOf } from "../../../testing/shown_board";
-import { afterSwap } from "../board_after";
+import {
+  HOPS_MS,
+  firstWaveOf,
+  pieceAt,
+  timelineOfParts,
+} from "../../../testing/played_parts";
 import { FEEL } from "../feel";
 import type { Part } from "../part";
 import type { Timeline } from "../timeline";
-import type { WavePlay } from "../wave_play";
 import { bunchOf } from "./bunch";
-
-/** When a wave's bunches hop off, once they have huddled from its start, at 0. */
-const HOPS_MS = FEEL.huddleMs;
-
-/** Returns how the first wave of a move played by hand plays, from 0, on the board its swap leaves. */
-function firstWaveOf(fixture: MoveFixture): WavePlay {
-  const wave: Wave | undefined = fixture.record.waves[0];
-  if (wave === undefined) {
-    throw new Error("The move plays no wave.");
-  }
-  return {
-    wave,
-    grid: afterSwap(moveStartOf(fixture).grid, fixture.record.swap),
-    startMs: 0,
-    hopsMs: HOPS_MS,
-    quickening: 1,
-    before: 0,
-    feel: FEEL,
-  };
-}
 
 /** Returns the timeline of a move played by hand's first bunch, played in an order among its wave's. */
 function bunchTimeline(fixture: MoveFixture, order = 0): Timeline {

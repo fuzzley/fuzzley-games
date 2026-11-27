@@ -2,6 +2,7 @@
 // it after the swap, and after each wave, worked out from the record's
 // hits and falls, so each event finds the pieces it moves where they are.
 
+import { itemAt } from "@fz/core/records";
 import type { KindId } from "../../rules/catalog/kinds";
 import type { Piece } from "../../rules/catalog/pieces";
 import type { MadeId } from "../../rules/catalog/specials";
@@ -40,20 +41,52 @@ export function afterSwap(grid: GridShown, swap: Swap): GridShown {
  *   fuzzball let in with no kind.
  */
 export function afterWave(grid: GridShown, wave: Wave): GridShown {
-  const struck = without(grid, takenBy(wave));
-  const squares = [...struck.squares];
+  return without(
+    fallenOn(afterHits(grid, wave), wave.falls),
+    new Set(
+      wave.hits.flatMap((hit) => (hit.what === "bedded" ? [hit.piece] : [])),
+    ),
+  );
+}
+
+/**
+ * Returns each piece a wave's falls bring down, in their order, as it is
+ * once the wave's hits have landed on the board.
+ *
+ * @throws {RangeError} for a fall of a piece that isn't on the board, or a
+ *   fuzzball let in with no kind.
+ */
+export function fallingIn(grid: GridShown, wave: Wave): readonly Piece[] {
+  const struck = afterHits(grid, wave);
+  return wave.falls.map((fall) => fallingOf(struck, fall));
+}
+
+/** Returns a board with its falls landed, each piece gone from where it fell from and standing where it lands. */
+function fallenOn(grid: GridShown, falls: readonly Fall[]): GridShown {
+  return withPieces(
+    grid,
+    new Map<number, Piece | null>([
+      ...falls.flatMap(({ from }): [number, null][] =>
+        from === null ? [] : [[from, null]],
+      ),
+      ...falls.map((fall): [number, Piece] => [
+        itemAt(fall.path, fall.path.length - 1),
+        fallingOf(grid, fall),
+      ]),
+    ]),
+  );
+}
+
+/** Returns the board as a wave's hits leave it, before it falls. */
+function afterHits(grid: GridShown, wave: Wave): GridShown {
+  const squares = [...without(grid, takenBy(wave)).squares];
   for (const hit of wave.hits) {
     const square = squares[hit.square] ?? null;
     if (square !== null) {
       squares[hit.square] = hitOn(square, hit);
     }
   }
-  return without(
-    fallenOn({ ...grid, squares }, wave.falls),
-    new Set(
-      wave.hits.flatMap((hit) => (hit.what === "bedded" ? [hit.piece] : [])),
-    ),
-  );
+  return { ...grid, squares };
 }
 
 /** Returns the pieces a wave takes off the board before it falls: those it gathers or breaks, and those that go off. */
@@ -92,23 +125,6 @@ function hitOn(square: SquareShown, hit: Hit): SquareShown {
     case "bedded":
       return square;
   }
-}
-
-/** Returns a board with its falls landed, each piece taken from where it fell from or let in new. */
-function fallenOn(grid: GridShown, falls: readonly Fall[]): GridShown {
-  const landing = new Map<number, Piece | null>();
-  for (const fall of falls) {
-    if (fall.from !== null && !landing.has(fall.from)) {
-      landing.set(fall.from, null);
-    }
-  }
-  for (const fall of falls) {
-    const to = fall.path.at(-1);
-    if (to !== undefined) {
-      landing.set(to, fallingOf(grid, fall));
-    }
-  }
-  return withPieces(grid, landing);
 }
 
 /** Returns the piece a fall brings down. */

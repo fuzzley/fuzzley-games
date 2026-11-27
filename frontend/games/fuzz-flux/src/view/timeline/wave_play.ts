@@ -1,7 +1,8 @@
-// A wave as its events play it: the wave, the board as it starts, when it
-// starts and its bunches hop off, and how much quicker than its move's
-// first it plays.
+// A wave as its events play it: the wave, the board as it starts, the way
+// the board falls, when it starts and its bunches hop off, and how much
+// quicker than its move's first it plays.
 
+import type { Wind } from "../../rules/board/board";
 import type { Wave } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
 import { takenBy } from "./board_after";
@@ -13,6 +14,8 @@ export interface WavePlay {
   readonly wave: Wave;
   /** The board as the wave starts. */
   readonly grid: GridShown;
+  /** The way the wind blows the board's pieces down it. */
+  readonly blows: Wind;
   readonly startMs: number;
   /** When its bunches hop off, once they have huddled. */
   readonly hopsMs: number;

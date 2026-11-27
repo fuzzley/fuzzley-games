@@ -5,8 +5,8 @@
 // or puts one down.
 
 import type { MoveRecord } from "../../rules/move/record";
-import type { GridShown } from "../run_state";
-import { afterSwap, afterWave } from "./board_after";
+import type { GridShown, WindShown } from "../run_state";
+import { afterSwap } from "./board_after";
 import { Draft } from "./draft";
 import { pickedUp, putDown } from "./events/pick_up";
 import { swapOf } from "./events/swap";
@@ -15,11 +15,17 @@ import { type Pace, pacedFeel } from "./pace";
 import type { Part } from "./part";
 import { standingOn } from "./standing";
 import type { Timeline } from "./timeline";
-import { playWave } from "./wave";
+import { type WavePlayed, playWave } from "./wave";
 
-/** Describes the board as a move starts: where every piece stands at the tap, and the fuzzball picked up. */
+/**
+ * Describes the board as a move starts: where every piece stands at the
+ * tap, the wind, and the fuzzball picked up; a run's state with the
+ * fuzzball held.
+ */
 export interface MoveStart {
   readonly grid: GridShown;
+  /** The wind, or null for a level with none, whose pieces fall down the screen. */
+  readonly wind: WindShown | null;
   /** The square of the fuzzball picked up as the move is made, put down as it starts, or null for none. */
   readonly held: number | null;
 }
@@ -56,13 +62,15 @@ export function timelineOf(
   const draft = new Draft(start.grid);
   // The swap starts as the put-down does and holds the board for itself.
   draft.add(putDownOn(start.grid, start.held, paced));
-  let restMs = Math.max(0, draft.add(swapOf(record.swap, start.grid, paced)));
-  let grid = afterSwap(start.grid, record.swap);
+  const blows = start.wind?.blows ?? "down";
+  let played: WavePlayed = {
+    endMs: Math.max(0, draft.add(swapOf(record.swap, start.grid, paced))),
+    grid: afterSwap(start.grid, record.swap),
+  };
   for (const wave of record.waves) {
-    restMs = playWave(draft, wave, grid, restMs, paced);
-    grid = afterWave(grid, wave);
+    played = playWave(draft, wave, played.grid, blows, played.endMs, paced);
   }
-  return draft.finish(restMs, null, paced);
+  return draft.finish(played.endMs, null, paced);
 }
 
 /**
