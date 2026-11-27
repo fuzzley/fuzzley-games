@@ -1,9 +1,51 @@
+<!--
+  The board first and the bar after it, as in the other games: a <main>
+  landmark a screen reader can jump to, under the bar.
+-->
 <main class="stage">
-  <h1 class="fz-visually-hidden">Fuzz Flux</h1>
   <div class="room" fzPlayRoom (away)="game.pause()">
-    <app-board />
+    <app-board #board [goalPictures]="goalPictures()">
+      @if (board.panels(); as panels) {
+        <section class="panel level-panel" [style]="panels.left">
+          <h2 class="level">
+            <app-level-title [level]="game.state().level" />
+          </h2>
+          <app-level-figures [state]="game.state()" [pictures]="pictures()" />
+        </section>
+        <div class="panel buttons" [style]="panels.right">
+          <!-- Hint keeps the focus on the board, as the bar's does. -->
+          <button
+            type="button"
+            class="fz-button fz-button-secondary"
+            fzKeepKeys
+            (pointerdown)="$event.preventDefault()"
+            (click)="game.hint()"
+          >
+            <fz-icon name="bulb" />
+            Hint
+          </button>
+          <button
+            type="button"
+            class="fz-button fz-button-secondary"
+            fzKeepKeys
+            (click)="restart()"
+          >
+            <fz-icon name="restart" />
+            Restart
+          </button>
+        </div>
+      }
+    </app-board>
   </div>
 </main>
+
+<app-bar
+  [state]="game.state()"
+  [pictures]="pictures()"
+  [panelled]="panelled()"
+  (hint)="game.hint()"
+  (restart)="restart()"
+/>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />

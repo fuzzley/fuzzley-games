@@ -1,12 +1,17 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { BugReportService } from "@fz/game-ui/bug_report";
 import {
   installCompressionStreams,
   installFakeViewport,
   provideReportPicture,
 } from "@fz/game-ui/testing";
-import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import {
+  provideFakePhaserCanvas,
+  resize,
+  watchResizes,
+} from "@fz/phaser/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { setPageVisibility } from "@fz/ui/testing";
@@ -16,19 +21,24 @@ import { squareOf } from "../rules/board/cells";
 import { BoardFrames } from "../testing/board_frames";
 import { BLUE_LINE, SMALL_LEVELS } from "../testing/small_levels";
 import { AppComponent } from "./app.component";
+import { BoardComponent } from "./board/board.component";
 import { provideFuzzFluxBugReports } from "./bug_report/fuzz_flux_bug_reports";
 import { GameService } from "./play/game.service";
 import { VIEW_KIT } from "./play/view_kit";
 import { GAME_LEVELS } from "./tokens";
 
+/** Describes the game rendered, and what a spec reads of it. */
+interface RenderedApp {
+  /** Lets the page settle. */
+  readonly settle: () => Promise<void>;
+  readonly board: BoardComponent;
+}
+
 /**
  * Renders the game on a fake canvas, the game on the small levels, with
- * the bug reports main.ts provides and any providers given, and returns a
- * way to let it settle.
+ * the bug reports main.ts provides and any providers given.
  */
-async function renderApp(
-  ...providers: Provider[]
-): Promise<() => Promise<void>> {
+async function renderApp(...providers: Provider[]): Promise<RenderedApp> {
   const { fixture } = await render(AppComponent, {
     providers: [
       provideFakePhaserCanvas(),
@@ -38,7 +48,11 @@ async function renderApp(
     ],
   });
   await fixture.whenStable();
-  return () => fixture.whenStable();
+  return {
+    settle: () => fixture.whenStable(),
+    board: fixture.debugElement.query(By.directive(BoardComponent))
+      .componentInstance as BoardComponent,
+  };
 }
 
 /**
@@ -60,16 +74,108 @@ function standInPictureLinks(): void {
   });
 }
 
+/** Makes the line of blue's move on the board by two taps, as a player would. */
+function playBlueLine(game: GameService): void {
+  new BoardFrames(game).tap(
+    squareOf(BLUE_LINE.from, 5),
+    squareOf(BLUE_LINE.to, 5),
+  );
+}
+
+/** Lays the board out on a wide window's canvas, as the browser does, with room beside it for the panels, on the third of the small levels. */
+function layOutWide(): void {
+  void TestBed.inject(GameService).startLevel(3);
+  resize(document.querySelector<HTMLElement>("app-board")!, 1280, 728);
+}
+
 describe("AppComponent", () => {
-  it("names the game in the heading of the page's main landmark", async () => {
+  it("names the game in the page's one heading, in the bar", async () => {
     await renderApp();
 
     expect(
-      within(screen.getByRole("main")).getByRole("heading", {
+      within(screen.getByRole("banner")).getByRole("heading", {
         level: 1,
         name: "Fuzz Flux",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("asks before Restart once a move is made", async () => {
+    const { settle } = await renderApp();
+    const game = TestBed.inject(GameService);
+    game.useView(VIEW_KIT);
+    await game.startLevel(3);
+    playBlueLine(game);
+
+    await userEvent.click(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Restart",
+      }),
+    );
+    await settle();
+
+    expect(
+      screen.getByRole("alertdialog", { name: "Restart this level?" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hands the board each goal's picture in the bar, for its copies to fly to", async () => {
+    const { settle, board } = await renderApp();
+
+    await TestBed.inject(GameService).startLevel(3);
+    await settle();
+
+    const bar = screen.getByRole("banner");
+    expect(
+      board.goalPictures().map((picture) => bar.contains(picture)),
+    ).toEqual([true, true]);
+  });
+
+  describe("in a wide window", () => {
+    watchResizes();
+
+    it("hands the board each goal's picture in the panel, for its copies to fly to", async () => {
+      const { settle, board } = await renderApp();
+
+      layOutWide();
+      await settle();
+
+      const panel = document.querySelector(".level-panel")!;
+      expect(
+        board.goalPictures().map((picture) => panel.contains(picture)),
+      ).toEqual([true, true]);
+    });
+
+    it("shows the level and Hint and Restart in panels beside the board, in the bar's place", async () => {
+      const { settle } = await renderApp();
+
+      layOutWide();
+      await settle();
+
+      const board = document.querySelector<HTMLElement>("app-board")!;
+      expect({
+        level: within(board).queryByText("Show me"),
+        hint: within(board).queryByRole("button", { name: "Hint" }),
+        inBar: within(screen.getByRole("banner")).queryByText("moves"),
+      }).toEqual({
+        level: expect.any(HTMLElement) as unknown,
+        hint: expect.any(HTMLElement) as unknown,
+        inBar: null,
+      });
+    });
+
+    it("shows the hint at the panel's Hint", async () => {
+      const { settle } = await renderApp();
+      const game = TestBed.inject(GameService);
+      game.useView(VIEW_KIT);
+      layOutWide();
+      await settle();
+      const still = game.play();
+
+      await userEvent.click(screen.getByRole("button", { name: "Hint" }));
+
+      expect(game.play()).not.toBe(still);
+    });
   });
 
   it("hands the board the focus as the page loads", async () => {
@@ -82,10 +188,7 @@ describe("AppComponent", () => {
     await renderApp();
     const game = TestBed.inject(GameService);
     game.useView(VIEW_KIT);
-    new BoardFrames(game).tap(
-      squareOf(BLUE_LINE.from, 5),
-      squareOf(BLUE_LINE.to, 5),
-    );
+    playBlueLine(game);
 
     setPageVisibility("hidden");
 
@@ -93,16 +196,19 @@ describe("AppComponent", () => {
   });
 
   it("says what the game announces in a live region", async () => {
-    const settle = await renderApp();
+    const { settle } = await renderApp();
 
-    TestBed.inject(AnnouncerService).say("Level 1");
+    TestBed.inject(AnnouncerService).say("Out of moves.");
     await settle();
 
-    expect(screen.getByText("Level 1")).toHaveAttribute("aria-live", "polite");
+    expect(screen.getByText("Out of moves.")).toHaveAttribute(
+      "aria-live",
+      "polite",
+    );
   });
 
   it("asks before something is lost, and hands the answer back", async () => {
-    const settle = await renderApp();
+    const { settle } = await renderApp();
     const asking = TestBed.inject(ConfirmService).ask({
       title: "Restart the level?",
       message: "You lose the moves you've made.",

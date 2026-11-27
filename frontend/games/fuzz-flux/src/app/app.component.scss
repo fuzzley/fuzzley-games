@@ -1,12 +1,56 @@
-// The page is the game, and the board takes all of it.
-.stage {
-  position: fixed;
-  inset: 0;
-}
+@use "@fz/game-ui" as game-ui;
+@use "./styles" as *;
+
+// The page is the game: the bar stands against one edge, and the stage takes
+// the rest, a size container, which the board's layout follows.
+@include game-ui.game-frame;
 
 // The board fills the room, and lays the level out inside it.
 .room {
   display: grid;
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   height: 100%;
+}
+
+// A wide window's panels, in the room the canvas spares beside the board,
+// where the board lays them, each a card.
+.panel {
+  @include board-panel;
+}
+
+// The level's number over its name, then its figures one over the next, in
+// the middle of the panel, as the sketch's wide window sets them.
+.level-panel {
+  align-content: start;
+  justify-items: center;
+  gap: var(--fz-space-4);
+  text-align: center;
+
+  app-level-figures {
+    --figures-direction: column;
+    --goal-picture: 36px;
+  }
+}
+
+.level {
+  --level-number-size: var(--fz-font-sm);
+
+  max-width: 100%;
+  margin: 0;
+  font-size: var(--fz-font-lg);
+}
+
+// Hint and Restart, one over the other, as wide as the panel: only the
+// buttons take the pointer, and a press beside them reaches the board.
+.buttons {
+  align-content: start;
+  gap: var(--fz-space-3);
+  border: 0;
+  background: none;
+  box-shadow: none;
+
+  button {
+    margin: 0;
+    pointer-events: auto;
+  }
 }

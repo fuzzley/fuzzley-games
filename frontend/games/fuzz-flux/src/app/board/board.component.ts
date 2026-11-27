@@ -67,12 +67,8 @@ export class BoardComponent {
   private readonly play = viewChild.required<ElementRef<HTMLElement>>("play");
   protected readonly canvas = viewChild.required(PhaserCanvasComponent);
 
-  /**
-   * Where each goal's picture lies, in CSS pixels from the canvas's top left
-   * corner, in the level's order, which a fuzzball's copy flies to; none
-   * where the page shows no picture.
-   */
-  readonly goals = input<readonly CssRect[]>([]);
+  /** Each goal's picture on the page, in the level's order, which a fuzzball's copy flies to. */
+  readonly goalPictures = input<readonly Element[]>([]);
 
   /** Whether the player wants sound. */
   readonly sound = input(true);
@@ -124,6 +120,21 @@ export class BoardComponent {
     const { width, height } = this.grid();
     return boardMetrics(room, width, height);
   });
+
+  /** Where the game's panels lie beside the board, or null where the room spares none. */
+  readonly panels = computed(() => {
+    const panels = this.shown()?.panels;
+    return panels
+      ? { left: cssRectStyle(panels.left), right: cssRectStyle(panels.right) }
+      : null;
+  });
+
+  /**
+   * Where each goal's picture lies, in CSS pixels from the canvas's top
+   * left corner, as the board last measured them, which the scene's copies
+   * fly to: the same list until the board measures them again.
+   */
+  private goals: readonly CssRect[] = [];
 
   /**
    * Where the board lies on the canvas, in CSS pixels, for the placeholder
@@ -177,7 +188,7 @@ export class BoardComponent {
     onPictures: (pictures) => {
       this.takePictures(pictures);
     },
-    goals: () => this.goals(),
+    goals: () => this.goals,
     hand: () => this.game.hand(),
     sound: () => this.sound(),
     cues: () => this.game.cues(),
@@ -211,6 +222,24 @@ export class BoardComponent {
     // rendering, since the canvas's state needs the scene it is given.
     afterRenderEffect(() => {
       this.game.setDrawn(this.canvas().state() === "ready");
+    });
+    // Each picture moves as the board is laid out again and as a count
+    // beside it changes width, as the bar and the panel show the state.
+    afterRenderEffect({
+      read: () => {
+        this.shown();
+        this.game.state();
+        this.measureGoals(this.goalPictures());
+      },
+    });
+  }
+
+  /** Measures where each goal's picture lies from the canvas's top left corner. */
+  private measureGoals(pictures: readonly Element[]): void {
+    const origin = this.host.nativeElement.getBoundingClientRect();
+    this.goals = pictures.map((picture) => {
+      const { x, y, width, height } = picture.getBoundingClientRect();
+      return { x: x - origin.x, y: y - origin.y, width, height };
     });
   }
 

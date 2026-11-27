@@ -1,0 +1,38 @@
+<dl class="figures">
+  @if (wind(); as wind) {
+    <div class="figure wind">
+      <dt class="fz-visually-hidden">Wind</dt>
+      <dd class="way">
+        <fz-icon name="chevron" [style.rotate]="wind.turn" />
+        <span class="fz-visually-hidden">{{ wind.blows }}</span>
+      </dd>
+      @if (wind.turnsIn; as turnsIn) {
+        <dd class="turns-in">{{ turnsIn }}</dd>
+      }
+    </div>
+  }
+  @for (goal of goals(); track $index) {
+    <div class="figure goal" [class.met]="goal.met">
+      <dt>
+        <span #goalPicture class="picture">
+          @if (goal.picture; as picture) {
+            <img [src]="picture" alt="" />
+          }
+        </span>
+        <span class="fz-visually-hidden">{{ goal.name }}</span>
+      </dt>
+      <dd class="count">
+        @if (goal.met) {
+          <fz-icon name="tick" />
+          <span class="fz-visually-hidden">done</span>
+        } @else {
+          {{ goal.left }}
+        }
+      </dd>
+    </div>
+  }
+  <div class="figure moves" [class.low]="moves().low">
+    <dt class="label">{{ moves().label }}</dt>
+    <dd class="count">{{ moves().left }}</dd>
+  </div>
+</dl>

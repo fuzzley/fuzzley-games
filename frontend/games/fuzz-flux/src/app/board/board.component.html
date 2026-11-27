@@ -32,6 +32,12 @@
   }
 </ul>
 
+<!--
+  The game's panels, laid where the board says, outside the application,
+  read as a page is.
+-->
+<ng-content />
+
 <div class="cards">
   <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
   <fz-canvas-cards [canvas]="canvas()" />

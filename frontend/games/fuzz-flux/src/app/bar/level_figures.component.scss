@@ -1,0 +1,99 @@
+@use "../styles" as *;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// The figures in a row, as the bar sets them, each goal its picture beside
+// its count: not `bar-figures()`' cards, a word in capitals over a value,
+// since the picture is the goal's word and a copy flies to it. Around them,
+// the panel and a rail set them in a column (`--figures-direction`), and a
+// compact bar and a rail set them smaller: their gap (`--figures-gap`), the
+// goals' pictures (`--goal-picture`) and the counts (`--count-size`,
+// `--moves-size`).
+.figures {
+  display: flex;
+  flex-direction: var(--figures-direction, row);
+  align-items: center;
+  gap: var(--figures-gap, var(--fz-space-3));
+  margin: 0;
+}
+
+.figure {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-1);
+
+  dt,
+  dd {
+    display: flex;
+    align-items: center;
+    margin: 0;
+  }
+}
+
+// The wind's arrow in the accent, its moves to turn under it in the muted
+// text.
+.wind {
+  flex-direction: column;
+  gap: 2px;
+
+  .way {
+    color: var(--fz-accent);
+  }
+
+  .turns-in {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-2xs);
+    white-space: nowrap;
+  }
+}
+
+// A goal's picture, a square kept for it before the board has baked it, so
+// nothing moves as it comes.
+.picture {
+  width: var(--goal-picture, 28px);
+  height: var(--goal-picture, 28px);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// `tabular-nums`, so a count that changes width drags nothing along.
+.count {
+  color: var(--fz-text);
+  font-size: var(--count-size, var(--fz-font-lg));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal.met .count {
+  --fz-icon-size: 20px;
+
+  color: var(--fz-accent);
+}
+
+// The moves left over their word, in the warning color once they run low:
+// the word comes first, as a term does, and is heard first.
+.moves {
+  flex-direction: column-reverse;
+  gap: 0;
+
+  .count {
+    font-size: var(--moves-size, var(--fz-font-xl));
+    line-height: 1;
+  }
+
+  .label {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-2xs);
+  }
+
+  &.low .count {
+    color: var(--fz-warning);
+  }
+}

@@ -1,0 +1,53 @@
+<fz-game-bar
+  [placement]="viewport.barPlacement()"
+  [compact]="viewport.isCompact()"
+  [home]="viewport.barHome()"
+>
+  <div fzBarTitle class="title">
+    <!-- The page's one <h1>, heard rather than seen: the level is the title. -->
+    <h1 class="fz-visually-hidden">Fuzz Flux</h1>
+    @if (!panelled()) {
+      <p class="level">
+        <app-level-title
+          [level]="state().level"
+          [numberAlone]="viewport.isCompact()"
+        />
+      </p>
+    }
+  </div>
+
+  @if (!panelled()) {
+    <app-level-figures fzBarStatus [state]="state()" [pictures]="pictures()" />
+  }
+
+  <!--
+    Hint keeps the focus on the board, so the keys go on playing and
+    nothing the board holds is put down. A block apiece: the bar takes a
+    block's button among its actions only while the button is the block's
+    one element.
+  -->
+  @if (!panelled()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary action"
+      (pointerdown)="$event.preventDefault()"
+      (click)="hint.emit()"
+    >
+      <fz-icon name="bulb" />
+      <span class="btn-text">Hint</span>
+    </button>
+  }
+
+  @if (!panelled()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary action"
+      (click)="restart.emit()"
+    >
+      <fz-icon name="restart" />
+      <span class="btn-text">Restart</span>
+    </button>
+  }
+</fz-game-bar>
