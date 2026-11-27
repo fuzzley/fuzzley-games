@@ -40,6 +40,7 @@ import type {
 } from "../../view/timeline/build";
 import { FEEL } from "../../view/timeline/feel";
 import type { Cleared } from "../../view/timeline/level_end";
+import { starsLitAt } from "../../view/timeline/stars_lit";
 import type { SoundCue, Timeline } from "../../view/timeline/timeline";
 import { RecordsService } from "../stats/records.service";
 import { GAME_LEVELS, GAME_RULES } from "../tokens";
@@ -419,13 +420,15 @@ export class GameService extends RunLifecycle {
     this.began();
   }
 
-  /** Returns what the bar and the card show of a level in play at rest: its counts as the rules have them, and the card at its end, if it has ended. */
+  /** Returns what the bar and the card show of a level in play at rest: its counts as the rules have them, and the card at its end, if it has ended, every star it earned lit. */
   private beatsAtRest(inPlay: LevelInPlay): Beats {
     const { goalsLeft, movesLeft } = inPlay.game;
+    const { card } = this.endingOf(inPlay);
     return {
       goalsLeft,
       movesLow: movesLow(movesLeft, FEEL),
-      card: this.endingOf(inPlay).card,
+      card,
+      starsLit: card?.what === "cleared" ? card.stars : 0,
     };
   }
 
@@ -583,7 +586,7 @@ export class GameService extends RunLifecycle {
     }
   }
 
-  /** Keeps the bar's counts and the card to where a move on the board stands on its timeline, saying the card as it shows. */
+  /** Keeps the bar's counts, the card and its stars lit to where a move on the board stands on its timeline, saying the card as it shows. */
   private keepBeats(
     timeline: Timeline,
     move: MoveOnBoard,
@@ -592,8 +595,16 @@ export class GameService extends RunLifecycle {
     const beats = this.beatsState();
     const goalsLeft = goalsLeftAt(timeline.counts, move.goalsFrom, playedMs);
     const card = cardAt(timeline, move.card, playedMs);
-    if (sameCounts(goalsLeft, beats.goalsLeft) && card === beats.card) return;
-    this.beatsState.set({ ...beats, goalsLeft, card });
+    const starsLit =
+      timeline.end === null ? 0 : starsLitAt(timeline.end, playedMs);
+    if (
+      sameCounts(goalsLeft, beats.goalsLeft) &&
+      card === beats.card &&
+      starsLit === beats.starsLit
+    ) {
+      return;
+    }
+    this.beatsState.set({ ...beats, goalsLeft, card, starsLit });
     if (card !== null && beats.card === null) this.sayCard(card);
   }
 

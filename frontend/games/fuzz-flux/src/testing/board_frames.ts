@@ -70,13 +70,14 @@ export class BoardFrames {
 
   /**
    * Plays frames until the play the board shows has played out: past its
-   * rest, each goal's count and the level's end it comes to.
+   * rest, each goal's count, and the level's end it comes to, its card and
+   * each star lit on it.
    */
   playOut(): void {
     const { timeline } = this.shell.play();
     const counts = timeline.counts.map(({ atMs }) => atMs);
-    const end = timeline.end?.cardMs ?? 0;
-    this.playPast(Math.max(timeline.restMs, end, ...counts));
+    const { cardMs = 0, starsMs = [] } = timeline.end ?? {};
+    this.playPast(Math.max(timeline.restMs, cardMs, ...starsMs, ...counts));
   }
 
   /** Presses squares in turn, as taps on the board do, handing the shell each command. */

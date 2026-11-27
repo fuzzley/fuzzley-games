@@ -67,6 +67,7 @@ export function runStateOf(
     wind: windOf(level, game),
     newThing: level.data.brings,
     card: beats.card,
+    starsLit: beats.starsLit,
     grid,
   };
 }

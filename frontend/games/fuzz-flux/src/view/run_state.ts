@@ -70,5 +70,7 @@ export interface RunState {
   readonly newThing: NewThing | null;
   /** The card at the level's end, or null while it plays. */
   readonly card: Card | null;
+  /** How many of the Cleared card's stars show lit, each from its beat: 0 while the level plays, and for Out of moves. */
+  readonly starsLit: number;
   readonly grid: GridShown;
 }

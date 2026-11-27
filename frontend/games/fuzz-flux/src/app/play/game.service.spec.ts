@@ -530,6 +530,54 @@ describe("GameService", () => {
       });
     });
 
+    it("shows the Cleared card with no star lit until the first's beat", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+      const { end } = played.game.play().timeline;
+
+      played.frames.playPast(end?.cardMs ?? 0);
+
+      expect(played.game.state()).toMatchObject({
+        card: { what: "cleared" },
+        starsLit: 0,
+      });
+    });
+
+    it("lights each star earned at its beat, one at a time", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+      const starsMs = played.game.play().timeline.end?.starsMs ?? [];
+
+      const lit = starsMs.map((atMs) => {
+        played.frames.playPast(atMs);
+        return played.game.state().starsLit;
+      });
+
+      expect(lit).toEqual([1, 2, 3]);
+    });
+
+    it("lights every star at once for a move landed at once", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+
+      played.game.pause();
+      played.frames.frame();
+
+      expect(played.game.state()).toMatchObject({
+        card: { what: "cleared" },
+        starsLit: 3,
+      });
+    });
+
+    it("lights every star of a level cleared on a board made again", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+
+      played.game.useView(VIEW_KIT);
+
+      expect(played.game.state().starsLit).toBe(3);
+    });
+
     it("plays the encore and lights the stars earned on the card", async () => {
       const played = await startGame();
 
@@ -588,6 +636,18 @@ describe("GameService", () => {
       played.frames.playOut();
 
       expect(played.game.state().card).toEqual({ what: "over" });
+    });
+
+    it("lights no star", async () => {
+      const played = await startGame(2);
+      swap(played, BLUE_LINE);
+
+      played.frames.playOut();
+
+      expect(played.game.state()).toMatchObject({
+        card: { what: "over" },
+        starsLit: 0,
+      });
     });
   });
 

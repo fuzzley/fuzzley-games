@@ -1,7 +1,7 @@
 import { SHAKE_RATES } from "@fz/core/motion";
 import { FEEL } from "./feel";
 import { RAISED, lookAt } from "./looks";
-import { frameFor, sampleAt, sampleFlight, starsLitAt } from "./sample";
+import { frameFor, sampleAt, sampleFlight } from "./sample";
 import {
   EASINGS,
   type Easing,
@@ -391,22 +391,5 @@ describe("sampleFlight", () => {
 
   it("shows nothing before it sets off", () => {
     expect(flightAt(99).shown).toBe(false);
-  });
-});
-
-describe("starsLitAt", () => {
-  const end = {
-    cardMs: 1000,
-    starsMs: [1200, 1500, 1800],
-    hurriedFromMs: 500,
-  };
-
-  it.each([
-    [1199, 0],
-    [1200, 1],
-    [1799, 2],
-    [Infinity, 3],
-  ])("has the stars lit by %i ms be %i", (ms, lit) => {
-    expect(starsLitAt(end, ms)).toBe(lit);
   });
 });

@@ -1,9 +1,8 @@
 // Where everything a move's timeline draws stands at a moment: each piece's
 // and each loose sprite's look, face and frame, the board's dimming and
 // shake, and each copy flying to its goal, each written into a record the
-// scene keeps, so a frame makes no records; and how many stars the level's
-// end card has lit. A frame is a time, so the same moment samples the same
-// on every run and at any frame rate.
+// scene keeps, so a frame makes no records. A frame is a time, so the same
+// moment samples the same on every run and at any frame rate.
 
 import { clamp, lerp } from "@fz/core/math";
 import { type Shift, shakeOf } from "@fz/core/motion";
@@ -16,7 +15,6 @@ import type { FeelTuning } from "./feel";
 import { RAISED, lookAt } from "./looks";
 import {
   CHANNELS,
-  type EndBeats,
   type Effect,
   type Flight,
   type Key,
@@ -128,15 +126,6 @@ export function sampleFlight(
   into.face = "happy";
   into.drawn = flight.drawn;
   return into;
-}
-
-/** Returns how many of the stars a level's end card shows are lit at a moment, every one past the last's beat, as a move that lands at once shows. */
-export function starsLitAt(end: EndBeats, ms: number): number {
-  let lit = 0;
-  while (lit < end.starsMs.length && itemAt(end.starsMs, lit) <= ms) {
-    lit++;
-  }
-  return lit;
 }
 
 /** How a sprite looks standing still, which a flight's copy moves on from. */

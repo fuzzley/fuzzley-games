@@ -15,7 +15,12 @@ function stateOfLevel3(): RunState {
   const rules = { elements: ELEMENT_RULES, wind: WIND_RULE };
   const inPlay = levelDealt(itemAt(SMALL_LEVELS, 2), 1, rules);
   const { game } = inPlay;
-  const beats = { goalsLeft: game.goalsLeft, movesLow: false, card: null };
+  const beats = {
+    goalsLeft: game.goalsLeft,
+    movesLow: false,
+    card: null,
+    starsLit: 0,
+  };
   return runStateOf(inPlay, gridOf(game), beats);
 }
 

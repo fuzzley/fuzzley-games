@@ -1,7 +1,8 @@
 // What a move on the board has come to at a moment of its timeline, on the
 // scene's clock: each goal's count as its flights land, the board's rest,
-// and the card at the level's end. A beat falls in the first frame that
-// stands past it, as a cue at the same moment plays.
+// and the card at the level's end, each star on which lights as the view's
+// `starsLitAt()` says. A beat falls in the first frame that stands past it,
+// as a cue at the same moment plays.
 
 import type { Card } from "../../view/run_state";
 import type { GoalCount, Timeline } from "../../view/timeline/timeline";
@@ -9,13 +10,14 @@ import type { GoalCount, Timeline } from "../../view/timeline/timeline";
 /**
  * Describes what the play on the board has come to, which the bar and the
  * card show as it comes: what each goal still asks for as its flights have
- * landed, whether the moves left show in the warning color, and the card
- * once the level's end has come to it.
+ * landed, whether the moves left show in the warning color, the card once
+ * the level's end has come to it, and how many of its stars are lit.
  */
 export interface Beats {
   readonly goalsLeft: readonly number[];
   readonly movesLow: boolean;
   readonly card: Card | null;
+  readonly starsLit: number;
 }
 
 /** Returns whether a beat at a moment of a timeline has passed, the play standing at another. */
