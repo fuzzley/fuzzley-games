@@ -361,6 +361,11 @@ export class GameService extends RunLifecycle {
     return true;
   }
 
+  /** Takes up a level in play a saved game kept, at rest on the board after its last move. */
+  takeUp(inPlay: LevelInPlay): void {
+    this.begin(inPlay);
+  }
+
   /** Plays the level after the one just cleared, on its next deal, where there is one. */
   protected override nextStage(): void {
     const next = this.inPlayState().level.number + 1;
