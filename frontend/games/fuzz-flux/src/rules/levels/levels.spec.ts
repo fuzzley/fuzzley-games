@@ -1,6 +1,8 @@
 import { DESIGN_SETS, designSet } from "../../testing/design_files";
 import bedtime from "./bedtime.json";
 import bricksAndBars from "./bricks-and-bars.json";
+import { type Level, levelSetOf } from "./level";
+import { arrivalProblem, levelProblem } from "./level_rules";
 import { LEVELS, LEVEL_SETS } from "./levels";
 import warmUp from "./warm-up.json";
 import windyDays from "./windy-days.json";
@@ -12,6 +14,11 @@ const COPIES: Readonly<Record<(typeof DESIGN_SETS)[number], unknown>> = {
   bedtime,
   "windy-days": windyDays,
 };
+
+/** Every level of the four sets, in the order they are played. */
+const EVERY_LEVEL: readonly Level[] = DESIGN_SETS.flatMap(
+  (set) => levelSetOf(COPIES[set]).levels,
+);
 
 describe("the levels", () => {
   it("are Warm-up's alone, while the other sets are built", () => {
@@ -36,5 +43,24 @@ describe("the levels", () => {
 
   it.each(DESIGN_SETS)("keep the set %s as the design's file has it", (set) => {
     expect(COPIES[set]).toEqual(designSet(set));
+  });
+});
+
+describe("every level of the four sets", () => {
+  it("is numbered 1 to 36 in the order the sets are played", () => {
+    expect(EVERY_LEVEL.map(({ id }) => id)).toEqual(
+      Array.from({ length: 36 }, (_, place) => String(place + 1)),
+    );
+  });
+
+  it.each(EVERY_LEVEL)(
+    "keeps the rules a level keeps: level $id, $name",
+    (level) => {
+      expect(levelProblem(level)).toBeNull();
+    },
+  );
+
+  it("brings each new thing in alone, in the order the levels are played", () => {
+    expect(arrivalProblem(EVERY_LEVEL)).toBeNull();
   });
 });
