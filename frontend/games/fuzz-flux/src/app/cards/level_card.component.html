@@ -1,0 +1,64 @@
+@let card = shown();
+@if (card) {
+  <!-- By what it is, which narrows the card in each case, as `card.what` can't. -->
+  @let what = card.what;
+  <div class="card" role="group" [attr.aria-labelledby]="titleId">
+    @switch (what) {
+      @case ("cleared") {
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
+        <p class="fz-visually-hidden">{{ card.starsWords }}</p>
+        <!-- Each of the most stars a level earns, lit at its beat. -->
+        <div class="stars" aria-hidden="true">
+          @for (lit of card.stars; track $index) {
+            @if (lit) {
+              <fz-icon class="lit" name="star" />
+            } @else {
+              <fz-icon name="star-outline" />
+            }
+          }
+        </div>
+        <p>{{ card.spare }}</p>
+      }
+      @case ("over") {
+        <h2 class="card-title" [id]="titleId">Out of moves</h2>
+        <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+        <ul class="goals" role="list">
+          @for (goal of card.goals; track $index) {
+            <li>
+              <!--
+                Its place held before the board has baked it, so nothing
+                on the card moves as it comes.
+              -->
+              @if (goal.picture; as picture) {
+                <img class="picture" [src]="picture" alt="" />
+              } @else {
+                <span class="picture"></span>
+              }
+              <span class="fz-visually-hidden">{{ goal.name }}</span>
+              {{ goal.left }}
+            </li>
+          }
+        </ul>
+      }
+      @default never;
+    }
+    <div class="buttons">
+      <button
+        type="button"
+        class="fz-button"
+        fzKeepKeys
+        (click)="choose.emit(card.main.choice)"
+      >
+        {{ card.main.label }}
+      </button>
+      <button
+        type="button"
+        class="fz-button fz-button-secondary"
+        fzKeepKeys
+        (click)="choose.emit(card.other.choice)"
+      >
+        {{ card.other.label }}
+      </button>
+    </div>
+  </div>
+}

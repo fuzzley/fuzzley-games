@@ -1,0 +1,75 @@
+@use "../styles" as *;
+
+// Over the board, where the board lays its layers, the card in its middle.
+// Only the card's buttons take the pointer, so a tap beside them reaches
+// the board, as the tap that hurries the encore.
+:host {
+  @include board-card-layer;
+}
+
+.card {
+  @include board-card(var(--fz-space-3));
+}
+
+// The stars in a row, each of the most a level earns: a lit one in the
+// warning's gold, as the levels show them, and one not lit yet, or not
+// earned, outlined and muted.
+.stars {
+  display: flex;
+  gap: var(--fz-space-2);
+
+  fz-icon {
+    --fz-icon-size: 36px;
+
+    color: var(--fz-muted);
+  }
+
+  .lit {
+    color: var(--fz-warning);
+  }
+}
+
+// What each goal still open needs, its picture beside it, in a row that
+// wraps on a narrow card.
+.goals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--fz-space-2) var(--fz-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--fz-space-2);
+  }
+}
+
+.picture {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+// The card's buttons side by side, the next step first, one over the other
+// where the card is too narrow for both.
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--fz-space-2);
+}
+
+// On a small board, as on a phone on its side, the card sets smaller, so
+// it and its buttons fit over the board.
+@container (width < 280px) or (height < 380px) {
+  :host {
+    @include board-card-small;
+  }
+
+  .stars fz-icon {
+    --fz-icon-size: 24px;
+  }
+}

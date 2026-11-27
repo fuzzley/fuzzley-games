@@ -42,6 +42,7 @@ import type {
 import { FEEL } from "../../view/timeline/feel";
 import type { Cleared } from "../../view/timeline/level_end";
 import { starsLitAt } from "../../view/timeline/stars_lit";
+import type { SoundName } from "../../view/effects/sounds";
 import type { SoundCue, Timeline } from "../../view/timeline/timeline";
 import { ProgressService } from "../stats/progress.service";
 import { RecordsService } from "../stats/records.service";
@@ -205,6 +206,11 @@ export class GameService extends RunLifecycle {
     () => !this.ended() && this.inPlayState().moves.length > 0,
   );
 
+  /** Whether a level comes after the level in play. */
+  readonly hasNextLevel = computed(
+    () => this.inPlayState().level.number < this.levels.length,
+  );
+
   /** Whether the card over an ended level has been put away: never, as each card's buttons go on from it. */
   readonly resultClosed = signal(false).asReadonly();
 
@@ -241,7 +247,7 @@ export class GameService extends RunLifecycle {
     // Each scene's clock starts from nothing.
     this.nowMs = 0;
     this.beatsState.set(this.beatsAtRest(this.inPlayState()));
-    this.layOnBoard(kit);
+    this.layOnBoard(kit, []);
   }
 
   /** Returns what the board plays: the play the scene draws, a new value as each starts. */
@@ -398,10 +404,29 @@ export class GameService extends RunLifecycle {
     this.putInPlay(inPlay);
   }
 
+  /**
+   * Plays the level after the level in play on its next deal, as Next level
+   * asks, where there is one, and resolves to whether it did.
+   */
+  async nextLevel(): Promise<boolean> {
+    if (!this.hasNextLevel()) return false;
+    return this.startLevel(this.inPlayState().level.number + 1);
+  }
+
+  /**
+   * Plays one of the shell's own sounds at once, on the scene's clock, as a
+   * card's button does: none before the board hands over the view's parts.
+   */
+  cue(sound: SoundName): void {
+    const board = this.board;
+    if (board === null) return;
+    const cue = { atMs: this.nowMs, sound, cents: 0, volume: 1 };
+    board.cues = [...board.cues, cue];
+  }
+
   /** Plays the level after the one just cleared, on its next deal, where there is one. */
   protected override nextStage(): void {
-    const next = this.inPlayState().level.number + 1;
-    if (next <= this.levels.length) void this.startLevel(next);
+    void this.nextLevel();
   }
 
   /** Returns a level in play on the deal a level begins on next. */
@@ -415,11 +440,18 @@ export class GameService extends RunLifecycle {
     this.announcer.say(describeLevelBegun(this.state()));
   }
 
-  /** Puts a level in play, at rest on the board, and counts it begun. */
+  /**
+   * Puts a level in play, at rest on the board, and counts it begun; the
+   * shell's cues still to play, as the button's that played it, play on.
+   */
   private putInPlay(inPlay: LevelInPlay): void {
     this.inPlayState.set(inPlay);
     this.beatsState.set(this.beatsAtRest(inPlay));
-    if (this.board !== null) this.layOnBoard(this.board.kit);
+    const board = this.board;
+    if (board !== null) {
+      const toCome = board.cues.filter(({ atMs }) => atMs >= this.nowMs);
+      this.layOnBoard(board.kit, toCome);
+    }
     this.began();
   }
 
@@ -437,10 +469,10 @@ export class GameService extends RunLifecycle {
 
   /**
    * Lays the level in play on the board, at rest, with the view's parts,
-   * and the picking, the ring and the hint's clock made for it; the hint's
-   * clock starts now.
+   * and the picking, the ring and the hint's clock made for it, and the
+   * shell's cues given; the hint's clock starts now.
    */
-  private layOnBoard(kit: ViewKit): void {
+  private layOnBoard(kit: ViewKit, cues: readonly SoundCue[]): void {
     const grid = this.grid();
     const shape = shapeOf(grid);
     const { level, moves } = this.inPlayState();
@@ -468,7 +500,7 @@ export class GameService extends RunLifecycle {
       rested: true,
       putDownNow: null,
       hand: null,
-      cues: [],
+      cues,
     };
   }
 

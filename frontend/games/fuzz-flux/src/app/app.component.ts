@@ -10,13 +10,18 @@ import { BarComponent } from "./bar/bar.component";
 import { LevelFiguresComponent } from "./bar/level_figures.component";
 import { LevelTitleComponent } from "./bar/level_title.component";
 import { BoardComponent } from "./board/board.component";
+import {
+  type CardChoice,
+  LevelCardComponent,
+} from "./cards/level_card.component";
 import { ChooseLevelComponent } from "./levels/choose_level.component";
 import { newThingLine } from "../rules/run/describe";
 import { GameService } from "./play/game.service";
 
 /**
- * Shows the game: the bar, the board, a wide window's panels beside it,
- * and Choose a level, as the bar opens it.
+ * Shows the game: the bar, the board, a wide window's panels beside it, the
+ * card over the board at a level's end, and Choose a level, as the bar and
+ * the card open it.
  *
  * A level that brings something new has a line about it, on the bar's
  * side of the board where the bar stands across the window. A phone on its
@@ -40,6 +45,7 @@ import { GameService } from "./play/game.service";
     ConfirmDialogComponent,
     IconComponent,
     KeepKeysDirective,
+    LevelCardComponent,
     LevelFiguresComponent,
     LevelTitleComponent,
     PlayRoomDirective,
@@ -111,6 +117,23 @@ export class AppComponent {
 
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
+  }
+
+  /** Does what a card's button asks, its sound played first. */
+  protected chooseFromCard(choice: CardChoice): void {
+    this.game.cue("button");
+    switch (choice) {
+      case "next-level":
+        void this.game.nextLevel();
+        return;
+      case "play-again":
+      case "try-again":
+        void this.game.newGame();
+        return;
+      case "choose-level":
+        this.levelsOpen.set(true);
+        return;
+    }
   }
 
   /** Plays the level again on its deal, as Restart asks, asking first once a move is made. */

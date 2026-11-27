@@ -643,6 +643,36 @@ describe("GameService", () => {
       expect(played.game.state().level.number).toBe(2);
     });
 
+    it("goes on to the next level at Next level", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+
+      const went = await played.game.nextLevel();
+
+      expect({ went, level: played.game.state().level.number }).toEqual({
+        went: true,
+        level: 2,
+      });
+    });
+
+    it("has a next level before the last", async () => {
+      const played = await startGame(1, SMALL_LEVELS.slice(0, 2));
+
+      expect(played.game.hasNextLevel()).toBe(true);
+    });
+
+    it("has no next level after the last, and goes to none at Next level", async () => {
+      const played = await startGame(1, SMALL_LEVELS.slice(0, 1));
+      swap(played, BLUE_LINE);
+
+      const went = await played.game.nextLevel();
+
+      expect({ next: played.game.hasNextLevel(), went }).toEqual({
+        next: false,
+        went: false,
+      });
+    });
+
     it("goes on to no level after the last", async () => {
       const played = await startGame(1, SMALL_LEVELS.slice(0, 1));
       swap(played, BLUE_LINE);
@@ -808,6 +838,57 @@ describe("GameService", () => {
       expect(played.game.cues()).toEqual([
         expect.objectContaining({ sound: "low" }),
       ]);
+    });
+  });
+
+  describe("the shell's own sounds", () => {
+    it("play at once, on the scene's clock, as a card's button does", async () => {
+      const played = await startGame();
+      played.frames.playFor(100);
+
+      played.game.cue("button");
+
+      expect(played.game.cues()).toEqual([
+        { atMs: played.frames.nowMs, sound: "button", cents: 0, volume: 1 },
+      ]);
+    });
+
+    it("play on as the level they start begins", async () => {
+      const played = await startGame();
+      swap(played, BLUE_LINE);
+      played.frames.playOut();
+
+      played.game.cue("button");
+      await played.game.nextLevel();
+
+      expect(played.game.cues()).toMatchObject([{ sound: "button" }]);
+    });
+
+    it("are left behind once played, as another level begins", async () => {
+      const played = await startGame();
+      played.game.cue("button");
+      played.frames.frame();
+
+      await played.game.newGame();
+
+      expect(played.game.cues()).toEqual([]);
+    });
+
+    it("start again on a board made again, its clock new", async () => {
+      const played = await startGame();
+      played.game.cue("button");
+
+      played.game.useView(VIEW_KIT);
+
+      expect(played.game.cues()).toEqual([]);
+    });
+
+    it("play nothing before the board hands over the view", () => {
+      const game = TestBed.inject(GameService);
+
+      expect(() => {
+        game.cue("button");
+      }).not.toThrow();
     });
   });
 

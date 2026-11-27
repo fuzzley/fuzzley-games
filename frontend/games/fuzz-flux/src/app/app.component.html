@@ -46,6 +46,12 @@
           {{ beside.line }}
         </p>
       }
+      <app-level-card
+        [state]="game.state()"
+        [pictures]="pictures()"
+        [nextLevel]="game.hasNextLevel()"
+        (choose)="chooseFromCard($event)"
+      />
     </app-board>
   </div>
 </main>

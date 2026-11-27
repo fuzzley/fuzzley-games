@@ -271,6 +271,68 @@ describe("AppComponent", () => {
     });
   });
 
+  describe("the card at a level's end", () => {
+    /** Clears the first of the small levels, its card shown as the board plays the move out. */
+    async function clearFirstLevel(): Promise<GameService> {
+      const { settle } = await renderApp();
+      const game = TestBed.inject(GameService);
+      game.useView(VIEW_KIT);
+      const frames = new BoardFrames(game);
+      playBlueLine(game);
+      frames.playOut();
+      await settle();
+      return game;
+    }
+
+    it("shows over the board at its beat", async () => {
+      await clearFirstLevel();
+
+      expect(
+        within(document.querySelector("app-board")!).getByRole("group", {
+          name: "Level 1 cleared!",
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("plays the next level at Next level, with the button's sound", async () => {
+      const game = await clearFirstLevel();
+
+      await userEvent.click(screen.getByRole("button", { name: "Next level" }));
+
+      expect({
+        level: game.state().level.number,
+        cues: game.cues().map(({ sound }) => sound),
+      }).toEqual({ level: 2, cues: ["button"] });
+    });
+
+    it("plays the level again on its next deal at Play again", async () => {
+      const game = await clearFirstLevel();
+
+      await userEvent.click(screen.getByRole("button", { name: "Play again" }));
+
+      expect(game.inPlay()).toMatchObject({ level: { number: 1 }, deal: 2 });
+    });
+
+    it("opens Choose a level from Out of moves", async () => {
+      const { settle } = await renderApp();
+      const game = TestBed.inject(GameService);
+      game.useView(VIEW_KIT);
+      await game.startLevel(2);
+      playBlueLine(game);
+      new BoardFrames(game).playOut();
+      await settle();
+
+      await userEvent.click(
+        within(screen.getByRole("group", { name: "Out of moves" })).getByRole(
+          "button",
+          { name: "Choose a level" },
+        ),
+      );
+
+      expect(screen.getByRole("dialog", { name: "Levels" })).toBeVisible();
+    });
+  });
+
   it("hands the board the focus as the page loads, on its first square", async () => {
     await renderApp();
 
