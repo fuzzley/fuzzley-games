@@ -1,6 +1,6 @@
 import { boardFrom } from "../../testing/board_picture";
 import { gridOf } from "../../testing/shown_board";
-import { findStanding, standingOn } from "./standing";
+import { everyStanding, findStanding, standingOn } from "./standing";
 
 /** A board of a red fuzzball, a square holding nothing, a gap and a brick, numbered 1 and 2. */
 const GRID = gridOf(boardFrom(["r ", "_1"]));
@@ -33,5 +33,11 @@ describe("standingOn", () => {
     expect(() => standingOn(GRID, 1)).toThrow(
       new RangeError("No piece stands on square 1."),
     );
+  });
+});
+
+describe("everyStanding", () => {
+  it("finds every piece on a board, in the order of its squares", () => {
+    expect(everyStanding(GRID).map(({ piece }) => piece.id)).toEqual([1, 2]);
   });
 });

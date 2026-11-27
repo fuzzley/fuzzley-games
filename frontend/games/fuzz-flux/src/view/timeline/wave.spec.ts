@@ -28,7 +28,7 @@ function played(
   wave: Wave,
   grid: GridShown,
 ): WavePlayed & { readonly timeline: Timeline } {
-  const draft = new Draft(grid);
+  const draft = new Draft(grid, []);
   const done = playWave(draft, wave, grid, "down", 0, FEEL);
   return { ...done, timeline: draft.finish(done.endMs, null, FEEL) };
 }
@@ -68,6 +68,17 @@ describe("playWave", () => {
     const tufts = { count: FEEL.bunchTufts, power: FEEL.tuftPower };
 
     expect(fluffOf(timeline)).toMatchObject([tufts, tufts, tufts]);
+  });
+
+  it("cheers the board at wave 3, a moment after its bunches hop off", () => {
+    const { timeline } = played({ ...FIRST, number: 3 }, SWAPPED);
+
+    const cheersMs = FEEL.huddleMs * quickeningOf(3, FEEL) + FEEL.cheerAfterMs;
+
+    expect([
+      pieceAt(timeline, 2, cheersMs - 1).face,
+      pieceAt(timeline, 2, cheersMs).face,
+    ]).toEqual(["rest", "happy"]);
   });
 
   it("lets a wave with no bunch fall after the wait alone", () => {

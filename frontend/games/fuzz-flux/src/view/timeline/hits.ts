@@ -1,10 +1,12 @@
 // What each hit a wave makes plays as it lands: one struck beside or under
 // a bunch a moment after it hops off, one a blast struck as the blast
 // reaches its step. Each kind of hit plays by its own event in the list,
-// a fuzzball a blast takes hopping off; an element's events join it.
+// a fuzzball a blast takes hopping off and dust swept among them; an
+// element's events join it.
 
 import { itemAt } from "@fz/core/records";
 import type { Hit } from "../../rules/move/record";
+import { dusted } from "./events/dust";
 import { gathered } from "./events/gathered";
 import type { Part } from "./part";
 import type { Reach } from "./reach";
@@ -57,7 +59,10 @@ function isOf<What extends StruckWhat>(
 }
 
 /** Each kind of hit's event. */
-const HIT_EVENTS: readonly Listed[] = [playing("gathered", gathered)];
+const HIT_EVENTS: readonly Listed[] = [
+  playing("gathered", gathered),
+  playing("dusted", dusted),
+];
 
 /**
  * Returns the parts of each hit a wave's bunches and blasts strike, and a

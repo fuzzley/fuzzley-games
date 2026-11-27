@@ -1,21 +1,24 @@
 // A move's timeline as its events add to it: a track for each piece on the
 // board as the move starts and each it brings in, and the lists of what
 // else it plays. Once every event is in, the draft lays each track's keys
-// in the order they start, holds what the move plays to the design's
-// limits, and hands back the timeline.
+// in the order they start, sends what the goals count to them, holds what
+// the move plays to the design's limits, and hands back the timeline.
 
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import { squareOf } from "../../rules/board/cells";
 import type { Piece } from "../../rules/catalog/pieces";
 import { rungCentsOf } from "../effects/ladder";
-import type { GridShown } from "../run_state";
+import type { GoalShown, GridShown } from "../run_state";
+import { byStart } from "./by_start";
 import type { FeelTuning } from "./feel";
+import { type Claim, flightsOf } from "./flights";
 import { limitFlashes, limitFluff, limitSounds } from "./limits";
 import { lookAt, restingFace } from "./looks";
 import type { Part } from "./part";
 import type {
   Becomes,
   Channel,
+  DustChange,
   Effect,
   EndBeats,
   Faces,
@@ -25,6 +28,7 @@ import type {
   SoundCue,
   SpriteTrack,
   Timeline,
+  WaveMark,
 } from "./timeline";
 
 /** Describes a piece's track as the draft builds it. */
@@ -38,7 +42,11 @@ interface TrackDraft {
   readonly keys: Map<Channel, Key[]>;
   readonly becomes: Becomes[];
   readonly faces: Faces[];
+  readonly facesAgain: FaceAgain[];
 }
+
+/** Describes a face a piece's eyes take again, as a draft holds it until it knows whether another came between. */
+type FaceAgain = Extract<Part, { readonly what: "face-again" }>;
 
 /** Describes a glow a draft holds until the flashes' limit keeps it or drops it. */
 type Glow = Extract<Part, { readonly what: "glow" }>;
@@ -49,11 +57,20 @@ export class Draft {
   readonly #sprites: SpriteTrack[] = [];
   readonly #effects: Effect[] = [];
   readonly #glows: Glow[] = [];
+  readonly #claims: Claim[] = [];
+  readonly #dust: DustChange[] = [];
+  readonly #marks: WaveMark[] = [];
   readonly #sounds: SoundCue[] = [];
   readonly #dim: Key[] = [];
+  readonly #goals: readonly GoalShown[];
+  #hurriedFromMs = Infinity;
 
-  /** Starts a draft with a track for each piece on a board as it stands, at its square. */
-  constructor(board: GridShown) {
+  /**
+   * Starts a draft with a track for each piece on a board as it stands, at
+   * its square, the goals as they stand counting what it gathers.
+   */
+  constructor(board: GridShown, goals: readonly GoalShown[]) {
+    this.#goals = goals;
     board.squares.forEach((square, index) => {
       const piece = square?.piece ?? null;
       if (piece !== null) {
@@ -82,6 +99,9 @@ export class Draft {
             face: part.face,
           });
           break;
+        case "face-again":
+          this.#track(part.piece).facesAgain.push(part);
+          break;
         case "becomes":
           this.#track(part.piece).becomes.push({
             atMs: part.atMs,
@@ -108,6 +128,16 @@ export class Draft {
           this.#track(part.piece);
           this.#glows.push(part);
           break;
+        case "gathered":
+        case "counted":
+          this.#claims.push(part);
+          break;
+        case "dust":
+          this.#dust.push(part.change);
+          break;
+        case "mark":
+          this.#marks.push(part.mark);
+          break;
         case "sound":
           this.#sounds.push({
             atMs: part.atMs,
@@ -128,9 +158,18 @@ export class Draft {
   }
 
   /**
+   * Has the flashes from a moment on keep their gap at the hurried pace, as
+   * a tap may hurry the encore and the level's end by.
+   */
+  hurries(fromMs: number): void {
+    this.#hurriedFromMs = Math.min(this.#hurriedFromMs, fromMs);
+  }
+
+  /**
    * Returns the timeline the draft's parts make, each list in the order it
-   * starts, and what the move plays held to the design's limits: its
-   * flashes and glows, its loose bits and its sounds' gaps.
+   * starts, the flights and counts of what the goals count, and what the
+   * move plays held to the design's limits: its flashes and glows, its
+   * loose bits, its flights and its sounds' gaps.
    */
   finish(restMs: number, end: EndBeats | null, feel: FeelTuning): Timeline {
     const effects = byStart(this.#effects);
@@ -139,6 +178,7 @@ export class Draft {
         ...effects.filter(({ what }) => what === "flash"),
         ...this.#glows,
       ]),
+      this.#hurriedFromMs,
       feel,
     );
     const glows = new Map<number, readonly Key[]>();
@@ -152,6 +192,7 @@ export class Draft {
       }
     }
     const sprites = [...this.#sprites].sort((a, b) => a.fromMs - b.fromMs);
+    const { flights, counts } = flightsOf(this.#claims, this.#goals, feel);
     return {
       pieces: Array.from(this.#tracks.values(), (track) =>
         finished(track, glows.get(track.id) ?? []),
@@ -164,10 +205,10 @@ export class Draft {
         sprites,
         feel,
       ),
-      flights: [],
-      counts: [],
-      dust: [],
-      marks: [],
+      flights,
+      counts,
+      dust: byStart(this.#dust),
+      marks: byStart(this.#marks),
       sounds: limitSounds(byStart(this.#sounds), feel),
       dim: byStart(this.#dim),
       restMs,
@@ -195,6 +236,7 @@ export class Draft {
       keys: new Map(),
       becomes: [],
       faces: [],
+      facesAgain: [],
     });
   }
 
@@ -233,13 +275,12 @@ function finished(track: TrackDraft, glows: readonly Key[]): PieceTrack {
       Array.from(keys, ([channel, ofChannel]) => [channel, byStart(ofChannel)]),
     ),
     becomes: byStart(track.becomes),
-    faces: byStart(track.faces),
+    faces: byStart([
+      ...track.faces,
+      ...track.facesAgain.filter(
+        ({ atMs, sinceMs }) =>
+          !track.faces.some((face) => face.atMs > sinceMs && face.atMs <= atMs),
+      ),
+    ]).map(({ atMs, face }) => ({ atMs, face })),
   };
-}
-
-/** Returns a list in the order its items start, those that start together in the order given. */
-function byStart<T extends { readonly atMs: number }>(
-  items: readonly T[],
-): readonly T[] {
-  return [...items].sort((a, b) => a.atMs - b.atMs);
 }

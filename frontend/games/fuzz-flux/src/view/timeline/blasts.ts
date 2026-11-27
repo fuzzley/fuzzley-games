@@ -5,6 +5,7 @@
 import { itemAt } from "@fz/core/records";
 import type { BlastId } from "../../rules/catalog/specials";
 import type { Blast } from "../../rules/move/record";
+import { isMadeId } from "./board_after";
 import { crossOff } from "./events/cross";
 import { dasherOff } from "./events/dasher";
 import { frizzballOff } from "./events/frizzball";
@@ -13,6 +14,7 @@ import { twoFrizzballsOff } from "./events/two_frizzballs";
 import { wispOff } from "./events/wisp";
 import type { Part } from "./part";
 import { type Reach, heldUntilMs } from "./reach";
+import { standingOn } from "./standing";
 import type { WavePlay } from "./wave_play";
 
 /** Returns the parts of a blast going off, as its reach times it, in its wave. */
@@ -51,7 +53,40 @@ export function blastsOf(
     const reach = itemAt(reaches, index);
     return [
       ...BLAST_EVENTS[blast.what](blast, reach, play),
+      ...uncounted(blast, reach, play),
       { what: "hold", atMs: heldUntilMs(blast, reach) },
     ];
   });
+}
+
+/**
+ * Returns the part of a special the move or a bunch sets off alone with no
+ * hit of its own, which the goal of its kind counts as it goes off; none
+ * for any other blast, whose piece a hit or its pair's swap counts.
+ */
+function uncounted(
+  blast: Blast,
+  reach: Reach,
+  play: WavePlay,
+): readonly Part[] {
+  if (
+    blast.piece === null ||
+    blast.setOffBy !== null ||
+    !isMadeId(blast.what) ||
+    play.wave.hits.some(
+      (hit) => hit.what === "gathered" && hit.piece === blast.piece,
+    )
+  ) {
+    return [];
+  }
+  const { piece } = standingOn(play.grid, blast.square);
+  return piece.what === "fuzzball"
+    ? [
+        {
+          what: "counted",
+          atMs: reach.startMs,
+          counts: { what: "gather", kind: piece.kind },
+        },
+      ]
+    : [];
 }

@@ -1,6 +1,6 @@
 // A fuzzball hopping off the board as it is gathered: it swells, its fur
 // on end and its eyes happy, fades as it goes, and leaves tufts and a
-// thin ring behind.
+// thin ring behind as its copy sets off to its goal.
 
 import type { KindId } from "../../../rules/catalog/kinds";
 import type { FeelTuning } from "../feel";
@@ -49,7 +49,18 @@ export function hopOff(
       ink: kind ?? "frizzball",
     }),
     { what: "leaves", piece: piece.id, atMs: fadeMs + fadeLengthMs },
+    ...gatheredFrom({ piece, at }, atMs),
   ];
+}
+
+/** Returns the part of a fuzzball gathered from where it stands, which the goal of its kind counts, or none for any other piece. */
+export function gatheredFrom(
+  { piece, at }: Standing,
+  atMs: number,
+): readonly Part[] {
+  return piece.what === "fuzzball"
+    ? [{ what: "gathered", atMs, piece, at }]
+    : [];
 }
 
 /**

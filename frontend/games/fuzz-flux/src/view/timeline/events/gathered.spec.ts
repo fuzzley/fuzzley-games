@@ -4,6 +4,7 @@ import {
   pieceAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
+import { standingOn } from "../standing";
 import { gathered } from "./gathered";
 
 /** When the hit lands. */
@@ -30,7 +31,7 @@ describe("gathered", () => {
     );
   });
 
-  it("plays nothing for a special a blast sets off, whose own blast plays it", () => {
+  it("only sends the copy of a special a blast sets off to its goal, its own blast playing the rest", () => {
     const play = firstWaveOf(MOVE_FIXTURES.dasherSetsOffPuffer);
 
     expect(
@@ -46,6 +47,13 @@ describe("gathered", () => {
         AT_MS,
         play,
       ),
-    ).toEqual([]);
+    ).toEqual([
+      {
+        what: "gathered",
+        atMs: AT_MS,
+        piece: standingOn(play.grid, 3).piece,
+        at: { x: 3, y: 0 },
+      },
+    ]);
   });
 });

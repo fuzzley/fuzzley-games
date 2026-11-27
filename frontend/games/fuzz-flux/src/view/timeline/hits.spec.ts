@@ -50,4 +50,17 @@ describe("hitsOf", () => {
       HOPS_MS + FEEL.struckAfterBunchMs,
     );
   });
+
+  it("sweeps the dust off each square of a bunch a moment after it hops off", () => {
+    expect(
+      hitsTimeline(MOVE_FIXTURES.dustSwept).dust.map(({ atMs, layers }) => [
+        atMs,
+        layers,
+      ]),
+    ).toEqual([
+      [HOPS_MS + FEEL.struckAfterBunchMs, 1],
+      [HOPS_MS + FEEL.struckAfterBunchMs, 0],
+      [HOPS_MS + FEEL.struckAfterBunchMs, 1],
+    ]);
+  });
 });

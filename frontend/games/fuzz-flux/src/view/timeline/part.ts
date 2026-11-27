@@ -1,23 +1,27 @@
 // What an event adds to a move's timeline, each a part the builder lays
-// into its tracks and lists: a key, a face or a new look for a piece, a
-// piece shown or gone, a loose sprite, an effect, a glow the flashes'
-// limit may drop, a sound, the board's dimming, and a moment the board
-// waits for before it goes on.
+// into its tracks and lists: a key, a face, a face again or a new look for
+// a piece, a piece shown or gone, a loose sprite, an effect, a glow the flashes'
+// limit may drop, a fuzzball gathered or something else a goal counts, a
+// square's dust swept, a wave's mark, a sound, the board's dimming, and a
+// moment the board waits for before it goes on.
 
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import type { KindId } from "../../rules/catalog/kinds";
-import type { Piece } from "../../rules/catalog/pieces";
+import type { Fuzzball, Piece } from "../../rules/catalog/pieces";
 import { FRAMES } from "../art/frame_names";
 import type { SoundName } from "../effects/sounds";
+import type { Counts } from "./flights";
 import {
   CHANNELS,
   type Channel,
+  type DustChange,
   type Easing,
   type Effect,
   type Key,
   type Look,
   type Place,
   type SpriteTrack,
+  type WaveMark,
 } from "./timeline";
 
 /** Describes a part of a move's timeline that an event adds. */
@@ -35,6 +39,14 @@ export type Part =
       readonly piece: number;
       readonly atMs: number;
       readonly face: FuzzballFace;
+    }
+  /** A piece's eyes taking a face again at a moment, unless they took another after a moment, as a cheer's happy eyes rest. */
+  | {
+      readonly what: "face-again";
+      readonly piece: number;
+      readonly atMs: number;
+      readonly face: FuzzballFace;
+      readonly sinceMs: number;
     }
   /** A piece drawn as another from a moment, as a fuzzball made special is. */
   | {
@@ -64,6 +76,17 @@ export type Part =
       /** How white it glows as it starts, 1 for all white. */
       readonly amount: number;
     }
+  /** A fuzzball gathered from a place, whose copy flies to the goal of its kind where that goal still asks for it. */
+  | {
+      readonly what: "gathered";
+      readonly atMs: number;
+      readonly piece: Fuzzball;
+      readonly at: Place;
+    }
+  /** Something a goal counts at once, with no flight, where the goal still asks for it. */
+  | { readonly what: "counted"; readonly atMs: number; readonly counts: Counts }
+  | { readonly what: "dust"; readonly change: DustChange }
+  | { readonly what: "mark"; readonly mark: WaveMark }
   /** A sound, climbing the move's ladder of notes to a rung where it is a note. */
   | {
       readonly what: "sound";
@@ -106,6 +129,16 @@ export function sets(
 /** Returns the part that gives a piece's eyes a face at a moment. */
 export function facing(piece: number, atMs: number, face: FuzzballFace): Part {
   return { what: "face", piece, atMs, face };
+}
+
+/** Returns the part that gives a piece's eyes a face again at a moment, unless they took another after a moment. */
+export function facingAgain(
+  piece: number,
+  atMs: number,
+  face: FuzzballFace,
+  sinceMs: number,
+): Part {
+  return { what: "face-again", piece, atMs, face, sinceMs };
 }
 
 /** Returns the part that spawns an effect. */

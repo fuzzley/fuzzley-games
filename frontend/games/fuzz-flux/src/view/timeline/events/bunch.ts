@@ -1,6 +1,7 @@
 // A bunch gathered: it sees itself and huddles, wide-eyed, then each of it
 // hops off in turn along it, or, where it makes a special, the rest run
-// into the one that stays as the special shows.
+// into the one that stays as the special shows; and over it, in a move's
+// later waves, its wave's mark.
 
 import { squareOf } from "../../../rules/board/cells";
 import type { KindId } from "../../../rules/catalog/kinds";
@@ -11,8 +12,9 @@ import { type Part, facing, moves, sets, tuftsOf } from "../part";
 import { type Standing, standingOn } from "../standing";
 import type { Place } from "../timeline";
 import { type WavePlay, stayingThrough } from "../wave_play";
-import { hopOff } from "./hop";
+import { gatheredFrom, hopOff } from "./hop";
 import { type Made, madeOf } from "./made";
+import { waveMarkOf } from "./mark";
 
 /** Describes a fuzzball of a bunch gathered from its square. */
 interface Member {
@@ -57,6 +59,7 @@ export function bunchOf(
         : runIn(standing, kind, keeper, hopsMs, feel),
     ),
     { what: "hold", atMs: lastHopMs + feel.hopMs * feel.fallAfterHop },
+    ...waveMarkOf(middleOf(bunch, grid.width), hopsMs, play),
     ...(making === null
       ? []
       : specialMade(
@@ -150,5 +153,6 @@ function runIn(
     }),
     ...tuftsOf(kind, atMs, at, feel.runInTufts, feel.tuftPower),
     { what: "leaves", piece: piece.id, atMs: atMs + feel.runInMs },
+    ...gatheredFrom({ piece, at }, atMs),
   ];
 }

@@ -1,22 +1,28 @@
 // Where everything a move's timeline draws stands at a moment: each piece's
-// and each loose sprite's look, face and frame, and the board's dimming
-// and shake, each written into a record the scene keeps, so a frame makes
-// no records. A frame is a time, so the same moment samples the same on
-// every run and at any frame rate.
+// and each loose sprite's look, face and frame, the board's dimming and
+// shake, and each copy flying to its goal, each written into a record the
+// scene keeps, so a frame makes no records; and how many stars the level's
+// end card has lit. A frame is a time, so the same moment samples the same
+// on every run and at any frame rate.
 
-import { easeOutCubic, lerp } from "@fz/core/math";
+import { clamp, lerp } from "@fz/core/math";
 import { type Shift, shakeOf } from "@fz/core/motion";
+import { hashOf } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
 import type { FuzzballFace } from "@fz/style/fuzzball";
+import { curveAt } from "./curve";
+import { eased } from "./easing";
 import type { FeelTuning } from "./feel";
-import { lookAt } from "./looks";
+import { RAISED, lookAt } from "./looks";
 import {
   CHANNELS,
-  type Easing,
+  type EndBeats,
   type Effect,
+  type Flight,
   type Key,
   type Keys,
   type Look,
+  type Place,
   type Sampled,
   type SampledBoard,
   type Timeline,
@@ -30,38 +36,6 @@ export interface Frame {
   readonly sprites: readonly Sampled[];
   readonly board: SampledBoard;
 }
-
-/** How far the sketch's "back" easing swings past its end, as a share of the way. */
-const BACK_OVERSHOOT = 1.4;
-
-/** How many half turns the sketch's "spring" easing swings through over its time, of which the first two show. */
-const SPRING_HALF_TURNS = 3.2;
-
-/** How fast the sketch's "spring" easing's swing dies away, by the power of e a whole key takes off it. */
-const SPRING_DAMPING = 5.2;
-
-/**
- * How far through each easing a key has moved its number, a share through
- * its time, each the sketch's but that a spring lands on its key's end,
- * which the sketch's misses by a little.
- */
-const EASE: Readonly<Record<Easing, (done: number) => number>> = {
-  linear: (done) => done,
-  out: easeOutCubic,
-  in: (done) => done * done,
-  "in-out": (done) =>
-    done < 0.5 ? 2 * done * done : 1 - (2 - 2 * done) ** 2 / 2,
-  back: (done) =>
-    1 +
-    (BACK_OVERSHOOT + 1) * (done - 1) ** 3 +
-    BACK_OVERSHOOT * (done - 1) ** 2,
-  spring: (done) =>
-    done < 1
-      ? 1 -
-        Math.cos(done * Math.PI * SPRING_HALF_TURNS) *
-          Math.exp(-done * SPRING_DAMPING)
-      : 1,
-};
 
 /**
  * How many halvings a shake's fade runs over: more than any shake takes to
@@ -125,6 +99,58 @@ export function sampleAt(
   return into;
 }
 
+/**
+ * Writes where a fuzzball's copy flying to its goal stands at a moment, the
+ * goal's picture at a place in the board's squares, into a record: on a
+ * curve that bows by a bend of its own flight's, shrinking as it goes,
+ * happy, its fur a little on end, over all the rest. The record shows only
+ * while it flies.
+ */
+export function sampleFlight(
+  flight: Flight,
+  to: Place,
+  feel: FeelTuning,
+  ms: number,
+  into: Sampled,
+): Sampled {
+  const done = clamp((ms - flight.atMs) / flight.ms, 0, 1);
+  for (let index = 0; index < CHANNELS.length; index++) {
+    const channel = itemAt(CHANNELS, index);
+    into[channel] = STILL[channel];
+  }
+  curveAt(flight.from, to, bendOf(flight, feel), done, feel, into);
+  const along = eased("in-out", done);
+  into.scaleX = feel.flightScale - feel.flightShrink * along;
+  into.scaleY = into.scaleX;
+  into.lift = feel.flightLift;
+  into.raise = RAISED.top;
+  into.shown = flight.atMs <= ms && ms < flight.atMs + flight.ms;
+  into.face = "happy";
+  into.drawn = flight.drawn;
+  return into;
+}
+
+/** Returns how many of the stars a level's end card shows are lit at a moment, every one past the last's beat, as a move that lands at once shows. */
+export function starsLitAt(end: EndBeats, ms: number): number {
+  let lit = 0;
+  while (lit < end.starsMs.length && itemAt(end.starsMs, lit) <= ms) {
+    lit++;
+  }
+  return lit;
+}
+
+/** How a sprite looks standing still, which a flight's copy moves on from. */
+const STILL: Look = lookAt({ x: 0, y: 0 });
+
+/** How far a share of the whole a hash can reach, 2 to the 32nd, past its largest. */
+const HASHES = 2 ** 32;
+
+/** Returns how far a flight bows, in squares, to the right of its way for more than 0: its own, the same every time, within the feel's spread. */
+function bendOf(flight: Flight, feel: FeelTuning): number {
+  const share = hashOf(flight.drawn.id, flight.atMs, flight.goal, 0) / HASHES;
+  return (share - 0.5) * feel.flightBendSpread;
+}
+
 /** The face a loose frame's record holds, as it has no eyes. */
 const REST: FuzzballFace = "rest";
 
@@ -167,7 +193,7 @@ function numberAt(
     const next = keys[index + 1];
     const untilMs = next !== undefined && next.atMs <= ms ? next.atMs : ms;
     const done = key.ms > 0 ? Math.min(1, (untilMs - key.atMs) / key.ms) : 1;
-    value = lerp(value, key.to, EASE[key.easing](done));
+    value = lerp(value, key.to, eased(key.easing, done));
   }
   return value;
 }

@@ -1,4 +1,4 @@
-import { facing, moves, sets, spawns, tuftsOf } from "./part";
+import { facing, facingAgain, moves, sets, spawns, tuftsOf } from "./part";
 
 describe("moves", () => {
   it("keys each number given, in the order of the look's numbers, over the while given", () => {
@@ -39,6 +39,18 @@ describe("facing", () => {
       piece: 4,
       atMs: 100,
       face: "cross",
+    });
+  });
+});
+
+describe("facingAgain", () => {
+  it("gives a piece a face again at a moment, as of a moment before", () => {
+    expect(facingAgain(4, 300, "rest", 100)).toEqual({
+      what: "face-again",
+      piece: 4,
+      atMs: 300,
+      face: "rest",
+      sinceMs: 100,
     });
   });
 });

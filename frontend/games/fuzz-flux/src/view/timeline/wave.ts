@@ -1,7 +1,8 @@
 // A wave of a move laid out in time, a little quicker each wave after the
-// move's first: its bunches huddle and hop off, its blasts go off and
-// strike, each hit lands, then, after a moment's wait, the board falls,
-// and the next wave waits for the last to land.
+// move's first: its bunches huddle and hop off, the board cheers at a
+// wave that does, its blasts go off and strike, each hit lands, then,
+// after a moment's wait, the board falls, and the next wave waits for the
+// last to land.
 
 import type { Wind } from "../../rules/board/board";
 import type { Wave } from "../../rules/move/record";
@@ -10,6 +11,7 @@ import { blastsOf } from "./blasts";
 import { afterWave } from "./board_after";
 import type { Draft } from "./draft";
 import { bunchOf } from "./events/bunch";
+import { waveCheerOf } from "./events/cheer";
 import { fallsOf } from "./events/fall";
 import type { FeelTuning } from "./feel";
 import { hitsOf } from "./hits";
@@ -49,6 +51,7 @@ export function playWave(
     feel,
   };
   const reaches = reachesOf(wave, play.hopsMs, feel);
+  draft.add(waveCheerOf(play));
   const letGoMs = Math.max(
     wave.bunches.reduce(
       (heldMs, bunch, order) =>

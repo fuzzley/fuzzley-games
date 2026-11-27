@@ -19,7 +19,13 @@ function idOn(fixture: typeof BUNCH, square: number): number {
 
 describe("timelineOf", () => {
   it("stands each of a swap's two on the other's square once it is done", () => {
-    const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, NORMAL);
+    const timeline = timelineOf(
+      BUNCH.record,
+      moveStartOf(BUNCH),
+      FEEL,
+      NORMAL,
+      null,
+    );
 
     expect([
       pieceAt(timeline, idOn(BUNCH, 1), FEEL.swapMs),
@@ -31,7 +37,13 @@ describe("timelineOf", () => {
   });
 
   it("huddles the bunch the swap makes once the swap is done", () => {
-    const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, NORMAL);
+    const timeline = timelineOf(
+      BUNCH.record,
+      moveStartOf(BUNCH),
+      FEEL,
+      NORMAL,
+      null,
+    );
 
     expect([
       pieceAt(timeline, idOn(BUNCH, 0), FEEL.swapMs - 1).face,
@@ -40,7 +52,13 @@ describe("timelineOf", () => {
   });
 
   it("comes to rest a wave's gap after the last fuzzball has landed", () => {
-    const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, NORMAL);
+    const timeline = timelineOf(
+      BUNCH.record,
+      moveStartOf(BUNCH),
+      FEEL,
+      NORMAL,
+      null,
+    );
 
     expect(timeline.restMs).toBe(
       FEEL.swapMs +
@@ -62,7 +80,7 @@ describe("timelineOf", () => {
       waves: [{ ...wave, falls: [] }],
     };
 
-    const timeline = timelineOf(record, moveStartOf(BUNCH), FEEL, NORMAL);
+    const timeline = timelineOf(record, moveStartOf(BUNCH), FEEL, NORMAL, null);
 
     expect(timeline.restMs).toBe(
       FEEL.swapMs +
@@ -79,6 +97,7 @@ describe("timelineOf", () => {
       { ...moveStartOf(BUNCH), wind: { blows: "up", turnsIn: null } },
       FEEL,
       NORMAL,
+      null,
     );
 
     expect(timeline.pieces.find(({ id }) => id === 10)?.look.y).toBe(3);
@@ -92,6 +111,7 @@ describe("timelineOf", () => {
       moveStartOf(fixture),
       FEEL,
       NORMAL,
+      null,
     );
 
     expect([
@@ -108,9 +128,13 @@ describe("timelineOf", () => {
   });
 
   it("swaps faster at the Fast pace, by the feel's", () => {
-    const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, {
-      speed: "fast",
-    });
+    const timeline = timelineOf(
+      BUNCH.record,
+      moveStartOf(BUNCH),
+      FEEL,
+      { speed: "fast" },
+      null,
+    );
 
     expect(
       pieceAt(timeline, idOn(BUNCH, 1), FEEL.swapMs / FEEL.fastPace),
@@ -123,6 +147,7 @@ describe("timelineOf", () => {
       { ...moveStartOf(BUNCH), held: 1 },
       FEEL,
       NORMAL,
+      null,
     );
 
     expect([
@@ -139,9 +164,76 @@ describe("timelineOf", () => {
       moveStartOf(refused),
       FEEL,
       NORMAL,
+      null,
     );
 
     expect(timeline.restMs).toBe(FEEL.refusedOutMs + FEEL.refusedBackMs);
+  });
+
+  it("flies the bunch's fuzzballs to the goal of their kind, counting it down as each lands", () => {
+    const cleared = MOVE_FIXTURES.cleared;
+
+    const timeline = timelineOf(
+      cleared.record,
+      moveStartOf(cleared),
+      FEEL,
+      NORMAL,
+      { encore: { spares: [] }, stars: 1 },
+    );
+
+    expect([
+      timeline.flights.map(({ drawn }) => drawn.id),
+      timeline.counts.map(({ left }) => left),
+    ]).toEqual([
+      [1, 5, 3],
+      [2, 1, 0],
+    ]);
+  });
+
+  it("flies a special another sets off to the goal of its kind", () => {
+    const setOff = MOVE_FIXTURES.dasherSetsOffPuffer;
+    const goal = { what: "gather", kind: "green", count: 5 } as const;
+
+    const timeline = timelineOf(
+      setOff.record,
+      { ...moveStartOf(setOff), goals: [{ goal, left: 5, met: false }] },
+      FEEL,
+      NORMAL,
+      null,
+    );
+
+    expect(timeline.flights.map(({ drawn }) => drawn.id)).toEqual([4]);
+  });
+
+  it("ends a level cleared with the Cleared card, lighting each star it earned", () => {
+    const cleared = MOVE_FIXTURES.cleared;
+
+    const timeline = timelineOf(
+      cleared.record,
+      moveStartOf(cleared),
+      FEEL,
+      NORMAL,
+      { encore: { spares: [] }, stars: 3 },
+    );
+
+    expect(timeline.end?.starsMs).toHaveLength(3);
+  });
+
+  it("ends a level run out of moves with the Out of moves card", () => {
+    const over = MOVE_FIXTURES.outOfMoves;
+
+    const timeline = timelineOf(
+      over.record,
+      moveStartOf(over),
+      FEEL,
+      NORMAL,
+      null,
+    );
+
+    expect(timeline.end).toEqual({
+      cardMs: timeline.restMs + FEEL.overCardAfterMs,
+      starsMs: [],
+    });
   });
 });
 

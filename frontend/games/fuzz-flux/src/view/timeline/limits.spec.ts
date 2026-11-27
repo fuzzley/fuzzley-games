@@ -38,8 +38,21 @@ describe("limitFlashes", () => {
   it("keeps a flash only the feel's gap or more after the last kept", () => {
     const flashes = [0, 100, 349, 350, 600, 701].map((atMs) => ({ atMs }));
 
-    expect(limitFlashes(flashes, FEEL).map(({ atMs }) => atMs)).toEqual([
-      0, 350, 701,
+    expect(
+      limitFlashes(flashes, Infinity, FEEL).map(({ atMs }) => atMs),
+    ).toEqual([0, 350, 701]);
+  });
+
+  it("keeps a flash from the moment a tap may hurry on only the gap at the hurried pace after the last kept", () => {
+    const hurriedGapMs = FEEL.flashGapMs * FEEL.hurriedPace;
+    const flashes = [0, 350, 350 + hurriedGapMs - 1, 350 + hurriedGapMs].map(
+      (atMs) => ({ atMs }),
+    );
+
+    expect(limitFlashes(flashes, 400, FEEL).map(({ atMs }) => atMs)).toEqual([
+      0,
+      350,
+      350 + hurriedGapMs,
     ]);
   });
 });

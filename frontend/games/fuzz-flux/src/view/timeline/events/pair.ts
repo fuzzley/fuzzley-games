@@ -2,7 +2,7 @@
 // to be seen, the frizzball where there is one, stands on the square they
 // met on as the pair, under the first's id, and the other is gone in its
 // tufts; a ring spreads and the pair swells, its fur on end, until it
-// goes off.
+// goes off. The goal of each one's kind counts it as they meet.
 
 import type { FeelTuning } from "../feel";
 import { RAISED, restingFace } from "../looks";
@@ -46,6 +46,17 @@ export function pairWindUp(
       to.at,
       feel.pairTufts,
       feel.pairTuftPower,
+    ),
+    ...[from.piece, to.piece].flatMap((piece): readonly Part[] =>
+      piece.what === "fuzzball"
+        ? [
+            {
+              what: "counted",
+              atMs,
+              counts: { what: "gather", kind: piece.kind },
+            },
+          ]
+        : [],
     ),
     ...sets(id, atMs, { lift: 1, raise: RAISED.goingOff }),
     ...moves(id, atMs, feel.pairMs, "in-out", {

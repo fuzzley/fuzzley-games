@@ -1,12 +1,24 @@
 // Where every piece stands as a move plays: the board as the screen shows
-// it after the swap, and after each wave, worked out from the record's
-// hits and falls, so each event finds the pieces it moves where they are.
+// it after the swap, after each wave, after a burr's spread and after a
+// shuffle, worked out from the record, so each event finds the pieces it
+// moves where they are.
 
 import { itemAt } from "@fz/core/records";
 import type { KindId } from "../../rules/catalog/kinds";
 import type { Piece } from "../../rules/catalog/pieces";
-import type { MadeId } from "../../rules/catalog/specials";
-import type { Fall, Hit, Swap, Wave } from "../../rules/move/record";
+import {
+  type BlastId,
+  MADE_IDS,
+  type MadeId,
+} from "../../rules/catalog/specials";
+import type {
+  BurrSpread,
+  Fall,
+  Hit,
+  Shuffle,
+  Swap,
+  Wave,
+} from "../../rules/move/record";
 import type { GridShown, SquareShown } from "../run_state";
 
 /**
@@ -45,6 +57,45 @@ export function afterWave(grid: GridShown, wave: Wave): GridShown {
     fallenOn(afterHits(grid, wave), wave.falls),
     new Set(
       wave.hits.flatMap((hit) => (hit.what === "bedded" ? [hit.piece] : [])),
+    ),
+  );
+}
+
+/**
+ * Returns the board after a burr spreads to a fuzzball, which wears it.
+ *
+ * @throws {RangeError} for a spread to a square with no fuzzball.
+ */
+export function afterSpread(grid: GridShown, spread: BurrSpread): GridShown {
+  const piece = grid.squares[spread.to]?.piece ?? null;
+  if (piece?.what !== "fuzzball") {
+    throw new RangeError(
+      `A burr spreads to square ${String(spread.to)}, where no fuzzball stands.`,
+    );
+  }
+  return withPieces(grid, new Map([[spread.to, { ...piece, burred: true }]]));
+}
+
+/**
+ * Returns the board after a shuffle, each piece it moves standing on its
+ * new square.
+ *
+ * @throws {RangeError} for a piece moved from a square where it doesn't
+ *   stand.
+ */
+export function afterShuffle(grid: GridShown, shuffle: Shuffle): GridShown {
+  return withPieces(
+    grid,
+    new Map(
+      shuffle.moves.map(({ piece, from, to }): [number, Piece] => {
+        const moved = grid.squares[from]?.piece ?? null;
+        if (moved?.id !== piece) {
+          throw new RangeError(
+            `Piece ${String(piece)} is shuffled from square ${String(from)}, where it doesn't stand.`,
+          );
+        }
+        return [to, moved];
+      }),
     ),
   );
 }
@@ -149,6 +200,14 @@ function fallingOf(grid: GridShown, fall: Fall): Piece {
     caged: false,
     burred: false,
   };
+}
+
+/** Everything a bunch can leave behind, each a special that goes off alone. */
+const MADE: ReadonlySet<BlastId> = new Set(MADE_IDS);
+
+/** Returns whether a blast is of something a bunch can leave behind, a special going off alone rather than a pair. */
+export function isMadeId(what: BlastId): what is MadeId {
+  return MADE.has(what);
 }
 
 /** Returns the piece a bunch of a kind makes, by its id. */

@@ -62,6 +62,32 @@ describe("bunchOf", () => {
     });
   });
 
+  it("shows no mark over a move's first wave's bunch", () => {
+    expect(
+      firstBunch(MOVE_FIXTURES.bunch).filter(({ what }) => what === "mark"),
+    ).toEqual([]);
+  });
+
+  it("shows a later wave's mark over its bunch's middle as it hops off", () => {
+    const play = firstWaveOf(MOVE_FIXTURES.bunch);
+    const wave = { ...play.wave, number: 2 };
+
+    expect(
+      bunchOf(itemAt(wave.bunches, 0), 0, { ...play, wave }).filter(
+        ({ what }) => what === "mark",
+      ),
+    ).toEqual([
+      {
+        what: "mark",
+        mark: {
+          atMs: HOPS_MS,
+          at: { x: 1, y: -FEEL.markAboveSquares },
+          times: 2,
+        },
+      },
+    ]);
+  });
+
   it("hops a wave's second bunch a little after its first", () => {
     const timeline = bunchTimeline(MOVE_FIXTURES.bunch, 1);
 
@@ -80,6 +106,18 @@ describe("bunchOf", () => {
       ]).toMatchObject([
         { x: 0, y: 2, scaleX: FEEL.runInScale, fade: 1, face: "happy" },
         HOPS_MS + FEEL.runInMs,
+      ]);
+    });
+
+    it("sends the copy of each that runs in to its goal as it starts", () => {
+      expect(
+        firstBunch(MOVE_FIXTURES.dasherAcrossMade).flatMap((part) =>
+          part.what === "gathered" ? [[part.atMs, part.piece.id]] : [],
+        ),
+      ).toEqual([
+        [HOPS_MS, 1],
+        [HOPS_MS, 4],
+        [HOPS_MS, 10],
       ]);
     });
 

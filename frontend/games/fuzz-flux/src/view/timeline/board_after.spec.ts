@@ -4,7 +4,15 @@ import { boardFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
 import { gridOf, moveStartOf } from "../../testing/shown_board";
 import type { GridShown } from "../run_state";
-import { afterSwap, afterWave, fallingIn, goesOff } from "./board_after";
+import {
+  afterShuffle,
+  afterSpread,
+  afterSwap,
+  afterWave,
+  fallingIn,
+  goesOff,
+  isMadeId,
+} from "./board_after";
 import { standingOn } from "./standing";
 
 /** Returns the id of the piece on each square of a board, or null for none or a gap. */
@@ -187,6 +195,54 @@ describe("fallingIn", () => {
   });
 });
 
+describe("afterSpread", () => {
+  it("puts a burr on the fuzzball it spreads to", () => {
+    const grid = gridOf(boardFrom(["rb"]));
+
+    expect(
+      afterSpread(grid, { from: 0, to: 1, piece: 2 }).squares[1]?.piece,
+    ).toMatchObject({ id: 2, burred: true });
+  });
+
+  it("refuses a spread to a square with no fuzzball", () => {
+    expect(() =>
+      afterSpread(gridOf(boardFrom(["r1"])), { from: 0, to: 1, piece: 2 }),
+    ).toThrow(
+      new RangeError("A burr spreads to square 1, where no fuzzball stands."),
+    );
+  });
+});
+
+describe("afterShuffle", () => {
+  it("stands each piece a shuffle moves on its new square", () => {
+    const grid = gridOf(boardFrom(["rgb"]));
+
+    expect(
+      idsOf(
+        afterShuffle(grid, {
+          moves: [
+            { piece: 1, from: 0, to: 2 },
+            { piece: 2, from: 1, to: 1 },
+            { piece: 3, from: 2, to: 0 },
+          ],
+        }),
+      ),
+    ).toEqual([3, 2, 1]);
+  });
+
+  it("refuses a piece shuffled from a square where it doesn't stand", () => {
+    expect(() =>
+      afterShuffle(gridOf(boardFrom(["rgb"])), {
+        moves: [{ piece: 3, from: 0, to: 2 }],
+      }),
+    ).toThrow(
+      new RangeError(
+        "Piece 3 is shuffled from square 0, where it doesn't stand.",
+      ),
+    );
+  });
+});
+
 describe("goesOff", () => {
   it.each([
     ["a plain fuzzball", ["r"], false],
@@ -201,4 +257,17 @@ describe("goesOff", () => {
       );
     },
   );
+});
+
+describe("isMadeId", () => {
+  it.each([
+    ["dasher-across", true],
+    ["puffer", true],
+    ["wisp", true],
+    ["frizzball", true],
+    ["two-dashers", false],
+    ["frizzball-and-wisp", false],
+  ] as const)("says whether %s is something a bunch leaves", (what, made) => {
+    expect(isMadeId(what)).toBe(made);
+  });
 });

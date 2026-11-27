@@ -7,7 +7,7 @@ import type { Wave } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
 import { takenBy } from "./board_after";
 import type { FeelTuning } from "./feel";
-import { type Standing, findStanding } from "./standing";
+import { type Standing, everyStanding } from "./standing";
 
 /** Describes a wave as its events play it. */
 export interface WavePlay {
@@ -33,12 +33,7 @@ export interface WavePlay {
  */
 export function stayingThrough(play: WavePlay): readonly Standing[] {
   const taken = takenBy(play.wave);
-  return play.grid.squares.flatMap((_, square) => {
-    const standing = findStanding(play.grid, square);
-    return standing === null ||
-      standing.piece.what === "brick" ||
-      taken.has(standing.piece.id)
-      ? []
-      : [standing];
-  });
+  return everyStanding(play.grid).filter(
+    ({ piece }) => piece.what !== "brick" && !taken.has(piece.id),
+  );
 }

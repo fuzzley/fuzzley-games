@@ -6,8 +6,17 @@ import {
 } from "../../testing/played_parts";
 import { blastsOf } from "./blasts";
 import { FEEL } from "./feel";
+import type { Part } from "./part";
 import { reachesOf } from "./reach";
 import type { Timeline } from "./timeline";
+
+/** Returns what the goals count of the blasts of a move played by hand's first wave as they go off, with no flight. */
+function countedOf(fixture: MoveFixture): readonly Part[] {
+  const play = firstWaveOf(fixture);
+  return blastsOf(play, reachesOf(play.wave, play.hopsMs, FEEL)).filter(
+    ({ what }) => what === "counted",
+  );
+}
 
 /** Returns the timeline of the blasts of a move played by hand's first wave. */
 function blastsTimeline(fixture: MoveFixture): Timeline {
@@ -42,5 +51,28 @@ describe("blastsOf", () => {
     expect(blastsTimeline(MOVE_FIXTURES.dasherSetsOffPuffer).restMs).toBe(
       pufferMs + FEEL.pufferInMs + 2 * FEEL.pufferRingMs,
     );
+  });
+
+  it("counts a special swapped going off, which no hit of its own counts, for the goal of its kind", () => {
+    expect(countedOf(MOVE_FIXTURES.dasherGoesOff)).toEqual([
+      {
+        what: "counted",
+        atMs: HOPS_MS + FEEL.blastAfterMs,
+        counts: { what: "gather", kind: "violet" },
+      },
+    ]);
+  });
+
+  it.each([
+    ["the frizzball", MOVE_FIXTURES.frizzballGoesOff],
+    ["a pair, whose swap counts it", MOVE_FIXTURES.twoDashers],
+  ])("counts nothing of %s going off", (_, fixture) => {
+    expect(countedOf(fixture)).toEqual([]);
+  });
+
+  it("counts no special another blast sets off, which a hit counts", () => {
+    expect(countedOf(MOVE_FIXTURES.dasherSetsOffPuffer)).toMatchObject([
+      { counts: { what: "gather", kind: "violet" } },
+    ]);
   });
 });

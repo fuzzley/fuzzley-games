@@ -22,6 +22,27 @@ function hopOfRed(before = 0): Timeline {
 }
 
 describe("hopOff", () => {
+  it("sends the fuzzball's copy to its goal as it hops off, but no frizzball's", () => {
+    expect([
+      hopOff(standingOn(GRID, 0), "red", AT_MS, 0, FEEL).filter(
+        ({ what }) => what === "gathered",
+      ),
+      hopOff(standingOn(GRID, 1), null, AT_MS, 0, FEEL).filter(
+        ({ what }) => what === "gathered",
+      ),
+    ]).toEqual([
+      [
+        {
+          what: "gathered",
+          atMs: AT_MS,
+          piece: standingOn(GRID, 0).piece,
+          at: { x: 0, y: 0 },
+        },
+      ],
+      [],
+    ]);
+  });
+
   it("swells the fuzzball, its fur on end, its eyes happy, raised over the board", () => {
     expect(pieceAt(hopOfRed(), 1, AT_MS + FEEL.hopMs)).toMatchObject({
       scaleX: FEEL.hopScale,

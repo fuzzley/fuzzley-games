@@ -1,14 +1,16 @@
 import { SHAKE_RATES } from "@fz/core/motion";
 import { FEEL } from "./feel";
-import { lookAt } from "./looks";
-import { frameFor, sampleAt } from "./sample";
+import { RAISED, lookAt } from "./looks";
+import { frameFor, sampleAt, sampleFlight, starsLitAt } from "./sample";
 import {
   EASINGS,
   type Easing,
   type Effect,
+  type Flight,
   type Key,
   type Keys,
   type PieceTrack,
+  type Sampled,
   type SpriteTrack,
   type Timeline,
 } from "./timeline";
@@ -319,5 +321,88 @@ describe("sampleAt", () => {
         "A frame keeps a record for each of its timeline's tracks.",
       ),
     );
+  });
+});
+
+describe("sampleFlight", () => {
+  /** The red fuzzball's copy flying from the board's corner, from 100 ms. */
+  const FLIGHT: Flight = {
+    atMs: 100,
+    ms: FEEL.flightMs,
+    drawn: RED,
+    from: { x: 0, y: 0 },
+    goal: 0,
+  };
+
+  /** Where its goal's picture is, above the board. */
+  const GOAL = { x: 4, y: -2 };
+
+  /** Returns where the copy stands at a moment. */
+  function flightAt(ms: number): Sampled {
+    return sampleFlight(FLIGHT, GOAL, FEEL, ms, {
+      ...lookAt({ x: 9, y: 9 }),
+      shown: false,
+      face: "rest",
+      drawn: null,
+    });
+  }
+
+  it("sets the copy off at its size as a copy, happy, its fur a little on end, over all the rest", () => {
+    expect(flightAt(100)).toMatchObject({
+      shown: true,
+      x: 0,
+      y: 0,
+      scaleX: FEEL.flightScale,
+      lift: FEEL.flightLift,
+      raise: RAISED.top,
+      face: "happy",
+      drawn: RED,
+    });
+  });
+
+  it("bows and rises off its way at its middle, and shrinks as it goes", () => {
+    const middle = flightAt(100 + FEEL.flightMs / 2);
+
+    expect([middle.x, middle.y, middle.leanY < 0, middle.scaleX]).toEqual([
+      2,
+      -1,
+      true,
+      FEEL.flightScale - FEEL.flightShrink / 2,
+    ]);
+  });
+
+  it("lands on its goal, shrunk, as it stops showing", () => {
+    const landed = flightAt(100 + FEEL.flightMs);
+
+    expect([
+      landed.shown,
+      landed.x,
+      landed.y,
+      Math.abs(landed.leanX) + Math.abs(landed.leanY),
+      landed.scaleY,
+    ]).toEqual([
+      false,
+      GOAL.x,
+      GOAL.y,
+      0,
+      FEEL.flightScale - FEEL.flightShrink,
+    ]);
+  });
+
+  it("shows nothing before it sets off", () => {
+    expect(flightAt(99).shown).toBe(false);
+  });
+});
+
+describe("starsLitAt", () => {
+  const end = { cardMs: 1000, starsMs: [1200, 1500, 1800] };
+
+  it.each([
+    [1199, 0],
+    [1200, 1],
+    [1799, 2],
+    [Infinity, 3],
+  ])("has the stars lit by %i ms be %i", (ms, lit) => {
+    expect(starsLitAt(end, ms)).toBe(lit);
   });
 });

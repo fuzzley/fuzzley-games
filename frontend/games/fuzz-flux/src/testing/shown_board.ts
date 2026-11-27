@@ -2,6 +2,7 @@
 // from: its squares in the screen's frame, as a picture's board is when
 // its frame is not turned, and how a move played by hand starts on it.
 
+import { itemAt } from "@fz/core/records";
 import type { Board } from "../rules/board/board";
 import type { GridShown } from "../view/run_state";
 import type { MoveStart } from "../view/timeline/build";
@@ -21,11 +22,16 @@ export function gridOf(board: Board): GridShown {
   };
 }
 
-/** Returns how a move played by hand starts: on its game's board, as yet unturned, the wind blowing down, with no fuzzball picked up. */
+/** Returns how a move played by hand starts: on its game's board, as yet unturned, the wind blowing down, its goals as the game holds them, with no fuzzball picked up. */
 export function moveStartOf({ picture, options }: MoveFixture): MoveStart {
+  const game = gameFrom(picture, options);
   return {
-    grid: gridOf(gameFrom(picture, options).board),
+    grid: gridOf(game.board),
     wind: null,
+    goals: game.goals.map((goal, index) => {
+      const left = itemAt(game.goalsLeft, index);
+      return { goal, left, met: left <= 0 };
+    }),
     held: null,
   };
 }

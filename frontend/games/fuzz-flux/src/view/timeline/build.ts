@@ -1,16 +1,19 @@
 // A move's timeline, built from its record and the board it was played
 // on, before it plays: the fuzzball picked up put down, the swap or the
-// swap refused, then each wave in turn on the board as the one before left
-// it; and the timeline of a tap between moves, which picks a fuzzball up
-// or puts one down.
+// swap refused, each wave in turn on the board as the one before left it,
+// what plays after the waves, and the level's end where the move ends it;
+// and the timeline of a tap between moves, which picks a fuzzball up or
+// puts one down.
 
 import type { MoveRecord } from "../../rules/move/record";
-import type { GridShown, WindShown } from "../run_state";
+import type { GoalShown, GridShown, WindShown } from "../run_state";
+import { playAfterWaves } from "./after_waves";
 import { afterSwap } from "./board_after";
 import { Draft } from "./draft";
 import { pickedUp, putDown } from "./events/pick_up";
 import { swapOf } from "./events/swap";
 import type { FeelTuning } from "./feel";
+import { type Cleared, playLevelEnd } from "./level_end";
 import { type Pace, pacedFeel } from "./pace";
 import type { Part } from "./part";
 import { standingOn } from "./standing";
@@ -19,13 +22,14 @@ import { type WavePlayed, playWave } from "./wave";
 
 /**
  * Describes the board as a move starts: where every piece stands at the
- * tap, the wind, and the fuzzball picked up; a run's state with the
- * fuzzball held.
+ * tap, the wind, the goals as the bar shows them, and the fuzzball picked
+ * up; a run's state with the fuzzball held.
  */
 export interface MoveStart {
   readonly grid: GridShown;
   /** The wind, or null for a level with none, whose pieces fall down the screen. */
   readonly wind: WindShown | null;
+  readonly goals: readonly GoalShown[];
   /** The square of the fuzzball picked up as the move is made, put down as it starts, or null for none. */
   readonly held: number | null;
 }
@@ -42,24 +46,27 @@ export interface HeldChange {
 
 /**
  * Returns the timeline of a move, from its record and the board it was
- * played on, at the player's pace.
+ * played on, at the player's pace, with the encore and how many stars it
+ * earned for a move that clears its level.
  *
  * Its rest is when the board takes the swap it kept while the move played,
  * and a little may play on past it, as a face a swap refused made cross
- * comes back to rest: the scene samples a timeline until the next one
- * starts, each piece from its resting look and face.
+ * comes back to rest or a copy flies to its goal: the scene samples a
+ * timeline until the next one starts, each piece from its resting look and
+ * face.
  *
  * @throws {RangeError} for a fuzzball held, or a swap kept, from a square
- *   with none.
+ *   with none, or a move that clears its level with no encore.
  */
 export function timelineOf(
   record: MoveRecord,
   start: MoveStart,
   feel: FeelTuning,
   pace: Pace,
+  cleared: Cleared | null,
 ): Timeline {
   const paced = pacedFeel(feel, pace);
-  const draft = new Draft(start.grid);
+  const draft = new Draft(start.grid, start.goals);
   // The swap starts as the put-down does and holds the board for itself.
   draft.add(putDownOn(start.grid, start.held, paced));
   const blows = start.wind?.blows ?? "down";
@@ -70,7 +77,14 @@ export function timelineOf(
   for (const wave of record.waves) {
     played = playWave(draft, wave, played.grid, blows, played.endMs, paced);
   }
-  return draft.finish(played.endMs, null, paced);
+  const { restMs, end } = playLevelEnd(
+    draft,
+    record.outcome,
+    cleared,
+    playAfterWaves(draft, record, played, blows, paced),
+    paced,
+  );
+  return draft.finish(restMs, end, paced);
 }
 
 /**
@@ -87,7 +101,7 @@ export function heldTimelineOf(
   pace: Pace,
 ): Timeline {
   const paced = pacedFeel(feel, pace);
-  const draft = new Draft(grid);
+  const draft = new Draft(grid, []);
   const downMs = draft.add(putDownOn(grid, change.down, paced));
   const upMs = draft.add(
     change.up === null

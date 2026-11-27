@@ -30,3 +30,11 @@ export function standingOn(grid: GridShown, square: number): Standing {
   }
   return standing;
 }
+
+/** Returns every piece standing on a board, in the order of its squares. */
+export function everyStanding(grid: GridShown): readonly Standing[] {
+  return grid.squares.flatMap((_, square) => {
+    const standing = findStanding(grid, square);
+    return standing === null ? [] : [standing];
+  });
+}

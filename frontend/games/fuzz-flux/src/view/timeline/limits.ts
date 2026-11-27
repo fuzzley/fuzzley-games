@@ -16,15 +16,21 @@ interface Timed {
 
 /**
  * Returns the flashes and glows that start no sooner than the feel's gap
- * after the last kept, as three a second is the most that is safe.
+ * after the last kept, as three a second is the most that is safe: from
+ * the moment a tap may hurry what plays on, the gap at the hurried pace.
  */
 export function limitFlashes<T extends Timed>(
   flashes: readonly T[],
+  hurriedFromMs: number,
   feel: FeelTuning,
 ): readonly T[] {
   let lastMs = -Infinity;
   return flashes.filter(({ atMs }) => {
-    if (atMs - lastMs < feel.flashGapMs) {
+    const gapMs =
+      atMs < hurriedFromMs
+        ? feel.flashGapMs
+        : feel.flashGapMs * feel.hurriedPace;
+    if (atMs - lastMs < gapMs) {
       return false;
     }
     lastMs = atMs;

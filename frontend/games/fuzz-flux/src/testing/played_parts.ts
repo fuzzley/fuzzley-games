@@ -61,7 +61,7 @@ export function timelineOfParts(
   grid: GridShown,
   parts: readonly Part[],
 ): Timeline {
-  const draft = new Draft(grid);
+  const draft = new Draft(grid, []);
   return draft.finish(Math.max(0, draft.add(parts)), null, FEEL);
 }
 

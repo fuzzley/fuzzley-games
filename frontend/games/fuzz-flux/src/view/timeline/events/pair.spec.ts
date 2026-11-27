@@ -85,4 +85,14 @@ describe("pairWindUp", () => {
       ).effects.map(({ what }) => what),
     ).toEqual(["ring"]);
   });
+
+  it("counts each fuzzball of the pair for the goal of its kind as they meet, but no frizzball", () => {
+    expect(
+      pairWindUp(standingOn(GRID, 0), standingOn(GRID, 2), AT_MS, FEEL).filter(
+        ({ what }) => what === "counted",
+      ),
+    ).toEqual([
+      { what: "counted", atMs: AT_MS, counts: { what: "gather", kind: "red" } },
+    ]);
+  });
 });

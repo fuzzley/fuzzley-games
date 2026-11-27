@@ -5,12 +5,9 @@
 // the pace of its kind.
 
 import { itemAt } from "@fz/core/records";
-import {
-  BLAST_IDS,
-  type BlastId,
-  MADE_IDS,
-} from "../../rules/catalog/specials";
+import { BLAST_IDS, type BlastId } from "../../rules/catalog/specials";
 import type { Blast, Wave } from "../../rules/move/record";
+import { isMadeId } from "./board_after";
 import type { FeelTuning } from "./feel";
 
 /** Describes when a blast goes off and reaches each step of its strikes. */
@@ -31,12 +28,9 @@ interface Moments {
   readonly burstMs: number;
 }
 
-/** Every special alone, and the frizzball, that goes off. */
-const ALONE: ReadonlySet<BlastId> = new Set(MADE_IDS);
-
 /** The blasts of a pair swapped together, which wind up before they go off: every blast but one alone. */
 const PAIRS: ReadonlySet<BlastId> = new Set(
-  BLAST_IDS.filter((what) => !ALONE.has(what)),
+  BLAST_IDS.filter((what) => !isMadeId(what)),
 );
 
 /** The blasts whose second step the board waits for before it falls, as a puffer's rings spread wide; the rest, the first. */
