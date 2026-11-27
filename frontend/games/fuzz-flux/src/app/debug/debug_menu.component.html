@@ -31,6 +31,22 @@
     </p>
   </div>
 
+  <div class="setting">
+    @if (certificate()) {
+      <button
+        type="button"
+        class="fz-button"
+        aria-describedby="debug-certificate-desc"
+        (click)="playCertificate()"
+      >
+        Play the certificate
+      </button>
+    }
+    <p class="setting-desc" id="debug-certificate-desc">
+      {{ certificateWords() }}
+    </p>
+  </div>
+
   <fz-bug-report-loader (loaded)="played.emit()">
     <p class="setting-desc">
       If you load a game from a report, it keeps no records. Use the build the

@@ -14,17 +14,35 @@ import { GameService } from "../play/game.service";
 import { VIEW_KIT } from "../play/view_kit";
 import { ProgressService } from "../stats/progress.service";
 import { GAME_LEVELS } from "../tokens";
+import { CERTIFICATE_FILES } from "./certificate_line";
 import { DebugMenuComponent } from "./debug_menu.component";
 import { DebugService } from "./debug.service";
 
-/** Renders the debug menu, the game on the third of the small levels, dealt on seeds unlike their numbers and opened by the second cleared, and returns how often it said it played something. */
-async function renderMenu(): Promise<{ played: ReturnType<typeof vi.fn> }> {
+/** The small set's certificates, as a file keeps them: the third level's line on its first deal, seed 7, the swap that lines up blue and one the board it leaves allows. */
+const SMALL_CERTIFICATES = {
+  "3": {
+    "7": [
+      [12, 13],
+      [7, 8],
+    ],
+  },
+};
+
+/** Renders the debug menu, the game on the third of the small levels, dealt on seeds unlike their numbers and opened by the second cleared, its set's certificates loaded as given, and returns how often it said it played something. */
+async function renderMenu(
+  certificates: () => Promise<unknown> = () =>
+    Promise.resolve(SMALL_CERTIFICATES),
+): Promise<{ played: ReturnType<typeof vi.fn> }> {
   const played = vi.fn();
   const { fixture } = await render(DebugMenuComponent, {
     on: { played },
     providers: [
       { provide: GAME_LEVELS, useValue: SEEDED_LEVELS },
       { provide: DEBUG_MENU, useValue: true },
+      {
+        provide: CERTIFICATE_FILES,
+        useValue: { small: certificates },
+      },
       provideMemoryStorage(new MemoryStorage()),
       provideFuzzFluxBugReports(),
     ],
@@ -155,6 +173,97 @@ describe("DebugMenuComponent", () => {
       played: 0,
       moves: [BLUE_LINE],
     });
+  });
+
+  it("says what Play the certificate plays, and that it keeps no records", async () => {
+    await renderMenu();
+
+    expect(
+      await screen.findByRole("button", { name: "Play the certificate" }),
+    ).toHaveAccessibleDescription(
+      "Plays level 3 again on deal 1 and clears it in 2 moves. It keeps no records.",
+    );
+  });
+
+  it("says a line of one move clears its level in one", async () => {
+    await renderMenu(() => Promise.resolve({ "3": { "7": [[12, 13]] } }));
+
+    expect(
+      await screen.findByRole("button", { name: "Play the certificate" }),
+    ).toHaveAccessibleDescription(
+      "Plays level 3 again on deal 1 and clears it in 1 move. It keeps no records.",
+    );
+  });
+
+  it.each([
+    [
+      "loading the certificates while they load",
+      () => new Promise(() => undefined),
+      "Loading the certificates…",
+    ],
+    [
+      "the certificates couldn't be loaded where they fail to",
+      () => Promise.reject(new Error("offline")),
+      "The certificates couldn't be loaded. See the console.",
+    ],
+  ])(
+    "says it is %s, and offers none to play",
+    async (_, certificates: () => Promise<unknown>, words) => {
+      vi.spyOn(console, "error").mockImplementation(() => undefined);
+      await renderMenu(certificates);
+
+      expect({
+        said: await screen.findByText(words),
+        button: screen.queryByRole("button", { name: "Play the certificate" }),
+      }).toEqual({ said: expect.toBeVisible() as unknown, button: null });
+    },
+  );
+
+  it("plays the certificate, off the record, and says so to the drawer", async () => {
+    const { played } = await renderMenu();
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Play the certificate" }),
+    );
+
+    await vi.waitFor(() => {
+      expect(played).toHaveBeenCalledOnce();
+    });
+    expect(TestBed.inject(DebugService).offRecord()).toBe(true);
+  });
+
+  it("keeps the drawer open where the player keeps the moves made, at Play the certificate", async () => {
+    const { played } = await renderMenu();
+    const game = TestBed.inject(GameService);
+    new BoardFrames(game).tap(
+      squareOf(BLUE_LINE.from, 5),
+      squareOf(BLUE_LINE.to, 5),
+    );
+    const confirm = TestBed.inject(ConfirmService);
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Play the certificate" }),
+    );
+    confirm.cancel();
+    await vi.waitFor(() => {
+      expect(confirm.isOpen()).toBe(false);
+    });
+
+    expect({
+      played: played.mock.calls.length,
+      moves: game.inPlay().moves,
+    }).toEqual({ played: 0, moves: [BLUE_LINE] });
+  });
+
+  it("says there is no certificate for a deal it has none for, and offers none to play", async () => {
+    await renderMenu();
+
+    await TestBed.inject(GameService).playDeal(2);
+
+    expect({
+      said: await screen.findByText("No certificate for this deal."),
+      button: screen.queryByRole("button", { name: "Play the certificate" }),
+    }).toEqual({ said: expect.toBeVisible() as unknown, button: null });
   });
 
   it("offers to load a reported game, saying it keeps no records", async () => {

@@ -576,6 +576,120 @@ describe("GameService", () => {
     });
   });
 
+  describe("the debug menu's line", () => {
+    /** A line of two moves on the third level's first deal: the swap that lines up blue, and one the board it leaves allows. */
+    const LINE: readonly Move[] = [BLUE_LINE, { from: 7, to: 8 }];
+
+    it("plays the level again on its deal, off the record, and the line's first move as the board next draws", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+
+      const went = await played.game.playLine(LINE);
+      played.frames.frame();
+
+      expect({
+        went,
+        deal: played.game.inPlay().deal,
+        moves: played.game.inPlay().moves,
+        offRecord: TestBed.inject(DebugService).offRecord(),
+      }).toEqual({ went: true, deal: 7, moves: [BLUE_LINE], offRecord: true });
+    });
+
+    it("makes no next move while the board still plays the one before", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+      await played.game.playLine(LINE);
+
+      played.frames.playFor(100);
+
+      expect(played.game.inPlay().moves).toEqual([BLUE_LINE]);
+    });
+
+    it("makes each next move once the board rests from the one before", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+      await played.game.playLine(LINE);
+      played.frames.frame();
+
+      played.frames.playToRest();
+      played.frames.frame();
+
+      expect(played.game.inPlay().moves).toEqual(LINE);
+    });
+
+    it("stops where the rules refuse a move of it", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+      await played.game.playLine([REFUSED, BLUE_LINE]);
+      played.frames.frame();
+
+      played.frames.playToRest();
+      played.frames.frame();
+
+      expect(played.game.inPlay().moves).toEqual([]);
+    });
+
+    it("stops where the player picks up a fuzzball while a move of it plays, the fuzzball shown held", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+      await played.game.playLine(LINE);
+      played.frames.frame();
+
+      played.frames.tap(at(0));
+      played.frames.playToRest();
+      played.frames.frame();
+
+      expect({
+        moves: played.game.inPlay().moves,
+        held: played.game.heldSquare(),
+      }).toEqual({ moves: [BLUE_LINE], held: at(0) });
+    });
+
+    it("stops where the player's own swap, kept while a move of it plays, is made", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+      // A move the board allows once the player's swap is made.
+      await played.game.playLine([BLUE_LINE, { from: 2, to: 7 }]);
+      played.frames.frame();
+
+      swap(played, { from: 7, to: 8 });
+      played.frames.playToRest();
+      played.frames.frame();
+      played.frames.playToRest();
+      played.frames.frame();
+
+      expect(played.game.inPlay().moves).toEqual([
+        BLUE_LINE,
+        { from: 7, to: 8 },
+      ]);
+    });
+
+    it("stops where another level is put in play before its next move", async () => {
+      const played = await startGame(3, SEEDED_LEVELS);
+      await played.game.playLine(LINE);
+      played.frames.frame();
+      answerQuestions(true);
+
+      await played.game.startLevel(1);
+      played.frames.playToRest();
+      played.frames.frame();
+
+      expect({
+        level: played.game.inPlay().level.number,
+        moves: played.game.inPlay().moves,
+      }).toEqual({ level: 1, moves: [] });
+    });
+
+    it("asks before playing the line over moves made, and plays none where the player says no", async () => {
+      const played = await startGame(3);
+      swap(played, BLUE_LINE);
+      const asked = answerQuestions(false);
+      const inPlay = played.game.inPlay();
+
+      const went = await played.game.playLine(LINE);
+
+      expect({
+        asked: asked()?.title,
+        went,
+        same: played.game.inPlay() === inPlay,
+      }).toEqual({ asked: "Play the certificate?", went: false, same: true });
+    });
+  });
+
   describe("a fuzzball picked up", () => {
     it("shows held on the board", async () => {
       const played = await startGame(3);

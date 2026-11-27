@@ -88,6 +88,14 @@ function levelQuestion(level: number): ConfirmRequest {
   };
 }
 
+/** What the debug menu's Play the certificate asks before the moves made on the level in play are lost. */
+const LINE_QUESTION: ConfirmRequest = {
+  title: "Play the certificate?",
+  message: MOVES_LOST,
+  confirmLabel: "Play the certificate",
+  tone: "danger",
+};
+
 /** Returns what playing a deal of the level in play, by its number, asks before the moves made on it are lost. */
 function dealQuestion(deal: number): ConfirmRequest {
   const play = `Play deal ${String(deal)}`;
@@ -196,6 +204,15 @@ export class GameService extends RunLifecycle {
   private readonly shownHeld = signal<number | null>(null);
   /** The scene's clock as it last ticked, in milliseconds. */
   private nowMs = 0;
+  /**
+   * The moves of the line the debug menu plays still to make, each in the
+   * screen's frame, and the level in play the last left, on which alone
+   * the next is made; or null.
+   */
+  private line: {
+    readonly moves: readonly Move[];
+    readonly on: LevelInPlay;
+  } | null = null;
 
   /** The level in play: its level, the seed of its deal, the moves made and the game they leave. */
   readonly inPlay = this.inPlayState.asReadonly();
@@ -300,7 +317,8 @@ export class GameService extends RunLifecycle {
    * Keeps the beats of the board's play by the scene's clock as a frame
    * starts: each goal's count as its flights land, the card at the level's
    * end, and the board's rest after a move, at which it plays the swap kept
-   * meanwhile; and shows the hint once the board has rested long enough.
+   * meanwhile; makes the next move of the debug menu's line, if any, at
+   * rest; and shows the hint once the board has rested long enough.
    */
   tick(nowMs: number, playedMs: number): void {
     this.nowMs = nowMs;
@@ -313,6 +331,7 @@ export class GameService extends RunLifecycle {
         this.rest(board, move);
       }
     }
+    if (board.rested) this.playLineOn(board);
     if (
       !this.movePlays() &&
       !this.ended() &&
@@ -453,6 +472,23 @@ export class GameService extends RunLifecycle {
   }
 
   /**
+   * Plays the level in play again on its deal, off the record, as the debug
+   * menu's Play the certificate asks, asking first once a move is made, and
+   * on it a line of moves, each in the screen's frame, one as the board
+   * rests from the one before; and resolves to whether it did. The line
+   * stops where the rules refuse a move of it, where the player takes over,
+   * picking up a fuzzball or making a move, and where anything else changes
+   * the level in play.
+   */
+  async playLine(moves: readonly Move[]): Promise<boolean> {
+    if (!(await this.mayLoseRun(LINE_QUESTION))) return false;
+    const { level, deal } = this.inPlayState();
+    this.begin(levelDealt(level, deal, this.rules), true);
+    this.line = { moves, on: this.inPlayState() };
+    return true;
+  }
+
+  /**
    * Plays the level after the level in play on its next deal, as Next level
    * asks, where there is one, and resolves to whether it did.
    */
@@ -554,6 +590,28 @@ export class GameService extends RunLifecycle {
       hand: null,
       cues,
     };
+  }
+
+  /**
+   * Makes the next move of the debug menu's line, if any, where the level
+   * in play is the one its last move left and no fuzzball is held, else
+   * drops the line, as it does once the rules refuse a move of it.
+   */
+  private playLineOn(board: LevelBoard): void {
+    const line = this.line;
+    if (line === null) return;
+    const [next, ...moves] = line.moves;
+    if (
+      next === undefined ||
+      line.on !== this.inPlayState() ||
+      board.picking.held !== null
+    ) {
+      this.line = null;
+      return;
+    }
+    this.playMove(board, next);
+    const after = this.inPlayState();
+    this.line = after === line.on ? null : { moves, on: after };
   }
 
   /** Picks up the fuzzball on a square, as the board shows it while no move plays; while one does, it shows as the board rests. */
