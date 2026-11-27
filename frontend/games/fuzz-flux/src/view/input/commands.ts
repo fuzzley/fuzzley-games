@@ -1,5 +1,6 @@
-// What the player's hands ask of the game, which the picking makes of each
-// press and the scene and the shell play, each square in the screen's frame.
+// What the player's hands ask of the game, which the picking and the keys
+// make of each press and the scene and the shell play, each square in the
+// screen's frame.
 
 import type { Square } from "../../rules/board/cells";
 
@@ -21,4 +22,8 @@ export type BoardCommand =
     }
   /** Puts down the fuzzball held on a square. */
   | { readonly what: "put-down"; readonly square: Square }
-  | MoveCommand;
+  | MoveCommand
+  /** Moves the ring the keys steer to a square. */
+  | { readonly what: "move-ring"; readonly square: Square }
+  /** Shows the hint at once. */
+  | { readonly what: "hint" };

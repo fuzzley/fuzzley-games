@@ -38,14 +38,15 @@ const STEPS: Readonly<Record<Way, Square>> = {
   left: { x: -1, y: 0 },
 };
 
+/** Returns whether a square lies inside a board's edges, a gap or not. */
+export function isWithinEdges(board: BoardShape, { x, y }: Square): boolean {
+  return x >= 0 && y >= 0 && x < board.width && y < board.height;
+}
+
 /** Returns whether a square is on a board: inside its edges, and no gap. */
 export function isOnBoard(board: BoardShape, square: Square): boolean {
-  const { x, y } = square;
   return (
-    x >= 0 &&
-    y >= 0 &&
-    x < board.width &&
-    y < board.height &&
+    isWithinEdges(board, square) &&
     board.open[indexOf(square, board.width)] === true
   );
 }

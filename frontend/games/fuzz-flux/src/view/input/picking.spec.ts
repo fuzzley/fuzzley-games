@@ -1,44 +1,21 @@
 import type { Square } from "../../rules/board/cells";
-import { type BoardShape, type Way, sameSquare } from "../board/spaces";
+import {
+  A,
+  B,
+  BOARD,
+  BRICK,
+  B_MATES,
+  C,
+  E,
+  G,
+  GAP,
+  GameOnBoard,
+  H,
+  SPECIAL,
+} from "../../testing/input_board";
+import type { Way } from "../board/spaces";
 import type { BoardCommand } from "./commands";
-import { type GameInPlay, Picking } from "./picking";
-
-// A board 4 squares across and 3 down, as the screen shows it:
-//
-//   A B C ·      · a gap
-//   D # E F      # a brick, which can't be swapped
-//   S G H I      S a special
-const A: Square = { x: 0, y: 0 };
-const B: Square = { x: 1, y: 0 };
-const C: Square = { x: 2, y: 0 };
-const GAP: Square = { x: 3, y: 0 };
-const D: Square = { x: 0, y: 1 };
-const BRICK: Square = { x: 1, y: 1 };
-const E: Square = { x: 2, y: 1 };
-const SPECIAL: Square = { x: 0, y: 2 };
-const G: Square = { x: 1, y: 2 };
-const H: Square = { x: 2, y: 2 };
-
-const BOARD: BoardShape = {
-  width: 4,
-  height: 3,
-  open: [true, true, true, false, ...Array<boolean>(8).fill(true)],
-};
-
-/** The fuzzballs that could bunch with B, were it swapped. */
-const B_MATES: readonly Square[] = [D, SPECIAL];
-
-/** A game on {@link BOARD}, in which a move plays while a spec says so. */
-class GameOnBoard implements GameInPlay {
-  /** Whether a move plays. */
-  playing = false;
-
-  readonly canSwap = (square: Square): boolean => !sameSquare(square, BRICK);
-  readonly goesOff = (square: Square): boolean => sameSquare(square, SPECIAL);
-  readonly bunchMatesOf = (square: Square): readonly Square[] =>
-    sameSquare(square, B) ? B_MATES : [];
-  readonly movePlays = (): boolean => this.playing;
-}
+import { Picking } from "./picking";
 
 /** Returns a picking on {@link BOARD}, holding the fuzzball on a square where one is given. */
 function picking(
@@ -179,6 +156,15 @@ describe("Picking", () => {
       hand.putDown();
 
       expect(hand.tap()).toEqual([]);
+    });
+
+    it("keeps holding a fuzzball picked up after a press on the one held that never ended", () => {
+      const hand = picking(SPECIAL);
+      hand.press(SPECIAL);
+      hand.press(C);
+      const commands = hand.tap();
+
+      expect({ commands, held: hand.held }).toEqual({ commands: [], held: C });
     });
   });
 

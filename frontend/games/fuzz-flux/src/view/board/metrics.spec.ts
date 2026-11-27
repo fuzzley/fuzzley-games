@@ -32,9 +32,10 @@ describe("boardMetrics", () => {
     }).toEqual({ square: 46, width: 368, height: 414 });
   });
 
-  it("centers the board", () => {
-    const metrics = boardMetrics(viewport(400, 600, 1), 8, 9);
+  it("centers the board, an odd pixel spare going to its right and its foot", () => {
+    const metrics = boardMetrics(viewport(401, 601, 1), 8, 9);
 
+    // A board 368 by 414 spares 33 across and 187 down.
     expect([metrics.x, metrics.y]).toEqual([16, 93]);
   });
 

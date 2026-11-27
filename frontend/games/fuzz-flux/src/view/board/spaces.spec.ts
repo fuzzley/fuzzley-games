@@ -6,6 +6,7 @@ import {
   WAYS,
   areNeighbors,
   isOnBoard,
+  isWithinEdges,
   middleOf,
   neighborOf,
   sameSquare,
@@ -29,6 +30,25 @@ const BOARD: BoardShape = {
   height: 2,
   open: [true, true, false, true, true, true],
 };
+
+describe("isWithinEdges", () => {
+  it.each<[string, Square]>([
+    ["its top left corner", { x: 0, y: 0 }],
+    ["its bottom right corner", { x: 2, y: 1 }],
+    ["a gap", { x: 2, y: 0 }],
+  ])("finds %s inside the board's edges", (_, square) => {
+    expect(isWithinEdges(BOARD, square)).toBe(true);
+  });
+
+  it.each<[string, Square]>([
+    ["a square left of the board", { x: -1, y: 1 }],
+    ["a square above it", { x: 1, y: -1 }],
+    ["a square right of it", { x: 3, y: 0 }],
+    ["a square under it", { x: 1, y: 2 }],
+  ])("finds %s past them", (_, square) => {
+    expect(isWithinEdges(BOARD, square)).toBe(false);
+  });
+});
 
 describe("isOnBoard", () => {
   it.each<[string, Square]>([
