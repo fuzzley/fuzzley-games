@@ -71,26 +71,8 @@ export function aboutBody(point: GridPoint): GridPoint {
 /** A whole turn, in radians. */
 const TURN = 2 * Math.PI;
 
-/**
- * Names one of the fuzzball's faces, and what the art kit shows it for:
- * `rest`, the brand mark's; `blink`, now and then; `set`, thrusting or
- * firing; `eep`, a near miss; `happy`, a stray home; `dizzy`, knocked
- * about; `sleepy`, waiting; `plead`, a stray adrift; and `squeeze`, in a
- * dash.
- */
-export type FuzzballFace =
-  | "rest"
-  | "blink"
-  | "set"
-  | "eep"
-  | "happy"
-  | "dizzy"
-  | "sleepy"
-  | "plead"
-  | "squeeze";
-
-/** Every face, in the order the art kit's sheet shows them. */
-export const FUZZBALL_FACES: readonly FuzzballFace[] = [
+/** Every face: the art kit's, in the order its sheet shows them, then `cross`. */
+export const FUZZBALL_FACES = [
   "rest",
   "blink",
   "set",
@@ -100,7 +82,17 @@ export const FUZZBALL_FACES: readonly FuzzballFace[] = [
   "sleepy",
   "plead",
   "squeeze",
-];
+  "cross",
+] as const satisfies readonly string[];
+
+/**
+ * Names one of the fuzzball's faces, and what it is shown for: `rest`, the
+ * brand mark's; `blink`, now and then; `set`, thrusting or firing; `eep`, a
+ * near miss; `happy`, a stray home; `dizzy`, knocked about; `sleepy`,
+ * waiting; `plead`, a stray adrift; `squeeze`, in a dash; and `cross`, put
+ * out.
+ */
+export type FuzzballFace = (typeof FUZZBALL_FACES)[number];
 
 /** Names what an eye's mark is drawn in: the eyes' ink, or the glints' white (`FUZZBALL.ink`, `FUZZBALL.glint`). */
 export type EyeTone = "eye" | "glint";
@@ -290,6 +282,16 @@ function eyeMarks(
     points,
     width,
   });
+  // A chevron, its point toward one side: -1 the left, 1 the right.
+  const chevron = (way: number): EyeStroke =>
+    stroke(
+      [
+        { x: x - way * rx * 0.95, y: y - ry * 0.72 },
+        { x: x + way * rx * 0.8, y: y + 0.1 },
+        { x: x - way * rx * 0.95, y: y + ry * 0.72 },
+      ],
+      line * 1.1,
+    );
   switch (face) {
     case "rest":
       return [
@@ -320,16 +322,10 @@ function eyeMarks(
       ];
     case "squeeze":
       // "> <": each eye a chevron, its point toward the other.
-      return [
-        stroke(
-          [
-            { x: x + side * rx * 0.95, y: y - ry * 0.72 },
-            { x: x - side * rx * 0.8, y: y + 0.1 },
-            { x: x + side * rx * 0.95, y: y + ry * 0.72 },
-          ],
-          line * 1.1,
-        ),
-      ];
+      return [chevron(-side)];
+    case "cross":
+      // "< >": each eye a chevron, its point away from the other.
+      return [chevron(side)];
     case "set": {
       // The lids come down straight across the top third.
       const lid = y - ry + 2 * ry * 0.34;

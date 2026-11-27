@@ -72,6 +72,17 @@ function said(mark: EyeMark): string {
   return `${mark.kind} ${mark.tone} ${String(mark.points.length)} from ${at(first)} to ${at(last)}${width}`;
 }
 
+/** Returns a line of a face, its points and its width to a ten-thousandth, or nothing for another mark. */
+function lineOf(
+  mark: EyeMark | undefined,
+):
+  | { readonly points: readonly GridPoint[]; readonly width: number }
+  | undefined {
+  return mark?.kind === "stroke"
+    ? { points: mark.points.map(roundedPoint), width: rounded(mark.width) }
+    : undefined;
+}
+
 /** Returns where an ellipse of a face lies, or nowhere for another mark. */
 function middleOf(mark: EyeMark | undefined): GridPoint | undefined {
   return mark?.kind === "ellipse" ? roundedPoint(mark.at) : undefined;
@@ -709,11 +720,11 @@ describe("sparksOf", () => {
 });
 
 describe("FUZZBALL_FACES", () => {
-  it("lists the nine faces once each, the mark's own first", () => {
+  it("lists the ten faces once each, the mark's own first", () => {
     expect({
       first: FUZZBALL_FACES[0],
       count: new Set(FUZZBALL_FACES).size,
-    }).toEqual({ first: "rest", count: 9 });
+    }).toEqual({ first: "rest", count: 10 });
   });
 });
 
@@ -824,17 +835,44 @@ describe("eyesOf", () => {
     expect(eyesOf({ face, range: FUZZBALL_LOOK_FAR }).map(said)).toEqual(kit);
   });
 
-  it("mirrors the right eye of a face drawn across, as a squeeze's chevrons point at each other", () => {
-    const [left, right] = eyesOf({ face: "squeeze" });
-    const middle =
-      FUZZBALL.eyes.reduce((sum, { cx }) => sum + cx, 0) / FUZZBALL.eyes.length;
-    const across = (mark: EyeMark | undefined): readonly number[] =>
-      mark?.kind === "stroke"
-        ? mark.points.map(({ x }) => rounded(x + FUZZBALL.body.cx - middle))
-        : [];
+  it("draws cross as < >, each eye a chevron pointing away from the other, at squeeze's size and weight", () => {
+    const cross = eyesOf({ face: "cross", range: FUZZBALL_LOOK_FAR });
 
-    expect(across(right)).toEqual(across(left).map((x) => -x + 0));
+    expect(cross.map(lineOf)).toEqual([
+      {
+        points: [
+          { x: -0.415, y: -2.36 },
+          { x: -4.44, y: -0.1 },
+          { x: -0.415, y: 1.96 },
+        ],
+        width: 1.485,
+      },
+      {
+        points: [
+          { x: 2.415, y: -2.36 },
+          { x: 6.44, y: -0.1 },
+          { x: 2.415, y: 1.96 },
+        ],
+        width: 1.485,
+      },
+    ]);
   });
+
+  it.each<FuzzballFace>(["squeeze", "cross"])(
+    "mirrors the right eye of %s, a face drawn across, about the eyes' middle",
+    (face) => {
+      const [left, right] = eyesOf({ face });
+      const middle =
+        FUZZBALL.eyes.reduce((sum, { cx }) => sum + cx, 0) /
+        FUZZBALL.eyes.length;
+      const across = (mark: EyeMark | undefined): readonly number[] =>
+        mark?.kind === "stroke"
+          ? mark.points.map(({ x }) => rounded(x + FUZZBALL.body.cx - middle))
+          : [];
+
+      expect(across(right)).toEqual(across(left).map((x) => -x + 0));
+    },
+  );
 
   it.each<[string, GridPoint, GridPoint, GridPoint]>([
     ["right", { x: 1, y: 0 }, { x: -1.7, y: -0.2 }, { x: 5.5, y: -0.2 }],
