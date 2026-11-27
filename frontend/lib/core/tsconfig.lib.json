@@ -9,7 +9,9 @@
     "rootDir": "./",
     // Neither the DOM nor Node: what is here runs in both.
     "lib": ["ES2024"],
-    "types": ["vitest/globals"]
+    "types": []
   },
-  "include": ["src/**/*.ts", "vitest.config.ts"]
+  "include": ["src/**/*.ts", "vitest.config.ts"],
+  // The specs, which tsconfig.spec.json checks with Node's types.
+  "exclude": ["src/**/*.spec.ts"]
 }

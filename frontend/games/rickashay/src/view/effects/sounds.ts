@@ -3,6 +3,8 @@
 // the design's "Sound" lists them, and the ladder of notes a flight's rally
 // climbs.
 
+import { ladderCentsOf } from "@fz/core/note_ladder";
+
 /** The game's twenty-five sounds, in the order the sprite holds them. */
 export const SOUNDS = [
   // The shot's release.
@@ -78,5 +80,5 @@ export const RALLY_CENTS = [
  * ladder's top from the eleventh on.
  */
 export function rallyCentsOf(rally: number): number {
-  return RALLY_CENTS[Math.min(rally, RALLY_CENTS.length) - 1] ?? 0;
+  return ladderCentsOf(rally, RALLY_CENTS);
 }

@@ -20,7 +20,6 @@ import { FULL_STEP } from "../../rules/sparks/charge";
 import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
-  CHAIN_CENTS,
   CHARGED,
   COMET_IN,
   CROWD,
@@ -40,7 +39,6 @@ import {
   bellCentsOf,
   endSoundOf,
   isSwitchedOn,
-  ladderCentsOf,
   secondSoundOf,
   soundOf,
   startSoundOf,
@@ -488,28 +486,6 @@ describe("secondSoundOf", () => {
     ),
   )("plays nothing after the first sound of %s", (kind) => {
     expect(secondSoundOf(eventOf(kind))).toBeNull();
-  });
-});
-
-describe("ladderCentsOf", () => {
-  it.each([
-    [1, 0],
-    [2, 200],
-    [4, 700],
-    [5, 1200],
-    [10, 2400],
-    [20, 3100],
-    [40, 3100],
-  ])("rises %i notes up the ladder %i cents", (note, cents) => {
-    expect(ladderCentsOf(note)).toBe(cents);
-  });
-
-  it("climbs a step of the ladder for each note, from the first", () => {
-    expect(
-      Array.from({ length: CHAIN_CENTS.length }, (_, i) =>
-        ladderCentsOf(i + 1),
-      ),
-    ).toEqual(CHAIN_CENTS);
   });
 });
 

@@ -1,3 +1,4 @@
+import { CHAIN_CENTS, ladderCentsOf } from "@fz/core/note_ladder";
 import { keysOf } from "@fz/core/records";
 import {
   type MixedSound,
@@ -300,27 +301,6 @@ export function isSwitchedOn(
   return switches.sound && part;
 }
 
-/**
- * The ladder, in cents above `chain-ping` as recorded, for each of its
- * notes from the first: the sound kit's `CHAIN_CENTS` (`@fz/dev/synth`),
- * copied, as the game imports nothing of `@fz/dev`. It climbs the key,
- * lands on C at its fifth and tenth notes, then circles in the top
- * octave, and rings a fifth above at its twentieth.
- */
-export const CHAIN_CENTS: readonly number[] = [
-  0, 200, 400, 700, 1200, 1400, 1600, 1900, 2100, 2400, 2600, 2800, 3100, 2800,
-  2600, 2800, 3100, 2800, 2600, 3100,
-];
-
-/**
- * Returns how far the ladder's note, counted from 1, rises, in cents: the
- * last for one past it.
- */
-export function ladderCentsOf(note: number): number {
-  const step = Math.min(Math.max(note, 1), CHAIN_CENTS.length) - 1;
-  return CHAIN_CENTS[step] ?? 0;
-}
-
 /** Names one of static's multipliers past ×1, a step's. */
 type StepTimes = (typeof STATIC_STEPS)[number]["times"];
 
@@ -349,7 +329,7 @@ export function bellCentsOf(times: number): number {
   for (const step of STATIC_STEPS) {
     if (step.times <= times && step.times > tier) tier = step.times;
   }
-  return ladderCentsOf(BELL_NOTES[tier]);
+  return ladderCentsOf(BELL_NOTES[tier], CHAIN_CENTS);
 }
 
 /**

@@ -9,6 +9,7 @@
 // fuzzball's call, as its voice allows. Beside it, whether a lodestone is
 // on the field, which its hum is held for.
 
+import { CHAIN_CENTS, ladderCentsOf } from "@fz/core/note_ladder";
 import { recordOf } from "@fz/core/records";
 import { acrossOf } from "@fz/core/sound_mix";
 import type { EffectKind } from "../../rules/catalog/pickups";
@@ -36,7 +37,6 @@ import {
   THRUST_STOP,
   bellCentsOf,
   endSoundOf,
-  ladderCentsOf,
   secondSoundOf,
   soundOf,
   startSoundOf,
@@ -399,7 +399,8 @@ export class FieldSounds {
     if (steps - this.sparkAt > SPARK_RUN_STEPS) this.sparks = 0;
     this.sparks += 1;
     this.sparkAt = steps;
-    const cents = ladderCentsOf(this.sparks) - SPARK_ABOVE_BELL_CENTS;
+    const cents =
+      ladderCentsOf(this.sparks, CHAIN_CENTS) - SPARK_ABOVE_BELL_CENTS;
     this.note(SPARK, cents, across);
   }
 

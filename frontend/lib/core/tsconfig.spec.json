@@ -1,0 +1,13 @@
+{
+  // The specs, which Vitest runs in Node. One may import a module of
+  // @fz/dev, to hold a copy here to the one there, and those name their
+  // modules by their full file names, as Node needs, and read Node's types.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "lib": ["ES2024"],
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*.spec.ts"]
+}
