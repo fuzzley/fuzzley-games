@@ -21,6 +21,7 @@ import { hashOf } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
 import type { Board, Game, QuarterTurns } from "../rules/board/board";
 import { indexOf, type Square, squareOf } from "../rules/board/cells";
+import type { DustLayers } from "../rules/catalog/elements";
 import type { Piece } from "../rules/catalog/pieces";
 import type { Hit, MoveRecord, Wave } from "../rules/move/record";
 import { pictureOf } from "./board_picture";
@@ -46,6 +47,35 @@ export interface GoldenGame {
   readonly moves: readonly FromTo[];
   /** The sketch's digest of the game as dealt, then after each move. */
   readonly digests: readonly string[];
+}
+
+/** Describes a game the golden games reached, in the game's words, beside the sketch's digest of it written out. */
+export interface GoldenSample {
+  /** Its golden game, by its set and its place in the set's file, and the moves played to reach it. */
+  readonly playedIn: {
+    readonly set: string;
+    readonly game: number;
+    readonly move: number;
+  };
+  /** The game, but its board. */
+  readonly game: Omit<Game, "board">;
+  /**
+   * Its board's squares in its own frame, a row a string and the squares
+   * split by spaces, each in the game's words, not the letters a digest
+   * draws it in: `gap`, `empty`, `frizzball`, `sleepyhead`, `brick+` and its
+   * layers, or a fuzzball's kind, then `+caged`, `+burred` or `+` and its
+   * special where it is so. Its pieces' numbering, which a digest doesn't
+   * write, is left out.
+   */
+  readonly board: readonly string[];
+  /** Its dust, square by square. */
+  readonly dust: readonly DustLayers[];
+  /** Its beds, by their squares. */
+  readonly beds: readonly number[];
+  /** The move that reached it, or null for the game as dealt. */
+  readonly record: MoveRecord | null;
+  /** The sketch's digest of it, written out a line at a time. */
+  readonly writtenOut: readonly string[];
 }
 
 /** Plays a move on a game, as the rules' `play()` does, the move coming in in the screen's frame. */
