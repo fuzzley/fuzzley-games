@@ -37,9 +37,9 @@ async function renderMenu(): Promise<{ played: ReturnType<typeof vi.fn> }> {
   return { played };
 }
 
-/** Returns the slider of a number of the feel. */
-function slider(id: string): HTMLInputElement {
-  return screen.getByRole<HTMLInputElement>("slider", { name: id });
+/** Returns the slider of a number of the feel, by the name it shows. */
+function slider(name: string): HTMLInputElement {
+  return screen.getByRole<HTMLInputElement>("slider", { name });
 }
 
 describe("DebugMenuComponent", () => {
@@ -48,14 +48,14 @@ describe("DebugMenuComponent", () => {
 
     expect({
       sliders: screen.getAllByRole("slider").length,
-      swap: slider("swapMs").valueAsNumber,
+      swap: slider("Swap: time").valueAsNumber,
     }).toEqual({ sliders: TUNING_SLIDERS.length, swap: FEEL.swapMs });
   });
 
   it("tunes a number as its slider moves, and says the level keeps no records", async () => {
     await renderMenu();
 
-    fireEvent.input(slider("swapMs"), { target: { value: "200" } });
+    fireEvent.input(slider("Swap: time"), { target: { value: "200" } });
 
     expect({
       tuned: TestBed.inject(DebugService).tuning.tuning().swapMs,
@@ -65,7 +65,7 @@ describe("DebugMenuComponent", () => {
 
   it("puts every number back at Reset the numbers", async () => {
     await renderMenu();
-    fireEvent.input(slider("swapMs"), { target: { value: "200" } });
+    fireEvent.input(slider("Swap: time"), { target: { value: "200" } });
 
     await userEvent.click(
       screen.getByRole("button", { name: "Reset the numbers" }),
@@ -74,10 +74,10 @@ describe("DebugMenuComponent", () => {
     expect(TestBed.inject(DebugService).tuning.tuning()).toEqual(FEEL);
   });
 
-  it("writes the numbers moved as the lines of FEEL they would replace", async () => {
+  it("writes the numbers moved as the lines of FEEL they would replace, each by its id", async () => {
     await renderMenu();
 
-    fireEvent.input(slider("swapMs"), { target: { value: "200" } });
+    fireEvent.input(slider("Swap: time"), { target: { value: "200" } });
 
     expect(
       screen.getByText(/^\/\/ src\/view\/timeline\/feel\.ts/),

@@ -1,11 +1,13 @@
 // The debug menu's sliders over the feel, one for each of its numbers, and
-// the words it shows them in: each number in its unit, and the lines of
-// `FEEL` that the numbers moved off the design's would replace, which Copy
-// the numbers copies, so what is settled on at the feel gate is pasted
-// straight back in. Only the debug menu's chunk loads it.
+// the words it shows them in: each number named in words and shown in its
+// unit, and the lines of `FEEL` that the numbers moved off the design's
+// would replace, which Copy the numbers copies, so what is settled on at
+// the feel gate is pasted straight back in. Only the debug menu's chunk
+// loads it.
 
 import { keysOf } from "@fz/core/records";
 import { FEEL, type FeelTuning } from "../timeline/feel";
+import { SLIDER_NAMES } from "./slider_names";
 
 /**
  * Describes a slider of the debug menu: the number it tunes, its name and
@@ -102,17 +104,16 @@ const LINES_FROM = "// src/view/timeline/feel.ts, FEEL";
 
 /**
  * The debug menu's sliders, one for each number of the feel, in `FEEL`'s
- * order, each named as `FEEL` names its number, so the lines Copy the
- * numbers writes name what the sliders show. Each runs from one step, never
- * 0, since some numbers divide, to three times the design's number, or all
- * of a share.
+ * order, each named in words (`SLIDER_NAMES`). Each runs from one step,
+ * never 0, since some numbers divide, to three times the design's number,
+ * or all of a share.
  */
 export const TUNING_SLIDERS: readonly TuningSlider[] = keysOf(FEEL).map(
   (id) => {
     const step = stepOf(id);
     return {
       id,
-      name: id,
+      name: SLIDER_NAMES[id],
       least: step,
       most: mostOf(id, step),
       step,
@@ -130,8 +131,8 @@ export function formatTuning(id: keyof FeelTuning, value: number): string {
 /**
  * Returns the lines of `FEEL` a tuning would replace, under a comment
  * naming the file: each number its slider writes otherwise than the
- * design's, as the file writes it, in its order, or a line saying none has
- * moved.
+ * design's, by its id and as the file writes it, in its order, or a line
+ * saying none has moved.
  */
 export function tuningLines(tuned: FeelTuning): string {
   const moved = keysOf(FEEL).filter(

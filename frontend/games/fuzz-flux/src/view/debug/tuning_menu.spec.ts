@@ -17,10 +17,23 @@ describe("TUNING_SLIDERS", () => {
     expect(TUNING_SLIDERS.map(({ id }) => id)).toEqual(keysOf(FEEL));
   });
 
-  it("names each slider as `FEEL` names its number", () => {
-    expect(
-      TUNING_SLIDERS.filter(({ id, name }) => id !== name).map(({ id }) => id),
-    ).toEqual([]);
+  it("names each slider in words of its own", () => {
+    const names = TUNING_SLIDERS.map(({ name }) => name);
+
+    expect(new Set(names).size).toBe(names.length);
+    expect(names.filter((name) => !/^[A-Z2][\w ',:-]+$/.test(name))).toEqual(
+      [],
+    );
+  });
+
+  it.each<[keyof FeelTuning, string]>([
+    ["pickUpMs", "Pick up: time"],
+    ["refusedReach", "Refused swap: reach"],
+    ["fallWaitMs", "Wait before the fall"],
+    ["laneGapMs", "Columns and stacks: a column"],
+    ["shakeTwoPuffersPx", "Shake: 2 puffers"],
+  ])("names %s as the design's moment: %s", (id, name) => {
+    expect(sliderOf(id).name).toBe(name);
   });
 
   it.each(TUNING_SLIDERS.map((slider) => [slider.id, slider] as const))(
