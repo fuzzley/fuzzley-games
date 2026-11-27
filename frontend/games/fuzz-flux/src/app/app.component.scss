@@ -1,0 +1,7 @@
+// The page is the game, and its name stands in the middle of it.
+:host {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}

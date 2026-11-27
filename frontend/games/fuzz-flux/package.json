@@ -1,0 +1,70 @@
+{
+  "name": "fuzz-flux",
+  "version": "0.0.1",
+  "description": "Fuzz Flux, drawn with Phaser: line up 3 fuzzballs of a kind to meet each goal before your moves run out.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim --passWithNoTests \"$@\"",
+    "test:watch": "vitest",
+    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc7 -p tsconfig.spec.json --noEmit && tsc7 -p tsconfig.node.json && tsc7 -p tsconfig.scripts.json",
+    "lint": "eslint src tools eslint.config.js stylelint.config.js vite.config.ts vitest.config.ts && yarn lint:styles",
+    "lint:styles": "stylelint \"src/**/*.scss\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuzzley/fuzzley-games.git",
+    "directory": "frontend/games/fuzz-flux"
+  },
+  "author": "Andrey Gavel",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/fuzzley/fuzzley-games/issues"
+  },
+  "homepage": "https://fuzzley.games/play/fuzz-flux/",
+  "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.9.7",
+    "@angular/build": "^22.3.0",
+    "@angular/compiler-cli": "^22.3.0",
+    "@angular/router": "^22.3.0",
+    "@fz/dev": "workspace:*",
+    "@testing-library/angular": "^19.6.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^8.0.0",
+    "@testing-library/user-event": "^14.6.13",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.1",
+    "eslint": "^10.15.0",
+    "jsdom": "^31.0.1",
+    "postcss": "^8.5.33",
+    "sass": "^1.108.2",
+    "stylelint": "^18.1.0",
+    "stylelint-config-standard-scss": "^18.0.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  },
+  "dependencies": {
+    "@angular/aria": "~22.3.0",
+    "@angular/cdk": "~22.3.0",
+    "@angular/common": "^22.3.0",
+    "@angular/compiler": "^22.3.0",
+    "@angular/core": "^22.3.0",
+    "@angular/platform-browser": "^22.3.0",
+    "@fz/core": "workspace:*",
+    "@fz/game-ui": "workspace:*",
+    "@fz/phaser": "workspace:*",
+    "@fz/style": "workspace:*",
+    "@fz/ui": "workspace:*",
+    "phaser": "^4.2.1",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.9.1"
+  }
+}

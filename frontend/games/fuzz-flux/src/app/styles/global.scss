@@ -1,0 +1,3 @@
+// The only stylesheet loaded outside a component: @fz/game-ui's global one,
+// which loads @fz/style's.
+@use "@fz/game-ui/global";
