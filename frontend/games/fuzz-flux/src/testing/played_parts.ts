@@ -1,14 +1,16 @@
 // An event's parts played on a board, for a spec of the view to sample:
 // how a move played by hand's first wave plays, the timeline a draft makes
-// of an event's parts, at rest once they stop holding the board, and how
-// a piece of a timeline looks at a moment.
+// of an event's parts, at rest once they stop holding the board, or of a
+// blast's, and how a piece of a timeline looks at a moment.
 
 import { itemAt } from "@fz/core/records";
 import type { GridShown } from "../view/run_state";
+import type { BlastEvent } from "../view/timeline/blasts";
 import { afterSwap } from "../view/timeline/board_after";
 import { Draft } from "../view/timeline/draft";
 import { FEEL, type FeelTuning } from "../view/timeline/feel";
 import type { Part } from "../view/timeline/part";
+import { reachesOf } from "../view/timeline/reach";
 import { frameFor, sampleAt } from "../view/timeline/sample";
 import type { Sampled, Timeline } from "../view/timeline/timeline";
 import type { WavePlay } from "../view/timeline/wave_play";
@@ -38,6 +40,20 @@ export function firstWaveOf(fixture: MoveFixture): WavePlay {
     before: 0,
     feel: FEEL,
   };
+}
+
+/** Returns the timeline of a blast of a move played by hand's first wave, by its place among the wave's, played by an event as its reach times it. */
+export function blastTimeline(
+  fixture: MoveFixture,
+  event: BlastEvent,
+  index = 0,
+): Timeline {
+  const play = firstWaveOf(fixture);
+  const reach = itemAt(reachesOf(play.wave, play.hopsMs, FEEL), index);
+  return timelineOfParts(
+    play.grid,
+    event(itemAt(play.wave.blasts, index), reach, play),
+  );
 }
 
 /** Returns the timeline a board plays once an event's parts are added to it, at the design's feel. */

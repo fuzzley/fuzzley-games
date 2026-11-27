@@ -60,4 +60,8 @@ export const RAISED = {
   moving: 2,
   /** A special just made. */
   made: 3,
+  /** A dasher or a puffer going off. */
+  goingOff: 4,
+  /** A frizzball going off, or a wisp's copy in flight, over all the rest. */
+  top: 5,
 } as const satisfies Readonly<Record<string, number>>;

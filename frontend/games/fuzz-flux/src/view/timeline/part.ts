@@ -5,7 +5,9 @@
 // waits for before it goes on.
 
 import type { FuzzballFace } from "@fz/style/fuzzball";
+import type { KindId } from "../../rules/catalog/kinds";
 import type { Piece } from "../../rules/catalog/pieces";
+import { FRAMES } from "../art/frame_names";
 import type { SoundName } from "../effects/sounds";
 import {
   CHANNELS,
@@ -14,6 +16,7 @@ import {
   type Effect,
   type Key,
   type Look,
+  type Place,
   type SpriteTrack,
 } from "./timeline";
 
@@ -108,4 +111,26 @@ export function facing(piece: number, atMs: number, face: FuzzballFace): Part {
 /** Returns the part that spawns an effect. */
 export function spawns(effect: Effect): Part {
   return { what: "effect", effect };
+}
+
+/** Returns the part that throws tufts of a kind's fur from a place, or none for no kind, as the frizzball's fur has no tufts. */
+export function tuftsOf(
+  kind: KindId | null,
+  atMs: number,
+  at: Place,
+  count: number,
+  power: number,
+): readonly Part[] {
+  return kind === null
+    ? []
+    : [
+        spawns({
+          what: "fluff",
+          atMs,
+          at,
+          tuft: FRAMES.tuft(kind),
+          count,
+          power,
+        }),
+      ];
 }

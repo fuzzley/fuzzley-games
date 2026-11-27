@@ -1,16 +1,20 @@
 // A wave of a move laid out in time, a little quicker each wave after the
-// move's first: its bunches huddle and hop off, then, after a moment's
-// wait, the board falls, and the next wave waits for the last to land.
+// move's first: its bunches huddle and hop off, its blasts go off and
+// strike, each hit lands, then, after a moment's wait, the board falls,
+// and the next wave waits for the last to land.
 
 import type { Wind } from "../../rules/board/board";
 import type { Wave } from "../../rules/move/record";
 import type { GridShown } from "../run_state";
+import { blastsOf } from "./blasts";
 import { afterWave } from "./board_after";
 import type { Draft } from "./draft";
 import { bunchOf } from "./events/bunch";
 import { fallsOf } from "./events/fall";
 import type { FeelTuning } from "./feel";
+import { hitsOf } from "./hits";
 import { quickeningOf } from "./pace";
+import { reachesOf } from "./reach";
 import type { WavePlay } from "./wave_play";
 
 /** Describes a wave played: when the board may go on, and how the wave leaves it. */
@@ -44,10 +48,15 @@ export function playWave(
     before: Math.max(0, wave.number - 1),
     feel,
   };
-  const letGoMs = wave.bunches.reduce(
-    (heldMs, bunch, order) =>
-      Math.max(heldMs, draft.add(bunchOf(bunch, order, play))),
-    startMs,
+  const reaches = reachesOf(wave, play.hopsMs, feel);
+  const letGoMs = Math.max(
+    wave.bunches.reduce(
+      (heldMs, bunch, order) =>
+        Math.max(heldMs, draft.add(bunchOf(bunch, order, play))),
+      startMs,
+    ),
+    draft.add(blastsOf(play, reaches)),
+    draft.add(hitsOf(play, reaches)),
   );
   const landedMs = draft.add(
     fallsOf(play, letGoMs + feel.fallWaitMs * quickening),

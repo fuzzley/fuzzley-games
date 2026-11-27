@@ -5,7 +5,7 @@ import { FEEL } from "../feel";
 import { RAISED } from "../looks";
 import { standingOn } from "../standing";
 import type { Timeline } from "../timeline";
-import { hopOff } from "./hop";
+import { hopOff, struckOff } from "./hop";
 
 /** A board of a red fuzzball and the frizzball, numbered 1 and 2. */
 const GRID = gridOf(boardFrom(["rf"]));
@@ -50,7 +50,7 @@ describe("hopOff", () => {
         at: { x: 0, y: 0 },
         tuft: "tuft-red",
         count: FEEL.bunchTufts,
-        power: 1,
+        power: FEEL.tuftPower,
       },
       {
         what: "ring",
@@ -67,11 +67,11 @@ describe("hopOff", () => {
     expect([hopOfRed(2).effects[0], hopOfRed(20).effects[0]]).toMatchObject([
       {
         count: FEEL.bunchTufts + 2,
-        power: 1 + 2 * FEEL.tuftPowerPerWave,
+        power: FEEL.tuftPower + 2 * FEEL.tuftPowerPerWave,
       },
       {
         count: FEEL.bunchTufts + FEEL.mostWaveTufts,
-        power: 1 + 20 * FEEL.tuftPowerPerWave,
+        power: FEEL.tuftPower + 20 * FEEL.tuftPowerPerWave,
       },
     ]);
   });
@@ -85,5 +85,23 @@ describe("hopOff", () => {
     expect(timeline.effects).toEqual([
       expect.objectContaining({ what: "ring", ink: "frizzball" }),
     ]);
+  });
+});
+
+describe("struckOff", () => {
+  const timeline = timelineOfParts(
+    GRID,
+    struckOff(standingOn(GRID, 0), "red", AT_MS, 0, FEEL),
+  );
+
+  it("has the fuzzball look wide-eyed, raised, a moment before it is struck", () => {
+    expect(pieceAt(timeline, 1, AT_MS - FEEL.struckLookMs)).toMatchObject({
+      face: "eep",
+      raise: RAISED.moving,
+    });
+  });
+
+  it("hops it off as it is struck", () => {
+    expect(pieceAt(timeline, 1, AT_MS).face).toBe("happy");
   });
 });

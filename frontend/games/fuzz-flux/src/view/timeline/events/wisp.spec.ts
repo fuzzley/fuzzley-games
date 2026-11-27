@@ -1,0 +1,80 @@
+import { MOVE_FIXTURES } from "../../../testing/move_fixtures";
+import { HOPS_MS, blastTimeline } from "../../../testing/played_parts";
+import { FEEL } from "../feel";
+import { RAISED, lookAt } from "../looks";
+import { frameFor, sampleAt } from "../sample";
+import type { Timeline } from "../timeline";
+import { wispOff } from "./wisp";
+
+/** When the wisp, piece 5, goes off on square 1 of its 3 by 3 board. */
+const OFF_MS = HOPS_MS + FEEL.blastAfterMs;
+
+/** When its copy lands on square 7, the one fuzzball it takes. */
+const LANDS_MS = OFF_MS + FEEL.wispMs;
+
+/** Returns where a timeline's first loose sprite stands at a moment. */
+function copyAt(
+  timeline: Timeline,
+  ms: number,
+): ReturnType<typeof frameFor>["sprites"][number] | undefined {
+  return sampleAt(timeline, FEEL, ms, frameFor(timeline)).sprites[0];
+}
+
+describe("wispOff", () => {
+  const timeline = blastTimeline(MOVE_FIXTURES.wispGoesOff, wispOff);
+
+  it("takes the wisp off as it goes off", () => {
+    expect(timeline.pieces.find(({ id }) => id === 5)?.untilMs).toBe(OFF_MS);
+  });
+
+  it("flies a happy copy of it, over the rest, from its square to the fuzzball it takes", () => {
+    expect(timeline.sprites).toMatchObject([
+      {
+        drawn: {
+          what: "copy",
+          piece: { id: 5, special: "wisp" },
+          face: "happy",
+        },
+        fromMs: OFF_MS,
+        untilMs: LANDS_MS,
+        look: { ...lookAt({ x: 1, y: 0 }), raise: RAISED.top },
+      },
+    ]);
+    expect(copyAt(timeline, LANDS_MS)).toMatchObject({
+      x: 1,
+      y: 2,
+      leanX: 0,
+      leanY: 0,
+    });
+  });
+
+  it("bows the copy's flight to one side and lifts it, most halfway", () => {
+    expect(copyAt(timeline, OFF_MS + FEEL.wispMs / 2)).toMatchObject({
+      x: 1,
+      y: 1,
+      leanX: FEEL.wispBendSquares * FEEL.curveArc,
+      leanY: -FEEL.curveRiseSquares,
+    });
+  });
+
+  it("lands it in its kind's tufts and a thin white ring", () => {
+    expect(timeline.effects).toEqual([
+      {
+        what: "fluff",
+        atMs: LANDS_MS,
+        at: { x: 1, y: 2 },
+        tuft: "tuft-violet",
+        count: FEEL.wispTufts,
+        power: FEEL.tuftPower,
+      },
+      {
+        what: "ring",
+        atMs: LANDS_MS,
+        ms: FEEL.ringMs,
+        at: { x: 1, y: 2 },
+        radius: FEEL.wispRingSquares,
+        ink: "white",
+      },
+    ]);
+  });
+});

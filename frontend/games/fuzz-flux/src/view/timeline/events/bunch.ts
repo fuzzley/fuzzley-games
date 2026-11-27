@@ -5,10 +5,9 @@
 import { squareOf } from "../../../rules/board/cells";
 import type { KindId } from "../../../rules/catalog/kinds";
 import type { Bunch, Hit } from "../../../rules/move/record";
-import { FRAMES } from "../../art/frame_names";
 import type { FeelTuning } from "../feel";
 import { RAISED } from "../looks";
-import { type Part, facing, moves, sets, spawns } from "../part";
+import { type Part, facing, moves, sets, tuftsOf } from "../part";
 import { type Standing, standingOn } from "../standing";
 import type { Place } from "../timeline";
 import { type WavePlay, stayingThrough } from "../wave_play";
@@ -149,18 +148,7 @@ function runIn(
     ...moves(piece.id, fadeMs, feel.runInMs * (1 - feel.runInFadeFrom), "in", {
       fade: 1,
     }),
-    ...(kind === null
-      ? []
-      : [
-          spawns({
-            what: "fluff",
-            atMs,
-            at,
-            tuft: FRAMES.tuft(kind),
-            count: feel.runInTufts,
-            power: 1,
-          }),
-        ]),
+    ...tuftsOf(kind, atMs, at, feel.runInTufts, feel.tuftPower),
     { what: "leaves", piece: piece.id, atMs: atMs + feel.runInMs },
   ];
 }

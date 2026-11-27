@@ -84,6 +84,29 @@ describe("timelineOf", () => {
     expect(timeline.pieces.find(({ id }) => id === 10)?.look.y).toBe(3);
   });
 
+  it("plays a special swapped going off, and the fuzzballs it takes", () => {
+    const fixture = MOVE_FIXTURES.dasherGoesOff;
+
+    const timeline = timelineOf(
+      fixture.record,
+      moveStartOf(fixture),
+      FEEL,
+      NORMAL,
+    );
+
+    expect([
+      timeline.pieces.find(({ id }) => id === 5)?.untilMs,
+      pieceAt(
+        timeline,
+        1,
+        FEEL.swapMs +
+          FEEL.blastAfterMs +
+          FEEL.streaksAfterMs +
+          FEEL.dasherSquareMs,
+      ).face,
+    ]).toEqual([FEEL.swapMs + FEEL.blastAfterMs + FEEL.dasherGoneMs, "happy"]);
+  });
+
   it("swaps faster at the Fast pace, by the feel's", () => {
     const timeline = timelineOf(BUNCH.record, moveStartOf(BUNCH), FEEL, {
       speed: "fast",

@@ -1,4 +1,4 @@
-import { facing, moves, sets } from "./part";
+import { facing, moves, sets, spawns, tuftsOf } from "./part";
 
 describe("moves", () => {
   it("keys each number given, in the order of the look's numbers, over the while given", () => {
@@ -40,5 +40,35 @@ describe("facing", () => {
       atMs: 100,
       face: "cross",
     });
+  });
+});
+
+describe("spawns", () => {
+  it("spawns the effect", () => {
+    const shake = { what: "shake", atMs: 100, px: 3 } as const;
+
+    expect(spawns(shake)).toEqual({ what: "effect", effect: shake });
+  });
+});
+
+describe("tuftsOf", () => {
+  it("throws tufts of a kind's fur from a place", () => {
+    expect(tuftsOf("red", 100, { x: 1, y: 2 }, 5, 1.5)).toEqual([
+      {
+        what: "effect",
+        effect: {
+          what: "fluff",
+          atMs: 100,
+          at: { x: 1, y: 2 },
+          tuft: "tuft-red",
+          count: 5,
+          power: 1.5,
+        },
+      },
+    ]);
+  });
+
+  it("throws none for no kind", () => {
+    expect(tuftsOf(null, 100, { x: 1, y: 2 }, 5, 1.5)).toEqual([]);
   });
 });

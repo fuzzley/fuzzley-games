@@ -3,10 +3,9 @@
 // thin ring behind.
 
 import type { KindId } from "../../../rules/catalog/kinds";
-import { FRAMES } from "../../art/frame_names";
 import type { FeelTuning } from "../feel";
 import { RAISED } from "../looks";
-import { type Part, facing, moves, sets, spawns } from "../part";
+import { type Part, facing, moves, sets, spawns, tuftsOf } from "../part";
 import type { Standing } from "../standing";
 
 /**
@@ -34,18 +33,13 @@ export function hopOff(
       lift: 1,
     }),
     ...moves(piece.id, fadeMs, fadeLengthMs, "in", { fade: 1 }),
-    ...(kind === null
-      ? []
-      : [
-          spawns({
-            what: "fluff",
-            atMs,
-            at,
-            tuft: FRAMES.tuft(kind),
-            count: feel.bunchTufts + Math.min(feel.mostWaveTufts, before),
-            power: 1 + before * feel.tuftPowerPerWave,
-          }),
-        ]),
+    ...tuftsOf(
+      kind,
+      atMs,
+      at,
+      feel.bunchTufts + Math.min(feel.mostWaveTufts, before),
+      feel.tuftPower + before * feel.tuftPowerPerWave,
+    ),
     spawns({
       what: "ring",
       atMs,
@@ -55,5 +49,24 @@ export function hopOff(
       ink: kind ?? "frizzball",
     }),
     { what: "leaves", piece: piece.id, atMs: fadeMs + fadeLengthMs },
+  ];
+}
+
+/**
+ * Returns the parts of a fuzzball a blast takes: wide-eyed a moment before
+ * it is struck, then hopping off.
+ */
+export function struckOff(
+  standing: Standing,
+  kind: KindId | null,
+  atMs: number,
+  before: number,
+  feel: FeelTuning,
+): readonly Part[] {
+  const looksMs = atMs - feel.struckLookMs;
+  return [
+    facing(standing.piece.id, looksMs, "eep"),
+    ...sets(standing.piece.id, looksMs, { raise: RAISED.moving }),
+    ...hopOff(standing, kind, atMs, before, feel),
   ];
 }

@@ -56,7 +56,7 @@ describe("playWave", () => {
 
     const tufts = {
       count: FEEL.bunchTufts + 1,
-      power: 1 + FEEL.tuftPowerPerWave,
+      power: FEEL.tuftPower + FEEL.tuftPowerPerWave,
     };
 
     expect(fluffOf(timeline)).toMatchObject([tufts, tufts, tufts]);
@@ -65,7 +65,7 @@ describe("playWave", () => {
   it("plays a gust's first fall, wave 0, as a move's first wave", () => {
     const { timeline } = played({ ...FIRST, number: 0 }, SWAPPED);
 
-    const tufts = { count: FEEL.bunchTufts, power: 1 };
+    const tufts = { count: FEEL.bunchTufts, power: FEEL.tuftPower };
 
     expect(fluffOf(timeline)).toMatchObject([tufts, tufts, tufts]);
   });
