@@ -1,6 +1,8 @@
 /**
  * Writes a golden game's digest: a game, and the move that made it, written
- * out in the game's words and the screen's frame, and hashed.
+ * out in the game's words and the screen's frame, and hashed. The game's
+ * `src/testing/golden.ts` writes the same from its own `Game` and
+ * `MoveRecord`, and says what the text holds and why.
  */
 
 /** @import { Board, Game } from "../../../frontend/games/fuzz-flux/src/rules/board/board.ts" */
