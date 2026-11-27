@@ -1,5 +1,5 @@
 import type { Goal } from "../catalog/goals";
-import { goalName } from "./describe";
+import { goalName, newThingLine } from "./describe";
 
 describe("goalName", () => {
   it.each<[Goal, string]>([
@@ -10,5 +10,13 @@ describe("goalName", () => {
     [{ what: "sleepyhead" }, "sleepyheads"],
   ])("names %j %s", (goal, name) => {
     expect(goalName(goal)).toBe(name);
+  });
+});
+
+describe("newThingLine", () => {
+  it("says what you do to make a thing, then what it does", () => {
+    expect(newThingLine("dasher")).toBe(
+      "Line up 4 to make a dasher. It clears the row or column its fur points along.",
+    );
   });
 });

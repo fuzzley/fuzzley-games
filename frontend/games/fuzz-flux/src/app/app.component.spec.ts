@@ -12,6 +12,12 @@ import {
   resize,
   watchResizes,
 } from "@fz/phaser/testing";
+import {
+  type CssRect,
+  PANEL_GAP_CSS_PX,
+  cssRectStyle,
+} from "@fz/phaser/layout";
+import { viewport } from "@fz/phaser/testing/pure";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { setPageVisibility } from "@fz/ui/testing";
@@ -20,6 +26,7 @@ import { userEvent } from "@testing-library/user-event";
 import { squareOf } from "../rules/board/cells";
 import { BoardFrames } from "../testing/board_frames";
 import { BLUE_LINE, SMALL_LEVELS } from "../testing/small_levels";
+import { boardMetrics } from "../view/board/metrics";
 import { AppComponent } from "./app.component";
 import { BoardComponent } from "./board/board.component";
 import { provideFuzzFluxBugReports } from "./bug_report/fuzz_flux_bug_reports";
@@ -82,6 +89,13 @@ function playBlueLine(game: GameService): void {
   );
 }
 
+/** Returns where the room left of a 5 by 5 board lies on a canvas of a CSS size, as the board lays it out with no panels beside it. */
+function leftOfBoard(width: number, height: number): CssRect {
+  const { css } = boardMetrics(viewport(width, height), 5, 5);
+  const gap = PANEL_GAP_CSS_PX;
+  return { x: gap, y: css.y, width: css.x - 2 * gap, height: css.height };
+}
+
 /** Lays the board out on a wide window's canvas, as the browser does, with room beside it for the panels, on the third of the small levels. */
 function layOutWide(): void {
   void TestBed.inject(GameService).startLevel(3);
@@ -129,6 +143,59 @@ describe("AppComponent", () => {
     expect(
       board.goalPictures().map((picture) => bar.contains(picture)),
     ).toEqual([true, true]);
+  });
+
+  describe("the line about what a level brings in new", () => {
+    watchResizes();
+
+    it("shows beside the bar on a level that brings something", async () => {
+      const { settle } = await renderApp();
+
+      await TestBed.inject(GameService).startLevel(3);
+      await settle();
+
+      const line = within(screen.getByRole("main")).getByText(
+        "Swap 2 fuzzballs to line up 3 of a kind.",
+      );
+      expect(document.querySelector("app-board")).not.toContainElement(line);
+    });
+
+    it("shows nowhere on a level that brings nothing", async () => {
+      await renderApp();
+
+      expect(
+        within(screen.getByRole("main")).queryByRole("paragraph"),
+      ).toBeNull();
+    });
+
+    it("shows in the panel, alone, on a phone on its side", async () => {
+      installFakeViewport(844, 390);
+      const { settle } = await renderApp();
+
+      void TestBed.inject(GameService).startLevel(3);
+      resize(document.querySelector<HTMLElement>("app-board")!, 788, 390);
+      await settle();
+
+      const line = within(screen.getByRole("main")).getByText(
+        "Swap 2 fuzzballs to line up 3 of a kind.",
+      );
+      expect(document.querySelector(".level-panel")).toContainElement(line);
+    });
+
+    it("shows left of the board on a phone on its side that spares no panel", async () => {
+      installFakeViewport(667, 375);
+      const { settle } = await renderApp();
+
+      void TestBed.inject(GameService).startLevel(3);
+      resize(document.querySelector<HTMLElement>("app-board")!, 603, 375);
+      await settle();
+
+      expect(
+        within(screen.getByRole("main")).getByText(
+          "Swap 2 fuzzballs to line up 3 of a kind.",
+        ),
+      ).toHaveStyle(cssRectStyle(leftOfBoard(603, 375)));
+    });
   });
 
   describe("in a wide window", () => {

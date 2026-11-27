@@ -3,6 +3,10 @@
   landmark a screen reader can jump to, under the bar.
 -->
 <main class="stage">
+  <!-- Read before the board, and shown on the bar's side of it. -->
+  @if (lineBesideBar(); as line) {
+    <p class="new-thing">{{ line }}</p>
+  }
   <div class="room" fzPlayRoom (away)="game.pause()">
     <app-board #board [goalPictures]="goalPictures()">
       @if (board.panels(); as panels) {
@@ -11,6 +15,9 @@
             <app-level-title [level]="game.state().level" />
           </h2>
           <app-level-figures [state]="game.state()" [pictures]="pictures()" />
+          @if (lineInPanel(); as line) {
+            <p class="new-thing">{{ line }}</p>
+          }
         </section>
         <div class="panel buttons" [style]="panels.right">
           <!-- Hint keeps the focus on the board, as the bar's does. -->
@@ -34,6 +41,10 @@
             Restart
           </button>
         </div>
+      } @else if (lineBesideBoard(); as beside) {
+        <p class="new-thing beside-board" [style]="beside.room">
+          {{ beside.line }}
+        </p>
       }
     </app-board>
   </div>

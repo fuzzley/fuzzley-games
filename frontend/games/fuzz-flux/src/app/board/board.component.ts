@@ -19,7 +19,11 @@ import {
   canvasRoom,
   settledPictures,
 } from "@fz/phaser/canvas";
-import { type CssRect, cssRectStyle } from "@fz/phaser/layout";
+import {
+  type CssRect,
+  PANEL_GAP_CSS_PX,
+  cssRectStyle,
+} from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import type { FuzzFluxSceneOptions } from "../../scene/fuzz_flux_scene";
 import type { Pictures } from "../../scene/pictures";
@@ -34,6 +38,9 @@ const BOARD_KEYS: readonly string[] = [
   "Esc: put the fuzzball down.",
   "H: show a hint.",
 ];
+
+/** The narrowest the room left of the board shows anything in, in CSS pixels: a short word or two of the line about a new thing. */
+const LEAST_BESIDE_CSS_PX = 80;
 
 /**
  * Shows the board: the canvas the scene draws the level on, which hears the
@@ -127,6 +134,24 @@ export class BoardComponent {
     return panels
       ? { left: cssRectStyle(panels.left), right: cssRectStyle(panels.right) }
       : null;
+  });
+
+  /**
+   * Where the room left of the board lies, where the room spares no panels:
+   * {@link PANEL_GAP_CSS_PX} in from the canvas's edge and from the board,
+   * as tall as the board and level with it; or null where there are panels,
+   * before the board is measured, or where it is narrower than
+   * {@link LEAST_BESIDE_CSS_PX}.
+   */
+  readonly besideBoard = computed(() => {
+    const shown = this.shown();
+    // Unmeasured, the board has no room yet; beside panels, none spare.
+    if (shown?.panels !== null) return null;
+    const { x, y, height } = shown.css;
+    const width = x - 2 * PANEL_GAP_CSS_PX;
+    return width < LEAST_BESIDE_CSS_PX
+      ? null
+      : cssRectStyle({ x: PANEL_GAP_CSS_PX, y, width, height });
   });
 
   /**

@@ -5,11 +5,48 @@
 // the rest, a size container, which the board's layout follows.
 @include game-ui.game-frame;
 
-// The board fills the room, and lays the level out inside it.
+// The stage holds the line about what the level brings in new, where it
+// shows there, and the room, which the board fills, laying the level out
+// inside it.
+.stage {
+  display: flex;
+  flex-direction: column;
+}
+
 .room {
   display: grid;
+  flex: 1 1 0;
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-  height: 100%;
+  min-height: 0;
+}
+
+// The line about what the level brings in new, in the stage or the panel.
+.new-thing {
+  margin: 0;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  text-align: center;
+  text-wrap: balance;
+}
+
+// In the stage, under the bar, or over it where the bar stands at the
+// bottom.
+.stage > .new-thing {
+  padding: var(--fz-space-2) var(--fz-space-4) 0;
+}
+
+:host([data-bar="bottom"]) .stage > .new-thing {
+  order: 1;
+  padding-block: 0 var(--fz-space-2);
+}
+
+// On a phone on its side that spares no panel, in the room left of the
+// board, where the board lays it, in the middle of the board's height.
+.beside-board {
+  position: absolute;
+  display: grid;
+  align-content: center;
+  pointer-events: none;
 }
 
 // A wide window's panels, in the room the canvas spares beside the board,

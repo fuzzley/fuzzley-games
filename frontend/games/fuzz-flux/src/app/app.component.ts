@@ -10,10 +10,19 @@ import { BarComponent } from "./bar/bar.component";
 import { LevelFiguresComponent } from "./bar/level_figures.component";
 import { LevelTitleComponent } from "./bar/level_title.component";
 import { BoardComponent } from "./board/board.component";
+import { newThingLine } from "../rules/run/describe";
 import { GameService } from "./play/game.service";
 
 /**
  * Shows the game: the bar, the board, and a wide window's panels beside it.
+ *
+ * A level that brings something new has a line about it, on the bar's
+ * side of the board where the bar stands across the window. A phone on its
+ * side leaves the board the whole height, so there the line shows in the
+ * panel, or, where the phone spares no panel, in the room left of the
+ * board. Across the window the line never moves to the panel: the height
+ * it takes from the board could bring the panels on, and its leaving take
+ * them off again.
  *
  * The board takes the focus as a level begins, as the page loads or after
  * a dialog over it closes, so the keys play at once.
@@ -57,6 +66,34 @@ export class AppComponent {
   protected readonly pictures = computed(
     () => this.board().pictures()?.() ?? null,
   );
+
+  /** The line about what the level brings in new, or null for a level that brings nothing. */
+  private readonly line = computed(() => {
+    const thing = this.game.state().newThing;
+    return thing === null ? null : newThingLine(thing);
+  });
+
+  /** Whether the bar runs down the end of a phone on its side. */
+  private readonly onRail = computed(
+    () => this.viewport.barPlacement() === "end",
+  );
+
+  /** The line about what the level brings in new on the bar's side of the board, where the bar stands across the window, or null. */
+  protected readonly lineBesideBar = computed(() =>
+    this.onRail() ? null : this.line(),
+  );
+
+  /** The line about what the level brings in new where the panel shows it, on a phone on its side, or null. */
+  protected readonly lineInPanel = computed(() =>
+    this.onRail() ? this.line() : null,
+  );
+
+  /** The line about what the level brings in new left of the board, on a phone on its side that spares no panel, and where it lies there, or null. */
+  protected readonly lineBesideBoard = computed(() => {
+    const line = this.lineInPanel();
+    const room = this.board().besideBoard();
+    return line !== null && room !== null ? { line, room } : null;
+  });
 
   /** Each goal's picture where the page shows the level's figures, in the panel or else in the bar, for the board's copies to fly to. */
   protected readonly goalPictures = computed(() => {

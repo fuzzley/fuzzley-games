@@ -10,7 +10,7 @@ import {
   watchResizes,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
-import { cssRectStyle } from "@fz/phaser/layout";
+import { PANEL_GAP_CSS_PX, cssRectStyle } from "@fz/phaser/layout";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { levelsOf } from "@fz/core/levels";
 import { paintRoles } from "@fz/style/testing";
@@ -212,6 +212,45 @@ describe("BoardComponent", () => {
       expect(host.querySelector(".squares")).toHaveStyle(
         cssRectStyle(boardMetrics(viewport(390, 600), 5, 4).css),
       );
+    });
+  });
+
+  describe("the room left of the board", () => {
+    watchResizes();
+
+    it("lies between the canvas's edge and the board, where the room spares no panels", async () => {
+      const { host, component, detectChanges } = await renderBoard();
+
+      resize(host, 603, 375);
+      detectChanges();
+
+      const { css } = boardMetrics(viewport(603, 375), 5, 5);
+      expect(component.besideBoard()).toEqual(
+        cssRectStyle({
+          x: PANEL_GAP_CSS_PX,
+          y: css.y,
+          width: css.x - 2 * PANEL_GAP_CSS_PX,
+          height: css.height,
+        }),
+      );
+    });
+
+    it("is none where it is too narrow to show anything in", async () => {
+      const { host, component, detectChanges } = await renderBoard();
+
+      resize(host, 390, 600);
+      detectChanges();
+
+      expect(component.besideBoard()).toBeNull();
+    });
+
+    it("is none beside panels", async () => {
+      const { host, component, detectChanges } = await renderBoard();
+
+      resize(host, 1280, 728);
+      detectChanges();
+
+      expect(component.besideBoard()).toBeNull();
     });
   });
 
