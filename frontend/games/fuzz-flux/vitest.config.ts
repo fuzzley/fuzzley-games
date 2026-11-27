@@ -45,11 +45,12 @@ export default defineConfig(
       // The rules, the view, the specs' helpers and the scripts touch no
       // page.
       pure: ["src/rules", "src/view", "src/testing", "tools"],
-      // The specs that play the golden games, replay every level's
-      // certificates, hold the casual player to its floors, and time what
-      // a move runs, in a folder named benchmarks in any layer, without the
-      // coverage that would slow them several times over: the other specs
-      // alone hold the rules and the view to their floor.
+      // The specs that play the golden games and random moves on the
+      // levels' boards, replay every level's certificates, hold the casual
+      // player to its floors, and time what a move runs, in a folder named
+      // benchmarks in any layer, without the coverage that would slow them
+      // several times over: the other specs alone hold the rules and the
+      // view to their floor.
       sim: [
         "src/rules/golden",
         "src/rules/levels/every_level",
