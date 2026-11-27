@@ -1,5 +1,8 @@
 # Fuzz Flux: the implementation plan
 
+**Part 1 is done:** built, checked and merged into `main` on 2026-11-27, as
+"Part 1, as built" below says. Part 2 starts at your word.
+
 Written 2026-11-26, as a companion to [`design.md`](design.md), and given
 your answers to §2.1 the same day. The design says what the game is: its 16
 decisions, its rules, its numbers, its look, its sounds and its 36 levels.
@@ -51,17 +54,143 @@ Paths are relative to `frontend/` unless they start with `docs/`,
   Wed Dec 02, 02:00 UTC. The ledger's last build, Rickashay, cost $1,314
   for 188 commits.
 
+## Part 1, as built (2026-11-27)
+
+Built on 2026-11-26 and 27 to §3.3, by LA, LL and LB in worktrees of their
+own (§6), every commit reviewed, and merged into `main` on 2026-11-27 with
+its code at e4b41a42. It came to 19 commits against §1's 15 or so: the
+design's calls, LA's 5, LL's 7, LB's 4 and 2 of the orchestrator's. They
+were rebased first onto `main`'s 0d2d0d1a, a commit to the site alone from
+another session, with no conflict. The work log (§7) stays on its branch.
+
+**Q1, at Part 1's tip:**
+
+- Every certificate of Brick Fuzz Pop and Rickashay replays: their `sim`
+  specs, in `yarn verify:full`.
+- The four games' screenshots, retaken without `--force`: Brick Fuzz
+  Pop's, Rickashay's and Brick Breaker's kept every image, no pixel moved.
+  Asteroid Breaker's two moved, but a capture at f1c2a563 moves them
+  as much, since its capture takes its frame a few frames apart from one
+  run to the next on the devbox, so its committed images stand.
+- LB's script finds the three Levels dialogs at Part 1's tip the same as
+  at its merge base before the rebase, f1c2a563, which differs from
+  0d2d0d1a only in the site: 12 pictures of 12, pixel for pixel.
+- `check:layout` passes for every game.
+- Asteroid Breaker's sound lab loads, and decodes its sprite and its own
+  sounds. Its atlas gains the `cross` eyes, a frame for each seat that
+  nothing shows, and still fits its side, as its art specs hold.
+- Each game's main chunk and scene chunk, against its build at f1c2a563:
+
+  | Game             | Main chunk, bytes         | Scene's chunk, bytes    |
+  | ---------------- | ------------------------- | ----------------------- |
+  | Brick Fuzz Pop   | 418,727 → 422,613, +0.93% | 72,572 → 72,580, +0.01% |
+  | Rickashay        | 419,879 → 423,729, +0.92% | 74,347 → 74,355, +0.01% |
+  | Brick Breaker    | 466,592 → 473,826, +1.55% | 49,744 → 49,749, +0.01% |
+  | Asteroid Breaker | 499,522 → 499,572, +0.01% | 139,293 → 139,293, 0%   |
+
+  Rickashay's `effects` chunk, which its page preloads, is 83 bytes
+  larger (0.47%). Brick Breaker's main chunk is over Q1's 1%, 2.4 kB more
+  gzipped: the shared dialog, which its own now hands its tile and its
+  set's note, brings Angular's template outlet and the runtime that tracks
+  an input's changes, and no reshaping brings it under about 1.2%. It is
+  the cost of your answer to question 2, and you accepted it on
+  2026-11-27.
+
+**What Part 1 did that §3.3 doesn't say:**
+
+- **LB0, a fourth commit for LB.** Brick Breaker's own copies of
+  `levelsOf()`, `isOpen()` and `clearedOf()`, the same as those LL lifted,
+  are replaced by `@fz/core/levels`, which LL's report named as left, and
+  its `ProgressService` extends `StoredProgress`, under the same key and
+  version.
+- **Two commits of the orchestrator's.** Brick Breaker's `ringScale()` and
+  `RING_FROM`, the same as the wall's, are taken from `@fz/core/motion`,
+  which LA's report named as left. And Asteroid Breaker's sound lab, which
+  threw as it loaded on `main` because its sparks scene broke a stone rock
+  at boulder size, a size stone never comes in, breaks a plain boulder; its
+  breaks take only the sizes their kind comes in (`SizeOf`, now in
+  `games/asteroid-breaker/src/rules/catalog/rocks.ts`), so the compiler
+  refuses such a break.
+- **LA2's ladder is an entry of its own, `@fz/core/note_ladder`,** not a
+  part of `@fz/core/sound_mix`, where question 1's answer put it.
+  Rickashay's view, which climbs the rally's ladder, sits in a chunk the
+  page preloads, and an import from the mix brought all of `sound_mix.ts`
+  into that chunk, 1.65 kB. `note_ladder.spec.ts`, not
+  `synth_music.spec.ts`, holds the ladder equal to `@fz/dev/synth`'s, as
+  `frontend/lib/dev/AGENTS.md` has the other library's spec do. For that
+  import, `@fz/core`'s specs gained a `tsconfig.spec.json` with Node's
+  types, as the other libraries' have.
+- **LL2's words.** The wall games' line under the heading lives once, as
+  `@fz/brick-wall/app/levels_intro`'s `LEVELS_INTRO`, which both hand in.
+- **LB1's and LB2's contexts** are exported as `OfferedLevel`, the level
+  with its id, and `OfferedSet`, the set's id, name and levels, beside
+  `ListedLevel`. Each `ngTemplateContextGuard` keeps its body, since a
+  bodiless `declare static` guard let a mistake in a template through.
+  Only the compiler calls a guard, so each is specced with
+  `expectTypeOf(guard).guards`, which fails the typecheck if the guard
+  widens, rather than hidden from coverage. Brick Breaker imports the
+  shared dialog as `FzLevelsComponent`, so its own keeps its name.
+- **LA3's cross face** is "< >", squeeze's chevrons turned to point away,
+  and `FuzzballFace` is now derived from `FUZZBALL_FACES`.
+- **LA4's `shakeOf()`** is `shakeOf(sinceMs, lengthMs, most, fade, into)`:
+  the fade a function of the share through the shake, the shift written
+  into the `Shift` handed in.
+- **LA5's `encodeSprite()`** comes with two stand-ins for a build's spec,
+  `fakeFfmpeg` and `missingFfmpeg`. Run again on the devbox's ffmpeg
+  7.1.5, 11 of Asteroid Breaker's 14 encodes differ in their bytes alone,
+  at the same lengths, rates and channels, and the old command lines wrote
+  those same bytes. The committed files are kept.
+- **LB's check** took 12 pictures: 3 games, 390 and 1280 CSS px wide, the
+  light `classic` palette and the dark `casino`.
+- **`fuzz-flux` is cut from `origin/main`,** which has Part 1, and follows
+  it: §6.1, §6.7 and §7 say so now.
+
+**What Part 2 builds on,** beside §3.2's:
+
+| Entry                        | What it holds                                                                                                                                                                                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@fz/core/levels`            | `levelsOf()`, `levelAt()`, `levelIdOf()`, `isOpen()`, `clearedOf()`; `IdentifiedLevel`, `NumberedLevel`, `LevelSet`                                                                                                                                                                  |
+| `@fz/core/motion`            | `easeOutBack()`, `swellScale()`, `flareScale()`, `ringScale()`, `shakeOf()`, `blinkShows()`; `OVERSHOOT`, `SWELL`, `FLARE_FROM`, `RING_FROM`, `SHAKE_RATES`, `MOST_BLINKS_A_SECOND`; `Shift`                                                                                         |
+| `@fz/core/note_ladder`       | `ladderCentsOf(note, ladder)`, `CHAIN_CENTS`                                                                                                                                                                                                                                         |
+| `@fz/core/random`            | `hashOf(a, b, c, d)`                                                                                                                                                                                                                                                                 |
+| `@fz/core/testing`           | `SIM_TIMEOUT_MS`, `sortedTimes()`, `quantile()`, `described()`                                                                                                                                                                                                                       |
+| `@fz/game-ui/levels`         | `LevelsComponent` (`<fz-levels>`: `open`, `intro`, `marks`, `current`, `levels`, `mostStars`, `figure`; `chosen`, `closed`), `LevelTileDirective`, `LevelSetNoteDirective`, `levelMarksOf()`; `LevelMark`, `ListedLevel`, `OfferedLevel`, `OfferedSet`; `StoredProgress`, `StoredAt` |
+| `@fz/style/fuzzball`         | the `cross` face                                                                                                                                                                                                                                                                     |
+| `@fz/style/testing/contrast` | `holdContrast()`, `expectContrast()`, `contrastOf()`, `against()`; `ContrastPair`, `GRAPHIC`, `TEXT`                                                                                                                                                                                 |
+| `@fz/phaser/testing`         | `recordBakes()`, `stampsIn()`, `drawsIn()`, `fillsIn()`; `Bake`, `BakeCommand`                                                                                                                                                                                                       |
+| `@fz/ui/testing`             | `loadsSettled()`; `Stabilizing`                                                                                                                                                                                                                                                      |
+| `@fz/dev/sounds`             | `encodeSprite()`, `fakeFfmpeg`, `missingFfmpeg`; `SpriteToEncode`, `RunProgram`                                                                                                                                                                                                      |
+
+**Left, for Z1:**
+
+- `StoredAt`'s truer home may be `@fz/ui/storage`.
+- A shared Sass mixin for a tile's number, name and status type, which
+  Brick Breaker's tile now writes again from the dialog's.
+- The dialog's `figure` and a mark's `best` stay required, though Brick
+  Breaker's own tile shows neither.
+- Brick Breaker's `streakRingScale()` writes out `@fz/core/math`'s
+  `lerp()`.
+- Before Part 1, and not its own: `@fz/core/math`'s `easeOutCubic()` uses
+  `**`, which `lib/core/AGENTS.md` keeps out of that file; Asteroid
+  Breaker's `flourishes.spec.ts` case "rests the field within 0.3 s of the
+  blow" fails now and then under load, by 4.26e-14, as it did on
+  2026-11-21; and Asteroid Breaker's screenshots, taken again without
+  `--force`, move at any commit, so a retake can't tell a change in its
+  page from its timing.
+
+---
+
 ## 1. Summary
 
 - **Two parts, as Rickashay was built.**
-  - **Part 1, the lifts (§3.3):** about 15 commits in three packages, on
-    the branch `fuzz-flux-lift`. Pieces any game could use, and the level
-    pieces that sit in `@fz/brick-wall` though they name no wall, move into
-    the libraries that hold their kind. Each is adopted by the games that
-    had it, in the commit that moves it, and they play and look exactly as
-    before. Brick Breaker's own Levels dialog then moves onto the shared one
-    (question 2). Part 1 merges into `main` on its own, at your word
-    (question 5).
+  - **Part 1, the lifts (§3.3), done:** about 15 commits in three
+    packages, 19 as built, on the branch `fuzz-flux-lift`. Pieces any game
+    could use, and the level pieces that sit in `@fz/brick-wall` though
+    they name no wall, move into the libraries that hold their kind. Each
+    is adopted by the games that had it, in the commit that moves it, and
+    they play and look exactly as before. Brick Breaker's own Levels dialog
+    then moves onto the shared one (question 2). Part 1 merged into `main`
+    on its own, at your word (question 5), on 2026-11-27.
   - **Part 2, the game (§5.2):** about 144 commits in thirty-one packages,
     on the branch `fuzz-flux`, in `games/fuzz-flux`. It writes only what is
     Fuzz Flux's: the rules, the art, the feel, the sounds, the board for
@@ -93,20 +222,20 @@ Paths are relative to `frontend/` unless they start with `docs/`,
 - **No Part 2 package but Z1 touches `lib/`, and no two packages at work
   at once own one file** (§6.4).
 - **The longest chain** is the rules, then the shell, then the elements:
-  LA → K2 → R1 → R2 → R3 → U1 → U2 → X1 to X5 → Z1 → F1 (K2 waits on LA,
-  which is longer than K1). The look, the motion and the sound (A1 → A2;
-  V2 → V3, with V1; N1) meet at S1, which reaches U1 before R3 does when
-  R1 and V2 start first (§6.2). The gate, Q3, comes off U2 through T1.
-- **What it costs:** about 159 commits. At Rickashay's measured rate
-  ($6.99 and about 0.32% of a week a commit, counting its fixes and
-  squashed reviews) that is about $1,110 and half a week. Rickashay's own
-  plan estimated $890 and it came to $1,314, so read the week again once
-  K2 and R1 land (§6.1). It can start at your word: you said on 2026-11-23
-  to keep a build going through the weekly limit and resume after the
-  reset, and §7 lets it.
+  K1 → K2 → R1 → R2 → R3 → U1 → U2 → X1 to X5 → Z1 → F1. The look, the
+  motion and the sound (A1 → A2; V2 → V3, with V1; N1) meet at S1, which
+  reaches U1 before R3 does when R1 and V2 start first (§6.2). The gate,
+  Q3, comes off U2 through T1.
+- **What it costs:** Part 2 is about 144 commits, after Part 1's 19. At
+  Rickashay's measured rate ($6.99 and about 0.32% of a week a commit,
+  counting its fixes and squashed reviews) that is about $1,010 and nearly
+  half a week. Rickashay's own plan estimated $890 and it came to $1,314, so
+  read the week again once K2 and R1 land (§6.1). It can start at your word:
+  you said on 2026-11-23 to keep a build going through the weekly limit and
+  resume after the reset, and §7 lets it.
 
 ```text
-Part 1, on fuzz-flux-lift
+Part 1, on fuzz-flux-lift (done 2026-11-27)
   LA (pieces) and LL (levels and the specs' helpers), side by side; LB (Brick Breaker's dialog) after LL ── Q1
 
 Part 2, on fuzz-flux
@@ -282,10 +411,10 @@ reuses. The design's numbers are `FeelTuning`, handed in and tuned under
 **C11. The sounds are rebuilt on the house's synth.** The design's 46
 recipes are written again in `tools/build-sounds.mjs` on `@fz/dev/synth`
 and `@fz/dev/sounds`, held to the design's `sound/measures.md`, and shipped
-as AAC and Ogg (LA6), as Asteroid Breaker's are: a 27-second sprite as the
+as AAC and Ogg (LA5), as Asteroid Breaker's are: a 27-second sprite as the
 house's 16 kHz WAV would be about 860 KB, twice the largest today. A wave's
 note climbs the design's ladder (C5 to A6, C major pentatonic) by detune,
-the ladder handed to `@fz/core/sound_mix`'s `ladderCentsOf()` (LA2) as
+the ladder handed to `@fz/core/note_ladder`'s `ladderCentsOf()` (LA2) as
 data, and plays through `@fz/phaser/sound`'s
 `SpritePlayer`. The sound lab plays each sound beside the design's own take,
 so the gate judges by ear.
@@ -419,6 +548,8 @@ Patterns copied, not imported:
 
 ### 3.3 Part 1: the packages
 
+**Done on 2026-11-27.** "Part 1, as built" says what was built otherwise.
+
 Every lift is adopted by the code that had it, in the commit that makes
 it, and that copy is deleted there. A piece added to a library changes its
 row in the `fuzzley-ui` or `phaser-core` skill in the same commit, as
@@ -433,13 +564,12 @@ it):
    against what the sketch prints for a dozen inputs, negative and past
    2³¹ among them. Its doc comment says what it is for: a draw that keeps
    its place whatever else a move drew.
-2. _`@fz/core/sound_mix`'s `ladderCentsOf(note, ladder)`,_ from Asteroid
+2. _`@fz/core/note_ladder`'s `ladderCentsOf(note, ladder)`,_ from Asteroid
    Breaker's `src/view/effects/sounds.ts`, the ladder handed in as data,
    with the sound kit's ladder written out beside it as numbers
    (`CHAIN_CENTS`), which Asteroid Breaker imports in place of its copy.
-   `@fz/dev/synth` keeps its own, worked out from its steps, since the
-   modules of `@fz/dev` that Node runs may not import `@fz/core`;
-   `synth_music.spec.ts` holds the two equal. Rickashay's `rallyCentsOf()`
+   `@fz/dev/synth` keeps its own, worked out from its steps, and
+   `note_ladder.spec.ts` holds the two equal. Rickashay's `rallyCentsOf()`
    reads its own `RALLY_CENTS` through it. Rickashay's "As built" named
    this lift for later.
 3. _The `cross` face,_ in `@fz/style/src/fuzzball.ts`: in `FuzzballFace`
@@ -791,7 +921,7 @@ commit counts are a guide: a package keeps to three to nine.
 
 ### 5.1 Part 1
 
-§3.3 has them: LA, LL, LB and Q1.
+§3.3 has them: LA, LL, LB and Q1, all done on 2026-11-27.
 
 ### 5.2 Part 2
 
@@ -963,7 +1093,8 @@ worker against §9; and where the game's suite runs in CI's matrix.
    palette and darker on a light one; dust and thick dust; the brick's four
    shades, oat to taupe, in steps of lightness; the cage's steel; the burr;
    the sleepyhead's gray-blue.
-3. `contrast.spec.ts` on `holdContrast()` (LA5), every pair in every
+3. `contrast.spec.ts` on `@fz/style/testing/contrast`'s `holdContrast()`
+   (LL7), every pair in every
    palette: each kind against its square, the eyes against each kind, a
    special's fur against its kind and the square, dust against a square,
    each cushion against the one beneath and the square, the cage against
@@ -1261,12 +1392,13 @@ the player's words read again by the `player-text` skill.
 - **`ffmpeg`** is on the devbox, which LA's last commit and N1 need. CI
   never runs it: the sprites are committed.
 - **The branches,** each in its own worktree under `.claude/worktrees/`,
-  moved only by the orchestrator. The two that hold code are installed
-  (`yarn install --immutable` from `frontend/`, then
-  `node .agents/link-claude-skills.mjs`):
-  - `fuzz-flux-lift`, cut from `origin/main`, where Part 1 lands;
-  - `fuzz-flux`, cut from `fuzz-flux-lift` when K1 starts, where Part 2
-    lands, and moved onto each later lift as §6.7 says;
+  moved only by the orchestrator. The one that holds code now,
+  `fuzz-flux`, is installed (`yarn install --immutable` from `frontend/`,
+  then `node .agents/link-claude-skills.mjs`):
+  - `fuzz-flux-lift`, cut from `origin/main`, where Part 1 landed, and
+    deleted once it was on `main`;
+  - `fuzz-flux`, cut from `origin/main` when K1 starts, where Part 2
+    lands, and moved onto `main` as §6.7 says;
   - `fuzz-flux-log`, which holds the work log, the briefs and the check Q1
     runs again, and nothing else (§7), an
     orphan branch made from the main checkout with
@@ -1279,20 +1411,16 @@ When a slot frees, the orchestrator lands what finished and starts the
 first ready package in this order: what most packages wait on, then the
 longest chains, then the rest.
 
-1. **First:** LA, LL and K1.
-2. **Then, in this order:** K2, R1, V2, LB, R0, P1, A1, V1, N1, R2, A2, V3,
-   R3, S1, P2, U1, P3, U2, U3, T1, X1, X2, X3, X4, X5, Y1, Y2, Y3, Z1, F1,
-   D1. LB comes before the rest of the streams for Q1, so Part 1 can merge
-   early.
-3. **The orchestrator's own steps** come as their waits end: Q1 after LA,
-   LL and LB, Q2 after P3, Q3 after T1 and Q2, and Z2 after F1 and D1.
+1. **First:** K1. Part 1's LA, LL, LB and Q1 are done.
+2. **Then, in this order:** K2, R1, V2, R0, P1, A1, V1, N1, R2, A2, V3, R3,
+   S1, P2, U1, P3, U2, U3, T1, X1, X2, X3, X4, X5, Y1, Y2, Y3, Z1, F1, D1.
+3. **The orchestrator's own steps** come as their waits end: Q2 after P3,
+   Q3 after T1 and Q2, and Z2 after F1 and D1.
 
-- **One slot is idle at the start:** everything but the lifts and K1 waits
-  on K2.
-- **Part 2 starts beside Part 1.** K1 needs no lift; K2 and what follows it
-  need LA, U1 needs LL, and U2 needs LB. A Part 2 package starts only once
-  every lift it names has landed, so it never builds on an API still
-  moving.
+- **Three slots are idle at the start:** everything but K1 waits on K2.
+- **Part 2 builds on Part 1, on `main`:** K2 and what follows it on LA's
+  pieces, U1 on LL's and U2 on LB's, all landed, so no package builds on an
+  API still moving.
 - **After K2, four streams run side by side:** the rules (R1 to R3, with
   R0 and P1 beside them), the look (A1, A2), the motion (V1 to V3) and the
   sound (N1). R1 and V2 go first, since the two longest chains run through
@@ -1463,15 +1591,11 @@ pass at twenty, and waits its turn in the queue.
 
 As the `multi-agent-build` skill's §6 has it. These are this build's own:
 
-- **`fuzz-flux` follows `fuzz-flux-lift` by the tip it was last on.** The
-  lift branch is rewritten when it is rebased onto `origin/main`, so a
-  plain rebase onto it would replay old lift commits. Before it starts a
-  package that needs a newer lift, the orchestrator logs both tips and
-  runs, in `fuzz-flux`'s worktree,
-  `git rebase --onto fuzz-flux-lift <the lift tip fuzz-flux was on>`, then
-  `yarn install --immutable` and `yarn verify:changed --base fuzz-flux-lift`.
-  Once Part 1 is on `main`, `fuzz-flux` moves the same way onto
-  `origin/main` and follows it from then on.
+- **`fuzz-flux` follows `origin/main`,** which has Part 1. Before it
+  starts a package that needs what `main` has gained, the orchestrator
+  logs both tips and runs, in `fuzz-flux`'s worktree,
+  `git rebase origin/main`, then `yarn install --immutable` and
+  `yarn verify:changed --base origin/main`.
 - **Written files are written again, never merged by hand.** A collision in
   `frontend/yarn.lock` is settled by `yarn install`; one in the golden
   games, the certificates or the sprite by running the script that writes
@@ -1523,8 +1647,8 @@ On its own branch; never merged (implementation-plan.md §7).
 
 ## Now
 
-- Tips: fuzz-flux-lift <sha>, fuzz-flux <sha> (on lift tip <sha>); origin/main <sha> (fetched <time> UTC)
-- Landed: LA, LL, K1, K2 (4 of 34 packages; 19 of about 159 commits)
+- Tips: fuzz-flux <sha> (on origin/main <sha>); origin/main <sha> (fetched <time> UTC)
+- Landed: K1, K2 (2 of Part 2's 31 packages; 8 of about 144 commits)
 - In flight:
 
   | Package | Worktree                | Branch | Cut from          | Agent      | Since       | Commits | Reviews out |
@@ -1550,8 +1674,8 @@ this before anything else:
 
 1. **Reads `Now`,** in the log's worktree or with
    `git show fuzz-flux-log:work-log.md` from any.
-2. **Compares it with the repository:** `git worktree list`, the tips of
-   `fuzz-flux-lift` and `fuzz-flux` against those logged, and for each
+2. **Compares it with the repository:** `git worktree list`, the tip of
+   `fuzz-flux` against the one logged, and for each
    package in flight `git log --oneline <its base>..<its branch>` and
    `git status` in its worktree.
 3. **Takes each package in flight as it finds it:** its report arrived and
