@@ -73,6 +73,8 @@ export const FRAMES = {
   cageBar: "cage-bar",
   /** A burr's ring of thorns, behind its fuzzball. */
   burr: "burr",
+  /** A tuft of a burr, which flies as the burr is brushed off. */
+  burrTuft: "burr-tuft",
   /** A tuft of a kind's fur. */
   tuft: (kind: KindId) => `tuft-${kind}` as const,
   /** The thin ring that spreads from a bunch and a blast. */
@@ -117,6 +119,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   FRAMES.cage,
   FRAMES.cageBar,
   FRAMES.burr,
+  FRAMES.burrTuft,
   ...KIND_IDS.map((kind) => FRAMES.tuft(kind)),
   FRAMES.ring,
   FRAMES.streak,

@@ -453,6 +453,28 @@ export interface FeelTuning {
   readonly cheerHappyMs: number;
   /** How long a square's puff of dust lasts as a layer comes off. */
   readonly dustPuffMs: number;
+  /** How long before its hop a fuzzball of a bunch sheds what it wears, such as a burr brushed off. */
+  readonly hopShedLeadMs: number;
+  /** How many tufts of a burr fly as a fuzzball of a bunch sheds it. */
+  readonly burrInBunchTufts: number;
+  /** How many tufts of a burr fly as a bunch beside it or a blast brushes it off. */
+  readonly burrOffTufts: number;
+  /** How long the fuzzball it came off looks happy. */
+  readonly burrOffHappyMs: number;
+  /** How long a burr spreading takes to hop across to the fuzzball it spreads to. */
+  readonly burrSpreadMs: number;
+  /** How far aside its hop bends. */
+  readonly burrSpreadBendSquares: number;
+  /** How big it is as it hops, as a scale. */
+  readonly burrSpreadScale: number;
+  /** How small the fuzzball it lands on squashes, as a scale. */
+  readonly burrLandScale: number;
+  /** How long that takes. */
+  readonly burrLandSquashMs: number;
+  /** How long the fuzzball takes to spring back. */
+  readonly burrLandBackMs: number;
+  /** How long the board waits for a burr's spread before it goes on. */
+  readonly burrSpreadHoldMs: number;
   /** How small a shuffled fuzzball shrinks before it moves. */
   readonly shuffleShrink: number;
   /** How long it takes to shrink. */
@@ -799,6 +821,17 @@ export const FEEL: FeelTuning = {
   cheerDownMs: 220,
   cheerHappyMs: 420,
   dustPuffMs: 320,
+  hopShedLeadMs: 70,
+  burrInBunchTufts: 6,
+  burrOffTufts: 7,
+  burrOffHappyMs: 400,
+  burrSpreadMs: 240,
+  burrSpreadBendSquares: 0.5,
+  burrSpreadScale: 0.5,
+  burrLandScale: 0.86,
+  burrLandSquashMs: 80,
+  burrLandBackMs: 220,
+  burrSpreadHoldMs: 320,
   shuffleShrink: 0.7,
   shuffleShrinkMs: 140,
   shuffleMoveAfterMs: 60,

@@ -26,6 +26,7 @@ const FAMILIES = {
   cage: [/^cage$/, 1],
   cageBar: [/^cage-bar$/, 1],
   burr: [/^burr$/, 1],
+  burrTuft: [/^burr-tuft$/, 1],
   tuft: [/^tuft-/, KIND_IDS.length],
   ring: [/^ring$/, 1],
   streak: [/^streak$/, 1],

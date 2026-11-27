@@ -414,6 +414,29 @@ const PORTED = {
   ],
   cheerHappyMs: [420, "at(now + wait + «420», () => {"],
   dustPuffMs: [320, "tween(sq, { puff: 0 }, «320», ease.out);"],
+  hopShedLeadMs: [70, "at(t - «70», () => { if (s.cage) openCage(s);"],
+  burrInBunchTufts: [
+    6,
+    'fluff(s.x, s.y, colorOf(palette, null, "burr"), «6»);',
+  ],
+  burrOffTufts: [7, 'fluff(c.x, c.y, colorOf(palette, null, "burr"), «7»);'],
+  burrOffHappyMs: [
+    400,
+    's.eye = "happy"; at(now + «400», () => (s.eye = "open"));',
+  ],
+  burrSpreadMs: [240, "d: «240», bend: 0.5,"],
+  burrSpreadBendSquares: [0.5, "d: 240, bend: «0.5»,"],
+  burrSpreadScale: [
+    0.5,
+    'ctx.scale(«0.5», 0.5); paint(once("burr", burr), null);',
+  ],
+  burrLandScale: [0.86, "tween(s, { sx: «0.86», sy: 0.86 }, 80, ease.out);"],
+  burrLandSquashMs: [80, "tween(s, { sx: 0.86, sy: 0.86 }, «80», ease.out);"],
+  burrLandBackMs: [
+    220,
+    "tween(s, { sx: 1, sy: 1 }, «220», ease.spring, now + 80);",
+  ],
+  burrSpreadHoldMs: [320, "t += «320»;"],
   shuffleShrink: [0.7, "tween(s, { sx: «0.7», sy: 0.7 }, 140, ease.out);"],
   shuffleShrinkMs: [140, "tween(s, { sx: 0.7, sy: 0.7 }, «140», ease.out);"],
   shuffleMoveAfterMs: [

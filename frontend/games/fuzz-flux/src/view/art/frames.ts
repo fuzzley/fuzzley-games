@@ -40,6 +40,7 @@ const STAND_INS: readonly FrameName[] = [
   FRAMES.cage,
   FRAMES.cageBar,
   FRAMES.burr,
+  FRAMES.burrTuft,
   FRAMES.gustLine,
 ];
 
