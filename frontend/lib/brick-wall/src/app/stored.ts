@@ -1,16 +1,12 @@
 // What a wall game's browser keeps of it, each under the game's own key
-// and version: its records, how far the player has come, and the run under
-// way. Renaming a key loses every player's; what is stored under each, and
-// how it is read back, is the game's own, in the rules and readers it
-// hands in.
+// and version: its records and the run under way. Renaming a key loses
+// every player's; what is stored under each, and how it is read back, is
+// the game's own, in the rules and readers it hands in.
 
 import { type Signal, type WritableSignal, computed } from "@angular/core";
-import {
-  type IdentifiedLevel,
-  clearedOf,
-  isOpen as isLevelOpen,
-} from "@fz/core/levels";
+import type { IdentifiedLevel } from "@fz/core/levels";
 import type { RunStage } from "@fz/core/run";
+import type { StoredAt } from "@fz/game-ui/levels";
 import {
   type StoredFields,
   type Unversioned,
@@ -29,12 +25,6 @@ import {
   withRunEnded,
   withRunStarted,
 } from "../rules/stats";
-
-/** Says where a wall game keeps an entry: its key, which renaming loses every player's, and the shape it is kept in, a reader dropping any other. */
-export interface StoredAt {
-  readonly key: string;
-  readonly version: number;
-}
 
 /**
  * Keeps a wall game's records: its runs, the best run's score, the
@@ -85,44 +75,6 @@ export abstract class StoredStats<L, R extends L> {
   /** Keeps what a level cleared brings its record, by the level's id, where it beats any of it. */
   recordLevel(id: string, result: R): void {
     this.state.set(withLevelCleared(this.state(), id, result, this.rules));
-  }
-}
-
-/**
- * Keeps the levels a wall game's player has cleared, which open the levels
- * after them.
- *
- * A game's service extends it, handing it where they are kept and its
- * levels, as it is made in an injection context. Hand it only levels
- * cleared on the record.
- */
-export abstract class StoredProgress {
-  private readonly state: WritableSignal<ReadonlySet<string>>;
-
-  /** The ids of the levels cleared. */
-  readonly cleared: Signal<ReadonlySet<string>>;
-
-  protected constructor(
-    at: StoredAt,
-    private readonly levels: readonly IdentifiedLevel[],
-  ) {
-    this.state = storedSignal({
-      ...at,
-      read: (saved) => clearedOf(saved?.["cleared"], levels),
-      write: (cleared) => ({ cleared: [...cleared] }),
-    });
-    this.cleared = this.state.asReadonly();
-  }
-
-  /** Returns whether a run may start at a level, by its number. */
-  isOpen(level: number): boolean {
-    return isLevelOpen(this.levels, this.state(), level);
-  }
-
-  /** Keeps a level cleared, by its id, which opens the next. */
-  recordCleared(id: string): void {
-    if (this.state().has(id)) return;
-    this.state.update((cleared) => new Set([...cleared, id]));
   }
 }
 

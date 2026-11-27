@@ -28,13 +28,7 @@ import {
   saveRun,
 } from "../rules/saved_wall";
 import type { EndedRun, StatsRules } from "../rules/stats";
-import {
-  type KeptRun,
-  type RunReaders,
-  StoredProgress,
-  StoredStats,
-  keepRun,
-} from "./stored";
+import { type KeptRun, type RunReaders, StoredStats, keepRun } from "./stored";
 
 /** Three levels made up for the spec, "a" to "c", numbered 1 to 3. */
 const LEVELS: readonly IdentifiedLevel[] = ["a", "b", "c"].map((id) => ({
@@ -58,9 +52,6 @@ const STATS_RULES: Pick<StatsRules<unknown, Best>, "readLevel" | "merge"> = {
 /** Where the spec's game keeps its records. */
 const STATS_AT = { key: "stats", version: 3 };
 
-/** Where the spec's game keeps its progress. */
-const PROGRESS_AT = { key: "progress", version: 2 };
-
 /** Where the spec's game keeps its run under way. */
 const RUN_AT = { key: "run", version: 4 };
 
@@ -69,14 +60,6 @@ const RUN_AT = { key: "run", version: 4 };
 class Records extends StoredStats<Best, Best> {
   constructor() {
     super(STATS_AT, LEVELS, STATS_RULES);
-  }
-}
-
-/** The spec's game's progress, as its service keeps it. */
-@Injectable({ providedIn: "root" })
-class Progress extends StoredProgress {
-  constructor() {
-    super(PROGRESS_AT, LEVELS);
   }
 }
 
@@ -208,56 +191,6 @@ describe("StoredStats", () => {
     store("stats", { version: 2, runs: 2, best: 900, furthest: 3, levels: {} });
 
     expect(TestBed.inject(Records).stats().runs).toBe(0);
-  });
-});
-
-describe("StoredProgress", () => {
-  it("opens only the first level to a new player", () => {
-    const progress = TestBed.inject(Progress);
-
-    expect([1, 2].map((level) => progress.isOpen(level))).toEqual([
-      true,
-      false,
-    ]);
-  });
-
-  it("opens the next level once one is cleared", () => {
-    const progress = TestBed.inject(Progress);
-
-    progress.recordCleared("a");
-
-    expect([2, 3].map((level) => progress.isOpen(level))).toEqual([
-      true,
-      false,
-    ]);
-  });
-
-  it("keeps the levels cleared under the game's key and version, for the next visit", () => {
-    TestBed.inject(Progress).recordCleared("b");
-
-    reload();
-
-    expect([
-      [...TestBed.inject(Progress).cleared()],
-      stored("progress"),
-    ]).toEqual([["b"], { version: 2, cleared: ["b"] }]);
-  });
-
-  it("stores nothing for a level cleared again", () => {
-    const progress = TestBed.inject(Progress);
-    progress.recordCleared("b");
-    const elsewhere = { version: 2, cleared: [] };
-    store("progress", elsewhere);
-
-    progress.recordCleared("b");
-
-    expect(stored("progress")).toEqual(elsewhere);
-  });
-
-  it("reads the levels cleared as stored, of the levels the game has", () => {
-    store("progress", { version: 2, cleared: ["b", "gone"] });
-
-    expect([...TestBed.inject(Progress).cleared()]).toEqual(["b"]);
   });
 });
 

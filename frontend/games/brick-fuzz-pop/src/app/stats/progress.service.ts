@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { StoredProgress } from "@fz/brick-wall/app/stored";
+import { StoredProgress } from "@fz/game-ui/levels";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */
@@ -10,7 +10,7 @@ const PROGRESS_VERSION = 1;
 
 /**
  * Keeps the levels the player has cleared, which open the levels after them,
- * as `@fz/brick-wall/app/stored`'s `StoredProgress` keeps a wall game's.
+ * as `@fz/game-ui/levels`' `StoredProgress` keeps a game's.
  *
  * Hand it only levels cleared on the record: a run the debug menu took off
  * the record keeps none, here or in the stats.

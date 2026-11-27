@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { ProgressService } from "./progress.service";
 
-// How the progress is kept and read is `@fz/brick-wall/app/stored`'s
+// How the progress is kept and read is `@fz/game-ui/levels`'
 // `StoredProgress`, whose spec holds it: this one holds the game's key and
 // its levels.
 

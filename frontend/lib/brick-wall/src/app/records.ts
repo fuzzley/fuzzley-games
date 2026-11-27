@@ -6,6 +6,7 @@
 import type { Signal } from "@angular/core";
 import { type IdentifiedLevel, levelIdOf } from "@fz/core/levels";
 import { hasEnded } from "@fz/core/run";
+import type { StoredProgress } from "@fz/game-ui/levels";
 import {
   type Run,
   type RunRules,
@@ -14,7 +15,7 @@ import {
 } from "../rules/run";
 import { type StatsRules, levelResultOf } from "../rules/stats";
 import type { LandingRecords, RunBegun } from "./round_driver";
-import type { StoredProgress, StoredStats } from "./stored";
+import type { StoredStats } from "./stored";
 
 /** Says how a run begins, as a debug menu hears it: as {@link RunBegun} says, or at a level the player hasn't opened (`locked`). */
 export interface RunOpened extends RunBegun {

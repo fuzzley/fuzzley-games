@@ -2,6 +2,7 @@ import { Injectable, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { isCount, isRecord } from "@fz/core/json";
 import type { IdentifiedLevel } from "@fz/core/levels";
+import { StoredProgress } from "@fz/game-ui/levels";
 import { provideMemoryStorage } from "@fz/ui/testing";
 import {
   type Run,
@@ -15,7 +16,7 @@ import {
 } from "../rules/run";
 import type { StatsRules } from "../rules/stats";
 import { type RecordsMenu, type RunOpened, RunRecords } from "./records";
-import { StoredProgress, StoredStats } from "./stored";
+import { StoredStats } from "./stored";
 
 /** Three levels made up for the spec, "a" to "c", numbered 1 to 3. */
 const LEVELS: readonly IdentifiedLevel[] = ["a", "b", "c"].map((id) => ({
