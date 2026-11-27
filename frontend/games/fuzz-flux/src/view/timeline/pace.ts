@@ -19,8 +19,8 @@ export type Speed = (typeof SPEEDS)[number];
  * limits on flashes and sounds; how long a tuft flies, which the scene
  * keeps and the limit on loose bits counts by; how fast a shake dies
  * away, which the sketch takes off a frame at a time; and the board's
- * life between moves, its blinks and the wait for a hint, which no move
- * plays.
+ * life between moves, its blinks, its breaths and its hints, which no
+ * move plays.
  */
 const UNPACED: ReadonlySet<keyof FeelTuning> = new Set([
   "flashGapMs",
@@ -31,6 +31,14 @@ const UNPACED: ReadonlySet<keyof FeelTuning> = new Set([
   "blinkLeastMs",
   "blinkMostMs",
   "hintWaitMs",
+  "pufferBreathRadianMs",
+  "wispSwayRadianMs",
+  "staticStepMs",
+  "hintLookMs",
+  "hintUpMs",
+  "hintDownMs",
+  "hintHopGapMs",
+  "handLoopMs",
 ]);
 
 /**

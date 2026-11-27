@@ -56,6 +56,30 @@ describe("pacedFeel", () => {
     ]);
   });
 
+  it("keeps the breaths, the hint's hops and its hand in the player's own time at Fast", () => {
+    const fast = pacedFeel(FEEL, "fast");
+
+    expect([
+      fast.pufferBreathRadianMs,
+      fast.wispSwayRadianMs,
+      fast.staticStepMs,
+      fast.hintLookMs,
+      fast.hintUpMs,
+      fast.hintDownMs,
+      fast.hintHopGapMs,
+      fast.handLoopMs,
+    ]).toEqual([
+      FEEL.pufferBreathRadianMs,
+      FEEL.wispSwayRadianMs,
+      FEEL.staticStepMs,
+      FEEL.hintLookMs,
+      FEEL.hintUpMs,
+      FEEL.hintDownMs,
+      FEEL.hintHopGapMs,
+      FEEL.handLoopMs,
+    ]);
+  });
+
   it("keeps every number that is no time at Fast", () => {
     const fast = pacedFeel(FEEL, "fast");
 

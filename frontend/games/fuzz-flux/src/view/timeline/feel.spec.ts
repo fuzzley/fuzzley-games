@@ -17,8 +17,14 @@ type Ported = keyof typeof PORTED;
 /** A number the sound script plays a bunch's chord by that the design's words don't give. */
 type Scored = keyof typeof SCORED;
 
+/** A number the sketch's page shows a level's first move by, with its hand. */
+type Styled = keyof typeof STYLED;
+
 /** The design's sound script, whose notes a bunch's chord plays. */
 const SOUND_SCRIPT = designText("sound/sounds.mjs").replaceAll(/\s+/g, " ");
+
+/** The page the sketch's feel plays in, whose style draws the hint's hand. */
+const SKETCH_PAGE = designText("mocks/feel.html").replaceAll(/\s+/g, " ");
 
 /**
  * Each number of the feel, and the design's words that set it, so a
@@ -112,6 +118,7 @@ const WRITTEN = {
   blinkMostMs: [8000, "every 3 to 8 seconds"],
   hintWaitMs: [7000, "after 7 seconds with no move"],
   hintHops: [2, "the careful player would make hop twice"],
+  lowMovesLeft: [5, "At 5 moves the number turns to the warning color"],
   swipeSquares: [0.4, "0.4 of a square long"],
   fastPace: [1.6, "Normal or Fast, the sketch's 1.6 times"],
   hurriedPace: [4, "A tap plays the rest at 4 times the speed."],
@@ -120,7 +127,7 @@ const WRITTEN = {
   chordThirdFrom: [5, "A bunch of 5 or more adds the note 4 steps up"],
 } as const satisfies Readonly<
   Record<
-    Exclude<keyof FeelTuning, SoundGap | Ported | Scored>,
+    Exclude<keyof FeelTuning, SoundGap | Ported | Styled | Scored>,
     readonly [number, string]
   >
 >;
@@ -472,6 +479,67 @@ const PORTED = {
   crackleLeadMs: [20, 'sfx("frizz", tb + count * arc + T.frizzHold - «20»);'],
   tuftLifeMs: [420, "life: «420» + Math.random() * 380,"],
   tuftLifeSpreadMs: [380, "life: 420 + Math.random() * «380»,"],
+  pufferBreathRadianMs: [380, "Math.sin(now / «380» + s.id) * 0.045"],
+  pufferBreath: [0.045, "Math.sin(now / 380 + s.id) * «0.045»"],
+  wispSwayRadianMs: [420, "Math.sin(now / «420» + s.id) * 0.07"],
+  wispSway: [0.07, "Math.sin(now / 420 + s.id) * «0.07»"],
+  staticStepMs: [110, "const turn = Math.floor(now / «110») % 6;"],
+  staticStep: [0.52, "0.3 + turn * «0.52»,"],
+  staticSteps: [6, "const turn = Math.floor(now / 110) % «6»;"],
+  hintLookMs: [
+    900,
+    "at(now + «900», () => Object.assign(s, { lx: 0, ly: 0 }));",
+  ],
+  hintUpMs: [
+    90,
+    "tween(s, { sy: 1.16, sx: 0.9 }, «90», ease.out, now + wait);",
+  ],
+  hintStretch: [
+    1.16,
+    "tween(s, { sy: «1.16», sx: 0.9 }, 90, ease.out, now + wait);",
+  ],
+  hintNarrow: [
+    0.9,
+    "tween(s, { sy: 1.16, sx: «0.9» }, 90, ease.out, now + wait);",
+  ],
+  hintDownMs: [
+    170,
+    "tween(s, { sy: 1, sx: 1 }, «170», ease.spring, now + wait + 90);",
+  ],
+  hintHopGapMs: [260, "for (const wait of [0, «260»]) {"],
+} as const satisfies Readonly<Record<string, readonly [number, string]>>;
+
+/**
+ * Each number of the feel the sketch's page shows a level's first move by,
+ * with its hand, and the page's style that sets it, as `PORTED` quotes the
+ * sketch's code, a share of the hand's loop marked as the style's percent.
+ */
+const STYLED = {
+  handLoopMs: [1500, "animation: hand «1500»ms ease-in-out infinite;"],
+  handShowsFrom: [
+    0.15,
+    "0%, «15»% { transform: translate(var(--x0), var(--y0)) scale(1.15); opacity: 0; }",
+  ],
+  handSlidesFrom: [
+    0.25,
+    "«25»% { transform: translate(var(--x0), var(--y0)) scale(1); opacity: .9; }",
+  ],
+  handSlidesTo: [
+    0.6,
+    "«60»%, 75% { transform: translate(var(--x1), var(--y1)) scale(1); opacity: .9; }",
+  ],
+  handGoesFrom: [
+    0.75,
+    "60%, «75»% { transform: translate(var(--x1), var(--y1)) scale(1); opacity: .9; }",
+  ],
+  handScale: [
+    1.15,
+    "0%, 15% { transform: translate(var(--x0), var(--y0)) scale(«1.15»); opacity: 0; }",
+  ],
+  handOpacity: [
+    0.9,
+    "25% { transform: translate(var(--x0), var(--y0)) scale(1); opacity: «.9»; }",
+  ],
 } as const satisfies Readonly<Record<string, readonly [number, string]>>;
 
 /**
@@ -500,6 +568,7 @@ const SET_BY: Readonly<Record<keyof FeelTuning, readonly [number, string]>> = {
   ...WRITTEN,
   ...SKETCHED,
   ...PORTED,
+  ...STYLED,
   ...SCORED,
 };
 
@@ -542,11 +611,12 @@ function written(value: number): RegExp {
 }
 
 describe("FEEL", () => {
-  it("names each number of the design's feel, its sketch's gaps, the sketch's other numbers and its sound script's chord, and nothing else", () => {
+  it("names each number of the design's feel, its sketch's gaps, the sketch's other numbers, its page's hand and its sound script's chord, and nothing else", () => {
     expect(keysOf(FEEL)).toEqual([
       ...keysOf(WRITTEN),
       ...keysOf(SKETCHED),
       ...keysOf(PORTED),
+      ...keysOf(STYLED),
       ...keysOf(SCORED),
     ]);
   });
@@ -580,6 +650,24 @@ describe("FEEL", () => {
       });
     },
   );
+
+  it.each(keysOf(STYLED))(
+    "finds the style that sets %s on the sketch's page, once, its number marked there",
+    (field) => {
+      const [value, quote] = STYLED[field];
+
+      expect({
+        times: timesQuoted(quote, SKETCH_PAGE),
+        marked: quote.includes("»%") ? markedIn(quote) / 100 : markedIn(quote),
+      }).toEqual({ times: 1, marked: value });
+    },
+  );
+
+  it("grows the hand as it goes, as far as it shrinks from as it shows", () => {
+    expect(SKETCH_PAGE).toContain(
+      `100% { transform: translate(var(--x1), var(--y1)) scale(${String(FEEL.handScale)}); opacity: 0; }`,
+    );
+  });
 
   it.each(keysOf(SCORED))(
     "finds the code that sets %s in the sound script, once, its number marked there",

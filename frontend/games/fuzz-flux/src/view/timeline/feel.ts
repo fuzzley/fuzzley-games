@@ -1,11 +1,13 @@
 // The feel: every number the design gives a move's motion, its effects and
 // their limits, the sounds' gaps as its sketch gives them, every other
-// number its sketch plays a move by, and the numbers its sound script
-// plays a bunch's chord by, as one record of numbers, which the
-// view is handed and the debug menu's `createTuning()` takes. Nothing in the
-// view reads one from a module, so retuning changes numbers, never code.
-// Times are in milliseconds, lengths in squares, shakes in pixels across
-// their whole width, and a sound's volume 1 at its own loudness.
+// number its sketch plays a move by, the numbers its sketch plays the board
+// by between moves and the hand its page shows a level's first move with,
+// the count of moves left at which the bar warns, and the numbers its sound
+// script plays a bunch's chord by, as one record of numbers, which the view
+// is handed and the debug menu's `createTuning()` takes. Nothing in the view
+// reads one from a module, so retuning changes numbers, never code. Times
+// are in milliseconds, lengths in squares, shakes in pixels across their
+// whole width, and a sound's volume 1 at its own loudness.
 
 /** Describes the feel of a move, each number named for its moment. */
 export interface FeelTuning {
@@ -177,6 +179,8 @@ export interface FeelTuning {
   readonly hintWaitMs: number;
   /** How many times the hint's two fuzzballs hop. */
   readonly hintHops: number;
+  /** How few moves left turn the count to the warning color, as the low sound plays once. */
+  readonly lowMovesLeft: number;
   /** How far a swipe goes, along its longer way, before it is read as one. */
   readonly swipeSquares: number;
   /** How many times as fast as Normal the Fast speed plays a move. */
@@ -519,6 +523,53 @@ export interface FeelTuning {
   readonly tuftLifeMs: number;
   /** How much longer than that one may fly. */
   readonly tuftLifeSpreadMs: number;
+
+  // The numbers the sketch plays the board by between moves: its life, the
+  // hint's hops, and the hand its page shows a level's first move by.
+
+  /** How long a puffer's breath takes to turn a radian. */
+  readonly pufferBreathRadianMs: number;
+  /** How far a puffer's ruff swells and shrinks each way as it breathes, as a share of its size. */
+  readonly pufferBreath: number;
+  /** How long a wisp's sway takes to turn a radian. */
+  readonly wispSwayRadianMs: number;
+  /** How far a wisp's seed-head sways each way, in radians. */
+  readonly wispSway: number;
+  /** How long the frizzball's static stands before it crackles a step round. */
+  readonly staticStepMs: number;
+  /** How far round each step turns it, in radians. */
+  readonly staticStep: number;
+  /** How many steps round it crackles before it starts again. */
+  readonly staticSteps: number;
+  /** How long the hint's two fuzzballs look at each other. */
+  readonly hintLookMs: number;
+  /** How long each of their hops takes to stretch them up. */
+  readonly hintUpMs: number;
+  /** How tall each hop stretches them, as a scale. */
+  readonly hintStretch: number;
+  /** How narrow, as a scale. */
+  readonly hintNarrow: number;
+  /** How long each takes to spring back. */
+  readonly hintDownMs: number;
+  /** How far apart their hops start. */
+  readonly hintHopGapMs: number;
+  /** How long the hand takes to show a level's first move once, which it shows again and again until the move is made. */
+  readonly handLoopMs: number;
+  /** How far through its loop it starts to show on the first fuzzball, shrinking from `handScale` to its size. */
+  readonly handShowsFrom: number;
+  /** How far through its loop, wholly shown, it starts to slide to the second. */
+  readonly handSlidesFrom: number;
+  /** How far through its loop it reaches the second. */
+  readonly handSlidesTo: number;
+  /** How far through its loop it starts to fade away, growing to `handScale`. */
+  readonly handGoesFrom: number;
+  /** How big it is as it shows and as it goes, as a scale. */
+  readonly handScale: number;
+  /** How opaque it is once wholly shown, 1 for not at all see-through. */
+  readonly handOpacity: number;
+
+  // The numbers the sound script plays a bunch's chord by.
+
   /** How long after the one before each note of a bunch's chord plays. */
   readonly chordGapMs: number;
   /** How loud the chord's second note plays, as a share of its first. */
@@ -613,6 +664,7 @@ export const FEEL: FeelTuning = {
   blinkMostMs: 8000,
   hintWaitMs: 7000,
   hintHops: 2,
+  lowMovesLeft: 5,
   swipeSquares: 0.4,
   fastPace: 1.6,
   hurriedPace: 4,
@@ -782,6 +834,26 @@ export const FEEL: FeelTuning = {
   crackleLeadMs: 20,
   tuftLifeMs: 420,
   tuftLifeSpreadMs: 380,
+  pufferBreathRadianMs: 380,
+  pufferBreath: 0.045,
+  wispSwayRadianMs: 420,
+  wispSway: 0.07,
+  staticStepMs: 110,
+  staticStep: 0.52,
+  staticSteps: 6,
+  hintLookMs: 900,
+  hintUpMs: 90,
+  hintStretch: 1.16,
+  hintNarrow: 0.9,
+  hintDownMs: 170,
+  hintHopGapMs: 260,
+  handLoopMs: 1500,
+  handShowsFrom: 0.15,
+  handSlidesFrom: 0.25,
+  handSlidesTo: 0.6,
+  handGoesFrom: 0.75,
+  handScale: 1.15,
+  handOpacity: 0.9,
   chordGapMs: 22,
   chordSecondVolume: 0.6,
   chordThirdVolume: 0.5,
