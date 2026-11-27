@@ -6,8 +6,8 @@
 //
 // Every square in it is in the screen's frame, its index y * width + x on
 // the board as the screen shows it, whichever way the wind has turned the
-// board's own frame. A fall's lane alone is counted in the board's frame,
-// as its refills are.
+// board's own frame, and so is the way of each dasher it names. A fall's
+// lane alone is counted in the board's frame, as its refills are.
 
 import type { Outcome, QuarterTurns } from "../board/board";
 import type { BrickLayers, DustLayers } from "../catalog/elements";
