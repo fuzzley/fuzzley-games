@@ -68,6 +68,14 @@ const RESTART_QUESTION: ConfirmRequest = {
   tone: "danger",
 };
 
+/** What loading a reported game asks before the moves made on the level in progress are lost, as every game's loader asks it. */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load this game?",
+  message: MOVES_LOST,
+  confirmLabel: "Load",
+  tone: "danger",
+};
+
 /** Returns what playing a level, by its number, asks before the moves made on the level in progress are lost. */
 function levelQuestion(level: number): ConfirmRequest {
   const play = `Play level ${String(level)}`;
@@ -402,6 +410,18 @@ export class GameService extends RunLifecycle {
   /** Takes up a level in play a saved game kept, at rest on the board after its last move, without saying it. */
   takeUp(inPlay: LevelInPlay): void {
     this.putInPlay(inPlay);
+  }
+
+  /**
+   * Puts a level in play a bug report kept on the board, at rest after its
+   * last move, its card shown where the level had ended, asking first once
+   * a move is made on the level in progress, and resolves to whether it
+   * did. It keeps no record, as no move of it is played here.
+   */
+  async load(inPlay: LevelInPlay): Promise<boolean> {
+    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
+    this.putInPlay(inPlay);
+    return true;
   }
 
   /**

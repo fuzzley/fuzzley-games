@@ -132,8 +132,8 @@ export function readSavedGame(
   return inPlay?.game.outcome === "playing" ? inPlay : null;
 }
 
-/** Returns a move read from storage, or null for one that isn't two squares of a board with so many. */
-function moveOf(value: unknown, squares: number): Move | null {
+/** Returns a move read from storage or a bug report, or null for one that isn't two squares of a board with so many. */
+export function moveOf(value: unknown, squares: number): Move | null {
   if (!Array.isArray(value)) return null;
   const squaresKept: readonly unknown[] = value;
   if (squaresKept.length !== 2) return null;

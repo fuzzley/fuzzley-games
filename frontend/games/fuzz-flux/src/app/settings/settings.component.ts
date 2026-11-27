@@ -4,17 +4,19 @@ import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import { SPEEDS, type Speed } from "../../view/timeline/pace";
 import { SettingsService } from "./settings.service";
+import { SPEED_NAMES } from "./speed_names";
 
-/** What the drawer says of each speed. */
-const SPEED_INFO: Readonly<Record<Speed, Omit<ChoiceOption<Speed>, "id">>> = {
-  normal: { name: "Normal", detail: "Easy to follow every bunch." },
-  fast: { name: "Fast", detail: "Quicker, for levels you know well." },
+/** What the drawer says under each speed's name. */
+const SPEED_DETAILS: Readonly<Record<Speed, string>> = {
+  normal: "Easy to follow every bunch.",
+  fast: "Quicker, for levels you know well.",
 };
 
 /** Each speed, as the drawer offers it. */
 const SPEED_CHOICES: readonly ChoiceOption<Speed>[] = SPEEDS.map((id) => ({
   id,
-  ...SPEED_INFO[id],
+  name: SPEED_NAMES[id],
+  detail: SPEED_DETAILS[id],
 }));
 
 /**
