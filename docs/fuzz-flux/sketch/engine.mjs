@@ -433,7 +433,7 @@ export function findBunches(s, a = -1, b = -1) {
  * @param {number} i
  * @returns {{ i: number, rank: number }[]}
  */
-function reach(s, what, i) {
+export function reach(s, what, i) {
   const { w, h } = s;
   const x = i % w;
   const y = (i - x) / w;
