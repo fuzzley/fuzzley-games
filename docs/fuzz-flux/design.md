@@ -19,6 +19,11 @@ This is a design, not a build plan. Nothing here says in what order to build
 the game. The user named it "Fuzz Flux" on 2026-11-26. Until then its working
 title was "Fuzz Trio", and before that "Fuzz Bunch".
 
+The build plan, [`implementation-plan.md`](implementation-plan.md), made 20
+calls of its own the same day, C1 to C20 in its §2.2, from reading the
+house's code. Where one bears on the design, it is written in below, named by
+its number.
+
 No source code was read for this design: not the site's, not another game's.
 What it knows of the house comes from the documents under `docs/`, the skills'
 prose and the house's own pictures. Every picture, shape and sound in this
@@ -200,7 +205,8 @@ the others.
     The rules do it by turning the board, so everything else is unchanged.
 12. **Sound is synthesized, soft and in one key.** Every sound is made by
     [`sounds.mjs`](sound/sounds.mjs) from sine tones, filtered noise and a
-    small room. A move's waves climb C major pentatonic, C5 to A6, one step a
+    small room, and the build writes each again on the house's own
+    synthesizer (C11). A move's waves climb C major pentatonic, C5 to A6, one step a
     wave. Nothing is sampled, and nothing is a voice.
 13. **No words of praise fly across the board.** A voice that calls out
     praise is the signature of other games, and a line heard 100 times wears
@@ -386,6 +392,10 @@ bunch somewhere else on the board never changes what comes in here.
   ([`levels-and-blockers.md`](research/levels-and-blockers.md)).
 - A deal's opening board never has a bunch standing on it and always has at
   least 2 moves.
+- **A game in play is its deal and its moves** (C3). The game keeps the
+  level, the deal and the moves made, and reopening the page mid-level
+  replays them. A bug
+  report keeps the same three, so a reported game plays again exactly.
 
 ### Controls
 
@@ -396,6 +406,9 @@ bunch somewhere else on the board never changes what comes in here.
   Tapping anything else puts it down. A swipe is never the only way
   (WCAG 2.5.1 and 2.5.7).
 - **Tap a special you are holding** to set it off where it stands.
+- **Nothing pauses** (C5). With no timer, looking away lands the move that
+  plays at once and puts down a fuzzball you hold, and coming back finds the
+  board at rest.
 - **Keys:** the arrow keys move a ring over the board, Space or Enter picks
   up the fuzzball under it, an arrow key then swaps that way, and Space again
   on a special sets it off. Esc puts it down. H is Hint.
@@ -403,9 +416,11 @@ bunch somewhere else on the board never changes what comes in here.
   board comes to rest. A later swap takes the place of the one kept.
 - **A swap that makes no bunch is refused,** and costs nothing: the 2 lean at
   each other, shake their heads and go back, in 240 ms.
-- **Hint:** after 7 seconds with no move, the 2 fuzzballs of a good move hop
-  twice. The Hint button does it at once. On a level that teaches something,
-  a hand shows the first move instead.
+- **Hint:** after 7 seconds with no move, the 2 fuzzballs of the move the
+  careful player would make hop twice (C15). Like that player, a hint can't
+  see the deal, so it never gives away what falls in. The Hint button and H
+  do it at once. On a level that teaches something, a hand shows the level's
+  own first move instead.
 
 ### The feel, in numbers
 
@@ -443,8 +458,20 @@ rest 900 ms after the tap, and a move of 5 waves takes 3.9 seconds.
 Shake is small and rare, and a plain bunch has none. In px: 2.5 when a special
 is made and 5 when it is a frizzball, 3 for a dasher going off, 6 for a puffer
 or a frizzball, 4 for 2 dashers or a frizzball with another special, 7 for a
-dasher with a puffer, and 10 for 2 puffers or 2 frizzballs. It
-dies away by 14% a frame. No effect holds the frame still.
+dasher with a puffer, and 10 for 2 puffers or 2 frizzballs. Each is the
+shake's whole width, half of it each way. No effect holds the frame still.
+
+The sketch takes 14% off the shake each frame of its own, 60 a second, so on a
+120 Hz screen it would die twice as fast. The build keeps what the sketch shows, by time (C19): the shake
+halves every 77 ms and stops below 0.05 px, and where two overlap, the larger
+holds.
+
+The build hands every number in this section to the view as tuning, and plays
+a move from a timeline built from its record before the move starts (C10), so
+retuning changes numbers, never code. A level ends on that one timeline too
+(C20): the cleared card lights each star on the move's own clock, so a hurried
+encore hurries the stars with it, and a move that lands at once (looking away,
+C5) shows every star lit.
 
 ### Look
 
@@ -452,14 +479,19 @@ dies away by 14% a frame. No effect holds the frame still.
   fuzzball is a disc of its color, 58% of its square wide, with fur drawn as
   rounded strokes of the same color and 2 dark oval eyes with a glint. Glow
   washes out on a light theme, so nothing depends on it.
-- **Two palettes,** the site's dark "Midnight blue" and light "Classic felt".
-  Their colors were sampled from the house's pictures, not its code, so the
-  build takes the real tokens. Every sheet in [`art/`](art/) shows both.
+- **The house's four palettes** (C8). The design drew two, the site's dark
+  "Midnight blue" and light "Classic felt", with colors sampled from the
+  house's pictures, not its code, and every sheet in [`art/`](art/) shows
+  both. The build takes the real tokens and holds every color in all four,
+  Soft pastel and Casino night as well.
 - **The 6 kinds** ([`kinds.webp`](art/kinds.webp)): blue and round, red and
   spiky, yellow with a top-knot, green and curly, purple with a fringe, pink
   with 2 tufts. The sheet has each at rest, blinking, looking, wide-eyed,
   happy, cross and with its fur on end, at 40 and 28 px, and as a shape with
-  no color.
+  no color. In the build they wear the house fuzzball's eyes, with a cross
+  face added for a burred fuzzball, and its fuzzball inks, made to tell
+  fuzzballs apart in every palette: blue, coral for the red kind, gold for
+  the yellow one the levels call amber, green, violet, and pink (C8).
 - **A special wears a second fur behind its own,** lighter than its color on
   the dark palette and darker on the light one, so it stands off both the
   fuzzball and the square. The fuzzball itself is drawn a little smaller to
@@ -525,11 +557,14 @@ never start closer together than 10 to 60 ms, by the sound.
 
 All 46 sounds are synthesized by [`sounds.mjs`](sound/sounds.mjs), in plain
 JavaScript that runs the same in Node and in a page. The sketch plays them
-from the recipes, and the build would play
-[`sprite.m4a`](sound/sprite.m4a) (27.0 seconds, 247 KB) by the offsets in
-[`sprite.json`](sound/sprite.json). [`measures.md`](sound/measures.md) gives
-each sound's length, level and where its energy sits, and
-[`sheet.webp`](sound/sheet.webp) is a picture of them all.
+from the recipes. [`make-sounds.mjs`](sound/make-sounds.mjs) renders them into
+[`sprite.m4a`](sound/sprite.m4a) (27.0 seconds, 247 KB), with each sound's
+offset in [`sprite.json`](sound/sprite.json).
+[`measures.md`](sound/measures.md) gives each sound's length, level and where
+its energy sits, and [`sheet.webp`](sound/sheet.webp) is a picture of them
+all. The build writes the 46 recipes again on the house's own synthesizer,
+holds each to its measures, and ships a sprite of its own as AAC and Ogg, as
+Asteroid Breaker's sounds are (C11).
 
 - **One key, one ladder.** A bunch plays a soft bell note. A move's first
   wave is C5, and each wave after climbs one step of C major pentatonic: C5,
@@ -586,10 +621,16 @@ wind. There is no music in this design.
   again and Choose a level. No fuzzball looks sad about it.
   [`out-of-moves.webp`](mocks/screens/out-of-moves.webp).
 - **Choose a level** lists the 4 sets by name.
-  [`choose-a-level.webp`](mocks/screens/choose-a-level.webp).
+  [`choose-a-level.webp`](mocks/screens/choose-a-level.webp). A level's
+  record is its stars and its most moves to spare (C4). Levels open as in
+  the house's other level games: level 1, every level cleared, and the one
+  after each.
 
 The sketch's own row of buttons (Sound, Fast, Less motion, Light) stands in
-for the house's bar and settings, which the build would use instead.
+for the house's bar and settings, which the build uses instead. Speed is a
+setting there, Normal or Fast, the sketch's 1.6 times (C6). There is no
+fast-forward button, and the tap that hurries the encore is the encore's own,
+at either speed.
 
 ### Accessibility
 
@@ -598,9 +639,9 @@ for the house's bar and settings, which the build would use instead.
 - **Every move can be made by a swipe, by 2 taps, or by keys.** Nothing is
   timed, anywhere.
 - **A square is never under 40 px,** and a button never under 44.
-- **Less motion** (and the system's own setting for it): no shake, no flash,
-  a quarter of the fluff, no flights to the goal, no hop of the whole board,
-  and no gust sway. Swaps, hops and falls stay, because they are the game.
+- **Less motion,** a switch in Settings, on at first where the system asks
+  for less motion (C7): no shake, no flash, a quarter of the fluff, no
+  flights to the goal, no hop of the whole board, and no gust sway. Swaps, hops and falls stay, because they are the game.
 - **No more than 3 flashes a second.** There are 2 kinds: a soft disc where a
   puffer or a frizzball goes off, 110 ms long, and a white glow on one
   fuzzball as it becomes a special, 260 ms at most. The sketch lets one of
@@ -610,9 +651,10 @@ for the house's bar and settings, which the build would use instead.
 - **For a screen reader,** the board is a grid a ring moves over, each square
   read as its kind and what is on it ("red, caged", "blue dasher, across"),
   and each move is announced in the words on screen or fewer: "Bunch of 4,
-  blue. Dasher made. 6 blue left." The build takes this from the house's
-  own rules for a board played by keyboard, which the design did not read in
-  code.
+  blue. Dasher made. 6 blue left." In the build the grid lies over the drawn
+  board, one tab stop, as the house's Minesweeper and Sudoku boards are
+  played by keys, and lets taps through to the board beneath (C12). The
+  board's name says the level: "Fuzz Flux, level 16: Checkerboard" (C16).
 - Contrast was not measured here. The palettes are the house's, and the
   build's own contrast check would cover the new colors: the specials' second
   fur, dust, brick, burr and the sleepyhead.
@@ -722,12 +764,22 @@ house's own engine and shell. [`make-mocks.mjs`](mocks/make-mocks.mjs) drives
 it a frame at a time to make the storyboards and clips, so those show exactly
 what the page does.
 
+**The build ports the sketch rather than starting again** (C1, C2, C13). Its
+rules are `engine.mjs` written in the house's code and held to it game by
+game, with the sketch's hash kept bit for bit, so the 288 proven deals stay
+proven. A rule the build changes on purpose is changed in the sketch in the
+same commit. A level is redrawn in [`drafts.mjs`](levels/drafts.mjs), as a
+step of its own, and the sketch's report, this file's tables and the game's
+copy of the level follow it.
+
 ## Risks
 
 - **Nobody has played it.** The timings in "The feel, in numbers" were set by
   reading storyboards and frame counts. They have not been felt under a
-  thumb, and feel is the point of the game. The first job of a build is to
-  play the feel sketch on a phone and change the numbers.
+  thumb, and feel is the point of the game. The build's answer is a gate
+  (the plan's §2.1, question 4): once Warm-up plays end to end with sound, it
+  goes on the live site behind "In development", with a panel that tunes
+  every number and copies the ones settled on.
 - **Nobody has heard it.** The sounds were checked by their measures and
   their pictures: lengths, levels, where the energy sits. No ear has judged
   them. The reels and clips exist so that one can.
@@ -741,7 +793,8 @@ what the page does.
   tried. Whether "brick" is still the word for it is one of the "Choices put
   to the user".
 - **The name is half-checked.** Two general searches for "Fuzz Flux", no
-  store search, no trademark search.
+  store search, no trademark search. The game's tile stays "In development"
+  until a trademark search (C16).
 - **It will be compared with Chuzzle.** "Fuzzley flavor" lists what keeps it
   apart. Whether that is enough is a judgment for the user.
 - **Some research is thin.** Wikis refused the reader and the search
@@ -752,17 +805,23 @@ what the page does.
 - **The wind does little on a full board.** When the wind turns and nothing
   has room to fall, only the arrow, the fur and the gust show it. The levels
   with a turning wind have gaps, bricks or cages for that reason, but level
-  30 does not, and may want one.
+  30 does not, and may want one. The build adds a column to the levels'
+  report, how often a turn of the wind moves a fuzzball, and level 30 is
+  settled by it (C17).
 - **A canvas sketch is not the build.** 60 fuzzballs with fur redrawn every
   frame run smoothly in the sketch on a desktop Chrome. A phone and the
-  house's engine were not measured.
+  house's engine were not measured. The build bakes each body once a pose,
+  so fur that trails a moving body is a lean and a little turn, not fur
+  redrawn (C9). Whether that is enough is for the gate.
 - **Flights can outlast a move.** A fuzzball can still be flying to its goal
   when the board takes the next swap. The count allows for it, and it reads
-  well in the storyboards, but a fast player may find it busy.
+  well in the storyboards, but a fast player may find it busy. The build
+  keeps it, and the bar's counts land with the flights (C18).
 
 ## Not in this design
 
-- A build plan, and anything about the house's code.
+- A build plan, and anything about the house's code, which
+  [`implementation-plan.md`](implementation-plan.md) holds.
 - Music, and haptics. A web page can't make an iPhone buzz.
 - A map, lives, boosters, coins, daily levels, or anything to buy.
 - More than 36 levels. The sets leave room for a 5th.
