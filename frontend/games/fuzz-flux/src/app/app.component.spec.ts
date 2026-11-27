@@ -6,23 +6,38 @@ import {
   installFakeViewport,
   provideReportPicture,
 } from "@fz/game-ui/testing";
+import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import { setPageVisibility } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { squareOf } from "../rules/board/cells";
+import { BoardFrames } from "../testing/board_frames";
+import { BLUE_LINE, SMALL_LEVELS } from "../testing/small_levels";
 import { AppComponent } from "./app.component";
 import { provideFuzzFluxBugReports } from "./bug_report/fuzz_flux_bug_reports";
+import { GameService } from "./play/game.service";
+import { VIEW_KIT } from "./play/view_kit";
+import { GAME_LEVELS } from "./tokens";
 
 /**
- * Renders the game, with the bug reports main.ts provides and any providers
- * given, and returns a way to let it settle.
+ * Renders the game on a fake canvas, the game on the small levels, with
+ * the bug reports main.ts provides and any providers given, and returns a
+ * way to let it settle.
  */
 async function renderApp(
   ...providers: Provider[]
 ): Promise<() => Promise<void>> {
   const { fixture } = await render(AppComponent, {
-    providers: [provideFuzzFluxBugReports(), ...providers],
+    providers: [
+      provideFakePhaserCanvas(),
+      { provide: GAME_LEVELS, useValue: SMALL_LEVELS },
+      provideFuzzFluxBugReports(),
+      ...providers,
+    ],
   });
+  await fixture.whenStable();
   return () => fixture.whenStable();
 }
 
@@ -55,6 +70,26 @@ describe("AppComponent", () => {
         name: "Fuzz Flux",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("hands the board the focus as the page loads", async () => {
+    await renderApp();
+
+    expect(screen.getByRole("application")).toHaveFocus();
+  });
+
+  it("lands the move in play as the player looks away", async () => {
+    await renderApp();
+    const game = TestBed.inject(GameService);
+    game.useView(VIEW_KIT);
+    new BoardFrames(game).tap(
+      squareOf(BLUE_LINE.from, 5),
+      squareOf(BLUE_LINE.to, 5),
+    );
+
+    setPageVisibility("hidden");
+
+    expect(game.play().landed).toBe(true);
   });
 
   it("says what the game announces in a live region", async () => {

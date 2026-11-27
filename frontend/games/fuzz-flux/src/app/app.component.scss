@@ -1,7 +1,12 @@
-// The page is the game, and its name stands in the middle of it.
+// The page is the game, and the board takes all of it.
 .stage {
   position: fixed;
   inset: 0;
+}
+
+// The board fills the room, and lays the level out inside it.
+.room {
   display: grid;
-  place-items: center;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: 100%;
 }

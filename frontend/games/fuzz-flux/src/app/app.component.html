@@ -1,5 +1,8 @@
 <main class="stage">
-  <h1>Fuzz Flux</h1>
+  <h1 class="fz-visually-hidden">Fuzz Flux</h1>
+  <div class="room" fzPlayRoom (away)="game.pause()">
+    <app-board />
+  </div>
 </main>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->

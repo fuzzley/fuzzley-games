@@ -1,0 +1,38 @@
+<div
+  #play
+  class="play"
+  role="application"
+  tabindex="0"
+  aria-roledescription="game board"
+  aria-describedby="board-keys"
+  [attr.aria-label]="label()"
+  (pointerdown)="takeFocusForPress()"
+>
+  <fz-phaser-canvas [scene]="scene" [options]="hostOptions">
+    <!-- The level's squares, where the scene will draw them, until it does. -->
+    <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
+      <div class="squares" [style]="boardStyle()">
+        @for (well of wells(); track $index) {
+          <div class="square" [class.well]="well"></div>
+        }
+      </div>
+    </div>
+  </fz-phaser-canvas>
+  <div class="ring" [style]="boardStyle()"></div>
+</div>
+
+<!--
+  The keys needed to play, one at a time, which describe the application.
+  `role="list"`, as Safari's VoiceOver stops calling a list with no markers
+  one.
+-->
+<ul id="board-keys" class="fz-visually-hidden" role="list" aria-label="Keys">
+  @for (key of keys; track $index) {
+    <li>{{ key }}</li>
+  }
+</ul>
+
+<div class="cards">
+  <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
+  <fz-canvas-cards [canvas]="canvas()" />
+</div>
