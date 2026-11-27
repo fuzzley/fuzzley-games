@@ -192,7 +192,7 @@ Phaser game. A new case uses what the spec already has:
 - **Read a bake from what it was handed.** The wall and the field are drawn
   on textures of their own, which a headless game draws nothing on.
   `startBoard()` spies on every bake's commands first, through
-  `@fz/brick-wall/testing/bakes`' `recordBakes()`, and `framesAt()` reads
+  `@fz/phaser/testing`'s `recordBakes()`, and `framesAt()` reads
   the frames the wall's bake shows in a cell.
 
 ## The Shell

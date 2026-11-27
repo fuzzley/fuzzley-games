@@ -3,22 +3,20 @@ import { framePixels } from "@fz/phaser/layout";
 import type { PixelRect } from "@fz/phaser/layout";
 import { dynamicTexture } from "@fz/phaser/scene";
 import {
+  type BakeCommand,
   type SceneRun,
   colorsOf,
   commandsOf,
+  drawsIn,
+  fillsIn,
+  recordBakes,
   runBareScene,
+  stampsIn,
 } from "@fz/phaser/testing";
 import type { GameObjects } from "phaser";
 import { COLUMNS } from "../rules/field";
 import { wallFrom } from "../rules/level_picture";
 import { type Wall, thirdsOf } from "../rules/wall";
-import {
-  type BakeCommand,
-  drawsIn,
-  fillsIn,
-  recordBakes,
-  stampsIn,
-} from "../testing/bakes";
 import {
   DARK_MADE_UP,
   LIGHT_MADE_UP,

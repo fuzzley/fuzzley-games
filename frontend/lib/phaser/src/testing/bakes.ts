@@ -1,8 +1,8 @@
 // What a texture drawn on as a scene runs, a bake, was handed, read in
 // order, since a headless scene draws no pixels there to look at.
 
-import type { PixelRect } from "@fz/phaser/layout";
 import { vi } from "vitest";
+import type { PixelRect } from "../layout";
 
 /**
  * Describes a command a bake was handed, in the bake's own pixels: a fill,

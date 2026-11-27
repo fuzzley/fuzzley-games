@@ -6,11 +6,6 @@ import { ATLAS, bakedScaleOf } from "@fz/brick-wall/scene/atlas";
 import { MOST_FLASHES, MOST_RINGS } from "@fz/brick-wall/scene/effects";
 import { MOST_STRUCK } from "@fz/brick-wall/scene/guide";
 import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
-import {
-  type BakeCommand,
-  recordBakes,
-  stampsIn,
-} from "@fz/brick-wall/testing/bakes";
 import { marginInsets } from "@fz/brick-wall/testing/canvases";
 import {
   type PointerAiming,
@@ -31,11 +26,14 @@ import { RING_MS } from "@fz/brick-wall/view/timing";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import type { Insets } from "@fz/phaser/insets";
 import {
+  type BakeCommand,
   type SceneRun,
   cacheSounds,
   colorsOf,
   objectsIn,
+  recordBakes,
   runKeyedScene,
+  stampsIn,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Sound, Textures } from "phaser";

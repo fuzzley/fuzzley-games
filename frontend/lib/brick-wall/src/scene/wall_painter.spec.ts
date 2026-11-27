@@ -1,13 +1,18 @@
 import type { HostedScene } from "@fz/phaser/host";
 import type { PixelRect } from "@fz/phaser/layout";
 import { dynamicTexture } from "@fz/phaser/scene";
-import { type SceneRun, runBareScene } from "@fz/phaser/testing";
+import {
+  type BakeCommand,
+  type SceneRun,
+  recordBakes,
+  runBareScene,
+  stampsIn,
+} from "@fz/phaser/testing";
 import type { GameObjects } from "phaser";
 import { COLUMNS, MOST_DEPTH } from "../rules/field";
 import { cellAt } from "../rules/grid";
 import { wallFrom } from "../rules/level_picture";
 import type { Brick, Wall } from "../rules/wall";
-import { type BakeCommand, recordBakes, stampsIn } from "../testing/bakes";
 import {
   DARK_MADE_UP,
   LIGHT_MADE_UP,

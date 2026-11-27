@@ -1,3 +1,11 @@
+export {
+  type Bake,
+  type BakeCommand,
+  drawsIn,
+  fillsIn,
+  recordBakes,
+  stampsIn,
+} from "./bakes";
 export { cacheSounds } from "./cached_sounds";
 export { canvasTexture } from "./canvas_textures";
 export { collectErrors } from "./collect_errors";

@@ -1,7 +1,7 @@
 {
   "name": "@fz/phaser",
   "version": "0.0.0",
-  "description": "What every game drawn with Phaser shares: the host that keeps one Phaser game and its canvas sharp, the helpers a scene releases itself with, a sound sprite played as a mix says, the Angular canvas an app shows a scene in, and real Phaser run headless for specs.",
+  "description": "What every game drawn with Phaser shares: the host that keeps one Phaser game and its canvas sharp, the helpers a scene releases itself with, a sound sprite played as a mix says, the Angular canvas an app shows a scene in, and real Phaser run headless for specs, with what a scene drew on a bake.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",

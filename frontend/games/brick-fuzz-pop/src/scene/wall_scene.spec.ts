@@ -18,12 +18,6 @@ import {
 import { FLASH_ALPHA } from "@fz/brick-wall/scene/effects";
 import { MOST_STRUCK } from "@fz/brick-wall/scene/guide";
 import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
-import {
-  type BakeCommand,
-  fillsIn,
-  recordBakes,
-  stampsIn,
-} from "@fz/brick-wall/testing/bakes";
 import { marginInsets } from "@fz/brick-wall/testing/canvases";
 import {
   type PointerAiming,
@@ -62,12 +56,16 @@ import {
   turned,
 } from "@fz/phaser/shapes";
 import {
+  type BakeCommand,
   type SceneRun,
   commandsOf,
   colorsOf,
+  fillsIn,
   imagesIn,
   objectsIn,
+  recordBakes,
   runKeyedScene,
+  stampsIn,
   watchUploads,
 } from "@fz/phaser/testing";
 import { drawnIn, frameNamed, viewport } from "@fz/phaser/testing/pure";

@@ -369,6 +369,12 @@ testing skill has its fixtures.
   `strokesOf()`, the arcs it strokes, and `colorsOf()`, the colors it fills
   and strokes in: no spec reads its command buffer by Phaser's numbers
   itself. `canvasTexture()` finds a texture painted on a canvas.
+- **A dynamic texture drawn on as the scene runs, a bake, is read from what
+  it was handed,** since a headless game draws no pixels on it.
+  `recordBakes(bakes)`, over one bake or `Textures.DynamicTexture.prototype`
+  for every one, returns what reads, in order, the `BakeCommand`s a bake of
+  a key was handed from then on; `stampsIn()`, `drawsIn()` and `fillsIn()`
+  pick out each kind.
 - **A spec of a sound played puts the sprite in the cache itself,** with
   `cacheSounds(scene, key)`, since the harness's game loads no audio, and
   watches `Sound.NoAudioSound.prototype.play`, since a sound's `play()` there
