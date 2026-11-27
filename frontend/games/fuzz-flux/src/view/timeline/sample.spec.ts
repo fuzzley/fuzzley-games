@@ -2,14 +2,15 @@ import { SHAKE_RATES } from "@fz/core/motion";
 import { FEEL } from "./feel";
 import { lookAt } from "./looks";
 import { frameFor, sampleAt } from "./sample";
-import type {
-  Easing,
-  Effect,
-  Key,
-  Keys,
-  PieceTrack,
-  SpriteTrack,
-  Timeline,
+import {
+  EASINGS,
+  type Easing,
+  type Effect,
+  type Key,
+  type Keys,
+  type PieceTrack,
+  type SpriteTrack,
+  type Timeline,
 } from "./timeline";
 
 /** A red fuzzball, as a track draws it. */
@@ -139,9 +140,14 @@ describe("sampleAt", () => {
     },
   );
 
-  it("holds a number at its key's end once the key is over", () => {
-    expect(pieceAt(trackOf({ x: [keyAt(0, 4)] }), 250)?.x).toBe(4);
-  });
+  it.each(EASINGS)(
+    "holds a number at its key's end once a key moving it by %s is over",
+    (easing) => {
+      const track = trackOf({ x: [keyAt(0, 4, easing)] });
+
+      expect([pieceAt(track, 100)?.x, pieceAt(track, 250)?.x]).toEqual([4, 4]);
+    },
+  );
 
   it("moves a number on from where the key before left it as the next starts", () => {
     const track = trackOf({ x: [keyAt(0, 4), keyAt(50, 0)] });

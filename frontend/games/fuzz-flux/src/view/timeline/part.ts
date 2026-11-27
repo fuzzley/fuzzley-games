@@ -7,7 +7,15 @@
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import type { Piece } from "../../rules/catalog/pieces";
 import type { SoundName } from "../effects/sounds";
-import type { Channel, Effect, Key, Look, SpriteTrack } from "./timeline";
+import {
+  CHANNELS,
+  type Channel,
+  type Easing,
+  type Effect,
+  type Key,
+  type Look,
+  type SpriteTrack,
+} from "./timeline";
 
 /** Describes a part of a move's timeline that an event adds. */
 export type Part =
@@ -66,3 +74,33 @@ export type Part =
   | { readonly what: "dim"; readonly key: Key }
   /** A moment the board waits for before it goes on, such as a hop far enough through that it may fall. */
   | { readonly what: "hold"; readonly atMs: number };
+
+/** Returns the parts that move a piece's look to new numbers over a while, a key a number, each from where it stands as the key starts. */
+export function moves(
+  piece: number,
+  atMs: number,
+  ms: number,
+  easing: Easing,
+  to: Partial<Look>,
+): readonly Part[] {
+  return CHANNELS.flatMap((channel): Part[] => {
+    const value = to[channel];
+    return value === undefined
+      ? []
+      : [{ what: "key", piece, channel, key: { atMs, ms, to: value, easing } }];
+  });
+}
+
+/** Returns the parts that set a piece's look to new numbers at a moment. */
+export function sets(
+  piece: number,
+  atMs: number,
+  to: Partial<Look>,
+): readonly Part[] {
+  return moves(piece, atMs, 0, "linear", to);
+}
+
+/** Returns the part that gives a piece's eyes a face at a moment. */
+export function facing(piece: number, atMs: number, face: FuzzballFace): Part {
+  return { what: "face", piece, atMs, face };
+}

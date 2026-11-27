@@ -47,3 +47,15 @@ export function restingFace(piece: Piece): FuzzballFace {
       return "rest";
   }
 }
+
+/**
+ * How far above the board's other sprites a sprite draws, by what it is
+ * doing, each the sketch's: the order sprites draw in, not a number the
+ * feel tunes.
+ */
+export const RAISED = {
+  /** A fuzzball picked up. */
+  held: 1,
+  /** One swapped from, sliding over the other. */
+  moving: 2,
+} as const satisfies Readonly<Record<string, number>>;

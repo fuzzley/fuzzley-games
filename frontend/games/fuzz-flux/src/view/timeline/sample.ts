@@ -40,7 +40,11 @@ const SPRING_HALF_TURNS = 3.2;
 /** How fast the sketch's "spring" easing's swing dies away, by the power of e a whole key takes off it. */
 const SPRING_DAMPING = 5.2;
 
-/** How far through each easing a key has moved its number, a share through its time, each the sketch's. */
+/**
+ * How far through each easing a key has moved its number, a share through
+ * its time, each the sketch's but that a spring lands on its key's end,
+ * which the sketch's misses by a little.
+ */
 const EASE: Readonly<Record<Easing, (done: number) => number>> = {
   linear: (done) => done,
   out: easeOutCubic,
@@ -52,9 +56,11 @@ const EASE: Readonly<Record<Easing, (done: number) => number>> = {
     (BACK_OVERSHOOT + 1) * (done - 1) ** 3 +
     BACK_OVERSHOOT * (done - 1) ** 2,
   spring: (done) =>
-    1 -
-    Math.cos(done * Math.PI * SPRING_HALF_TURNS) *
-      Math.exp(-done * SPRING_DAMPING),
+    done < 1
+      ? 1 -
+        Math.cos(done * Math.PI * SPRING_HALF_TURNS) *
+          Math.exp(-done * SPRING_DAMPING)
+      : 1,
 };
 
 /**
