@@ -50,7 +50,7 @@ describe("restingFace", () => {
       "cross",
     ],
     ["the frizzball", { what: "frizzball", id: 1 }, "eep"],
-    ["a sleepyhead", { what: "sleepyhead", id: 1 }, "sleepy"],
+    ["a sleepyhead", { what: "sleepyhead", id: 1 }, "rest"],
     ["a brick", { what: "brick", id: 1, layers: 2 }, "rest"],
   ])("rests %s's eyes in its face", (_, piece, face) => {
     expect(restingFace(piece)).toBe(face);

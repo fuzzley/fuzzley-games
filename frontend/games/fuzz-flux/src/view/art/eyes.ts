@@ -123,8 +123,8 @@ export function eyesFrame(
   return centered(name, eyesDrawing(face, inks, scale, leastScale));
 }
 
-/** The house fuzzball's eyes' inks, which every kind wears. */
-const HOUSE_EYES: EyesInks = {
+/** The house fuzzball's eyes' inks, which every kind and the sleepyhead wear. */
+export const HOUSE_EYES: EyesInks = {
   color: colorNumber(FUZZBALL.ink),
   glint: colorNumber(FUZZBALL.glint),
 };

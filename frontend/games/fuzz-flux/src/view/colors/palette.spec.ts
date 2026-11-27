@@ -59,6 +59,13 @@ describe("boardPalette", () => {
   });
 
   it.each(["light", "dark"] as const)(
+    "trims the sleepyhead's nightcap in the text in a %s palette",
+    (mode) => {
+      expect(boardPalette(ROLES, mode).nightcapTrim).toBe(0x101010);
+    },
+  );
+
+  it.each(["light", "dark"] as const)(
     "takes in the pieces' inks of a %s palette",
     (mode) => {
       expect(boardPalette(ROLES, mode)).toMatchObject(pieceInks(mode));

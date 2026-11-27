@@ -12,7 +12,7 @@ import { EYES_GRID, EYES_LOOK, type EyesSeat, eyesSeatOf } from "./eyes";
 import { FRAMES, type FrameName, type Fur, type Lift } from "./frame_names";
 import { FRIZZBALL_EYES_SEAT } from "./frizzball";
 
-/** Where a sleepyhead's eyes sit, and a brick's, which has none: at its square's middle, at a fuzzball's size. */
+/** Where the eyes sit of a piece that wears none of a face's: a sleepyhead, whose shut eyes are its body's own, and a brick, which has none. At its square's middle, at a fuzzball's size. */
 const MIDDLE_SEAT: EyesSeat = { x: 0, y: 0, scale: 1 };
 
 /** Returns the fur a piece's body wears: a special's second fur, or its own alone. */
@@ -43,17 +43,17 @@ export function standsOnEnd(piece: Piece): boolean {
   return piece.what === "fuzzball";
 }
 
-/** Returns the frame a piece's eyes are drawn in, in a face: the frizzball's own, a fuzzball's and a sleepyhead's the house's; or null for a brick, which has none. */
+/** Returns the frame a piece's eyes are drawn in, in a face: the frizzball's own and a fuzzball's the house's; or null for a sleepyhead, whose eyes are shut in its body's frame for good, and a brick, which has none. */
 export function eyesFrameOf(
   piece: Piece,
   face: FuzzballFace,
 ): FrameName | null {
   switch (piece.what) {
     case "fuzzball":
-    case "sleepyhead":
       return FRAMES.eyes(face);
     case "frizzball":
       return FRAMES.frizzballEyes(face);
+    case "sleepyhead":
     case "brick":
       return null;
   }

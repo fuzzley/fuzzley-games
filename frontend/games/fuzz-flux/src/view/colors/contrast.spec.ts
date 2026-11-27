@@ -66,6 +66,14 @@ const EYES = colorNumber(FUZZBALL.ink);
 // 3:1 against the grounds in a light palette alone. In a dark one they are
 // darker than the squares too, and only outline the thorns between them,
 // which keep it.
+//
+// The nightcap's trim, its band and its pompom, keeps 3:1 against the
+// grounds, which the pompom pokes out over. It keeps less against the
+// nightcap, about 2:1 in a light palette and 2.7:1 in a dark one, and in a
+// dark one against the body as well, about 1.9:1, where the band's ends
+// hang over it: no ink keeps 3:1 against both a light palette's cap and
+// its square, and the trim only dresses the cap, which its outline against
+// the square tells.
 describe("the board's contrast", () => {
   holdContrast(({ id, mode }) => {
     const palette = boardPalette(PALETTES.rolesIn(id, BOARD_ROLES), mode);
@@ -100,6 +108,7 @@ describe("the board's contrast", () => {
       ...burrEdges,
       ["sleepyhead", palette.sleepyhead.body],
       ["sleepyhead's nightcap", palette.sleepyhead.nightcap],
+      ["sleepyhead's nightcap's trim", palette.nightcapTrim],
       ["frizzball", palette.frizzball.body],
       ["sparks", palette.spark],
       ["focus ring", ring],

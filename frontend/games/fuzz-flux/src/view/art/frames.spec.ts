@@ -63,7 +63,6 @@ describe("atlasFrames", () => {
       .map(({ name }) => name);
 
     expect(empty).toEqual([
-      FRAMES.sleepyhead,
       ...BRICK_LAYERS.map((layers) => FRAMES.brick(layers)),
       ...BRICK_LAYERS.map((layers) => FRAMES.cushion(layers)),
       ...BRICK_LAYERS.map((layers) => FRAMES.cushionTuft(layers)),

@@ -67,6 +67,12 @@ export interface BoardPalette extends PieceInks {
    * palette, as the sketch draws its white in the frizzball's color.
    */
   readonly flare: number;
+  /**
+   * The trim of the sleepyhead's nightcap, the band along its brim and the
+   * pompom at its tip: the text, white on a dark palette and dark on a
+   * light one, as the design's art draws it.
+   */
+  readonly nightcapTrim: number;
 }
 
 /**
@@ -125,6 +131,7 @@ export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
     spark: colorNumber(roles.warning),
     marks: text,
     flare: text,
+    nightcapTrim: text,
     ...pieceInks(mode),
   };
 }

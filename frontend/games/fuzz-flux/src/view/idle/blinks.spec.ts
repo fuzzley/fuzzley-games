@@ -119,7 +119,7 @@ describe("blinkAt", () => {
     ["a wide-eyed fuzzball's", fuzzball(1), "eep"],
     ["the frizzball's", { what: "frizzball", id: 1 }, "eep"],
     ["the frizzball's, even at rest", { what: "frizzball", id: 1 }, "rest"],
-    ["a sleepyhead's", { what: "sleepyhead", id: 1 }, "sleepy"],
+    ["a sleepyhead's", { what: "sleepyhead", id: 1 }, "rest"],
     ["a brick's", { what: "brick", id: 1, layers: 2 }, "rest"],
   ])("leaves %s face as it is", (_, piece, face) => {
     const [start = 0] = blinksOf(fuzzball(1));

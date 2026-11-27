@@ -61,12 +61,12 @@ describe("a piece's frames", () => {
     );
   });
 
-  it("draws the frizzball's eyes in its own frames, a fuzzball's and a sleepyhead's in the house's, and a brick's in none", () => {
+  it("draws the frizzball's eyes in its own frames, a fuzzball's in the house's, and a sleepyhead's and a brick's in none, the sleepyhead's shut in its body", () => {
     expect(
       [fuzzball(), FRIZZBALL, SLEEPYHEAD, BRICK].map((piece) =>
         eyesFrameOf(piece, "happy"),
       ),
-    ).toEqual(["eyes-happy", "frizzball-eyes-happy", "eyes-happy", null]);
+    ).toEqual(["eyes-happy", "frizzball-eyes-happy", null, null]);
   });
 
   it("sits a fuzzball's eyes where its kind's body sits in a fur, and the frizzball's on its own", () => {
@@ -96,7 +96,7 @@ describe("a piece's frames", () => {
     });
   });
 
-  it("sits a sleepyhead's eyes at its square's middle, at a fuzzball's size", () => {
+  it("seats a sleepyhead and a brick, which wear no eyes of a face, at the square's middle, at a fuzzball's size", () => {
     expect([
       eyesSeatOn(SLEEPYHEAD, "plain"),
       eyesSeatOn(BRICK, "plain"),

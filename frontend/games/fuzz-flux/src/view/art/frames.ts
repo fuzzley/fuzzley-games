@@ -6,6 +6,7 @@ import type { BoardPalette } from "../colors/palette";
 import { bodyFrames } from "./bodies";
 import { burrFrames } from "./elements/burr";
 import { dustFrames } from "./elements/dust";
+import { sleepyheadFrame } from "./elements/sleepyhead";
 import { eyesFrames } from "./eyes";
 import { fluffFrames } from "./fluff";
 import { FRAMES, type FrameName } from "./frame_names";
@@ -33,7 +34,6 @@ export function bakedScale(square: ArtScale): ArtScale {
 
 /** The frames an element's own package draws, each an empty stand-in until that package removes it from this list. */
 const STAND_INS: readonly FrameName[] = [
-  FRAMES.sleepyhead,
   ...BRICK_LAYERS.map((layers) => FRAMES.brick(layers)),
   ...BRICK_LAYERS.map((layers) => FRAMES.cushion(layers)),
   ...BRICK_LAYERS.map((layers) => FRAMES.cushionTuft(layers)),
@@ -51,6 +51,7 @@ export function atlasFrames(
   return [
     ...bodyFrames(palette, scale),
     ...frizzballFrames(palette, scale),
+    sleepyheadFrame(palette, scale),
     ...eyesFrames(scale),
     wellFrame(palette, scale),
     ...dustFrames(palette, scale),
