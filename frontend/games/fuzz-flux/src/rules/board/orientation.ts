@@ -13,7 +13,7 @@ import { type BoardSize, indexOf, squareOf } from "./cells";
 const QUARTER_TURNS = [0, 1, 2, 3] as const satisfies readonly QuarterTurns[];
 
 /** The way each dasher runs once its board's frame has turned a quarter, which on the screen is the way it ran. */
-const DASHERS_TURNED = {
+export const DASHERS_TURNED = {
   "dasher-across": "dasher-down",
   "dasher-down": "dasher-across",
 } as const;
