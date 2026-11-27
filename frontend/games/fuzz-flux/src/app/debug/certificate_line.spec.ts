@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import bedtime from "../../rules/levels/certificates/bedtime.json";
+import bricksAndBars from "../../rules/levels/certificates/bricks-and-bars.json";
 import warmUp from "../../rules/levels/certificates/warm-up.json";
 import type { LevelEntry } from "../../rules/levels/levels";
 import { BoardFrames } from "../../testing/board_frames";
@@ -250,7 +251,13 @@ describe("CERTIFICATE_FILES", () => {
     expect({
       sets: Object.keys(files),
       warmUp: await files["warm-up"]?.(),
+      bricksAndBars: await files["bricks-and-bars"]?.(),
       bedtime: await files["bedtime"]?.(),
-    }).toEqual({ sets: ["bedtime", "warm-up"], warmUp, bedtime });
+    }).toEqual({
+      sets: ["bedtime", "bricks-and-bars", "warm-up"],
+      warmUp,
+      bricksAndBars,
+      bedtime,
+    });
   });
 });
