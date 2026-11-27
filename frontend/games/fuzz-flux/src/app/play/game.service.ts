@@ -2,7 +2,6 @@ import { Injectable, computed, inject, signal } from "@angular/core";
 import { levelAt } from "@fz/core/levels";
 import { itemAt } from "@fz/core/records";
 import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
-import { GameViewportService } from "@fz/game-ui/viewport";
 import type { ConfirmRequest } from "@fz/ui/confirm";
 import type { Game } from "../../rules/board/board";
 import { type Square, indexOf, squareOf } from "../../rules/board/cells";
@@ -44,6 +43,7 @@ import type { Cleared } from "../../view/timeline/level_end";
 import { starsLitAt } from "../../view/timeline/stars_lit";
 import type { SoundName } from "../../view/effects/sounds";
 import type { SoundCue, Timeline } from "../../view/timeline/timeline";
+import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { RecordsService } from "../stats/records.service";
 import { GAME_LEVELS, GAME_RULES } from "../tokens";
@@ -158,7 +158,7 @@ export class GameService extends RunLifecycle {
   private readonly rules = inject(GAME_RULES);
   private readonly records = inject(RecordsService);
   private readonly progress = inject(ProgressService);
-  private readonly viewport = inject(GameViewportService);
+  private readonly playerSettings = inject(SettingsService);
 
   private readonly inPlayState = signal<LevelInPlay>(
     this.dealtAnew(itemAt(this.levels, 0)),
@@ -772,11 +772,11 @@ export class GameService extends RunLifecycle {
     };
   }
 
-  /** Returns how the player has set moves to play: at Normal speed, with less motion where the system asks for it. */
+  /** Returns how the player has set moves to play: their speed, and whether with Less motion. */
   private settings(): PlaySettings {
     return {
-      speed: "normal",
-      motion: this.viewport.allowsMotion() ? "full" : "less",
+      speed: this.playerSettings.settings().speed,
+      motion: this.playerSettings.lessMotion() ? "less" : "full",
     };
   }
 

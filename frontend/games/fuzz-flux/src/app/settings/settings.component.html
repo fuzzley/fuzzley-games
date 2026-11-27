@@ -1,0 +1,53 @@
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="speed-label">Speed</span>
+    <fz-choice-list
+      labelledBy="speed-label"
+      [options]="speeds"
+      [value]="store.settings().speed"
+      (choose)="chooseSpeed($event)"
+    />
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Motion</span>
+    <div class="setting-check">
+      <input
+        #lessMotion
+        id="less-motion"
+        type="checkbox"
+        aria-describedby="less-motion-desc"
+        [checked]="store.lessMotion()"
+        (change)="setLessMotion(lessMotion.checked)"
+      />
+      <label for="less-motion">Less motion</label>
+      <p class="setting-desc" id="less-motion-desc">
+        Stops the shaking, the flashes and the fuzzballs flying to the goals. If
+        your device is set to reduce motion, this starts on.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Sound</span>
+    <div class="setting-check">
+      <input
+        #sound
+        id="sound"
+        type="checkbox"
+        aria-describedby="sound-desc"
+        [checked]="store.settings().sound"
+        (change)="setSound(sound.checked)"
+      />
+      <label for="sound">Play sounds</label>
+      <p class="setting-desc" id="sound-desc">
+        Turns all sound on or off. Same as the Sound button.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+</fz-settings-drawer>

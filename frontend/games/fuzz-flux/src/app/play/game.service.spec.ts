@@ -18,10 +18,12 @@ import {
   REFUSED,
   SMALL_LEVELS,
 } from "../../testing/small_levels";
+import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { RecordsService } from "../stats/records.service";
 import { GAME_LEVELS } from "../tokens";
 import { GameService } from "./game.service";
+import { FEEL } from "../../view/timeline/feel";
 import { VIEW_KIT } from "./view_kit";
 
 /** How many squares across the small levels' board is. */
@@ -442,6 +444,35 @@ describe("GameService", () => {
       expect(played.game.play().timeline.effects).not.toContainEqual(
         expect.objectContaining({ what: "shake" }),
       );
+    });
+
+    it("is less where the player turns Less motion on, whatever the system", async () => {
+      installFakeViewport(390, 844);
+      const played = await startGame(4);
+      TestBed.inject(SettingsService).update({ lessMotion: true });
+
+      played.frames.tap(at(PUFFER), at(PUFFER));
+
+      expect(played.game.play().timeline.effects).not.toContainEqual(
+        expect.objectContaining({ what: "shake" }),
+      );
+    });
+  });
+
+  describe("the speed", () => {
+    it("is Normal at first", async () => {
+      const played = await startGame();
+
+      expect(played.game.play().feel.swapMs).toBe(FEEL.swapMs);
+    });
+
+    it("is the player's, a move played Fast quicker", async () => {
+      const played = await startGame();
+      TestBed.inject(SettingsService).update({ speed: "fast" });
+
+      swap(played, BLUE_LINE);
+
+      expect(played.game.play().feel.swapMs).toBeLessThan(FEEL.swapMs);
     });
   });
 

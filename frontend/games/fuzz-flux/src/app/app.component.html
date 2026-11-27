@@ -8,7 +8,7 @@
     <p class="new-thing">{{ line }}</p>
   }
   <div class="room" fzPlayRoom (away)="game.pause()">
-    <app-board #board [goalPictures]="goalPictures()">
+    <app-board #board [goalPictures]="goalPictures()" [sound]="soundOn()">
       @if (board.panels(); as panels) {
         <section class="panel level-panel" [style]="panels.left">
           <h2 class="level">
@@ -60,14 +60,18 @@
   [state]="game.state()"
   [pictures]="pictures()"
   [panelled]="panelled()"
+  [soundOn]="soundOn()"
   (hint)="game.hint()"
   (restart)="restart()"
+  (toggleSound)="toggleSound()"
   (chooseLevel)="levelsOpen.set(true)"
+  (openSettings)="settingsOpen.set(true)"
 />
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
 <app-choose-level [open]="levelsOpen()" (closed)="levelsOpen.set(false)" />
+<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <fz-confirm-dialog />
 <fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />

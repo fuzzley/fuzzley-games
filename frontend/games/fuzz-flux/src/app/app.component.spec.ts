@@ -33,6 +33,7 @@ import { BoardComponent } from "./board/board.component";
 import { provideFuzzFluxBugReports } from "./bug_report/fuzz_flux_bug_reports";
 import { GameService } from "./play/game.service";
 import { VIEW_KIT } from "./play/view_kit";
+import { SettingsService } from "./settings/settings.service";
 import { GAME_LEVELS } from "./tokens";
 
 /** Describes the game rendered, and what a spec reads of it. */
@@ -269,6 +270,25 @@ describe("AppComponent", () => {
 
       expect(game.play()).not.toBe(still);
     });
+  });
+
+  it("opens the settings from the bar", async () => {
+    await renderApp();
+
+    await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeVisible();
+  });
+
+  it("turns the sound off at Sound, which the board then plays none of", async () => {
+    const { board } = await renderApp();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sound" }));
+
+    expect({
+      kept: TestBed.inject(SettingsService).settings().sound,
+      board: board.sound(),
+    }).toEqual({ kept: false, board: false });
   });
 
   describe("the card at a level's end", () => {

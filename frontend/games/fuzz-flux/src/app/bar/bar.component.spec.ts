@@ -24,15 +24,17 @@ function stateOfLevel3(): RunState {
   return runStateOf(inPlay, gridOf(game), beats);
 }
 
-/** Renders the bar over the third of the small levels, beside the board's panels where `panelled` says, and returns what it asks for. */
-async function renderBar(panelled = false): Promise<string[]> {
+/** Renders the bar over the third of the small levels, beside the board's panels where `panelled` says, the sound on unless `soundOn` says otherwise, and returns what it asks for. */
+async function renderBar(panelled = false, soundOn = true): Promise<string[]> {
   const asked: string[] = [];
   await render(BarComponent, {
-    inputs: { state: stateOfLevel3(), pictures: PICTURES, panelled },
+    inputs: { state: stateOfLevel3(), pictures: PICTURES, panelled, soundOn },
     on: {
       hint: () => asked.push("hint"),
       restart: () => asked.push("restart"),
+      toggleSound: () => asked.push("toggleSound"),
       chooseLevel: () => asked.push("chooseLevel"),
+      openSettings: () => asked.push("openSettings"),
     },
   });
   return asked;
@@ -112,14 +114,39 @@ describe("BarComponent", () => {
     );
   });
 
-  it("asks for Choose a level", async () => {
+  it.each([
+    ["the sound", "Sound", "toggleSound"],
+    ["Choose a level", "Choose a level", "chooseLevel"],
+    ["the settings", "Settings", "openSettings"],
+  ])("asks for %s", async (_, name, output) => {
     const asked = await renderBar();
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "Choose a level" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name }));
 
-    expect(asked).toEqual(["chooseLevel"]);
+    expect(asked).toEqual([output]);
+  });
+
+  it.each([
+    [true, "true"],
+    [false, "false"],
+  ])(
+    "shows Sound pressed while the sound is on: %s",
+    async (soundOn, pressed) => {
+      await renderBar(false, soundOn);
+
+      expect(screen.getByRole("button", { name: "Sound" })).toHaveAttribute(
+        "aria-pressed",
+        pressed,
+      );
+    },
+  );
+
+  it("keeps Sound and Settings beside the panels", async () => {
+    await renderBar(true);
+
+    expect(screen.getAllByRole("button").map((button) => button.title)).toEqual(
+      ["Sound", "Choose a level", "Settings"],
+    );
   });
 
   describe("on a compact screen", () => {
@@ -127,12 +154,20 @@ describe("BarComponent", () => {
       installFakeViewport(390, 844);
     });
 
-    it("moves Choose a level into the menu", async () => {
+    it("moves Sound, Choose a level and Settings into the menu", async () => {
       await renderBar();
 
       const items = await openBarMenu(userEvent.setup());
 
-      expect(items).toEqual(["Choose a level"]);
+      expect(items).toEqual(["Turn sound off", "Choose a level", "Settings"]);
+    });
+
+    it("offers to turn the sound back on from the menu", async () => {
+      await renderBar(false, false);
+
+      const items = await openBarMenu(userEvent.setup());
+
+      expect(items[0]).toBe("Turn sound on");
     });
 
     it("moves the link home into the menu where there is no room for it", async () => {
@@ -144,16 +179,18 @@ describe("BarComponent", () => {
       expect(items[0]).toBe("Fuzzley Games");
     });
 
-    it("asks for Choose a level from the menu", async () => {
+    it.each([
+      ["the sound", "Turn sound off", "toggleSound"],
+      ["Choose a level", "Choose a level", "chooseLevel"],
+      ["the settings", "Settings", "openSettings"],
+    ])("asks for %s from the menu", async (_, name, output) => {
       const asked = await renderBar();
       const user = userEvent.setup();
       await openBarMenu(user);
 
-      await user.click(
-        screen.getByRole("menuitem", { name: "Choose a level" }),
-      );
+      await user.click(screen.getByRole("menuitem", { name }));
 
-      expect(asked).toEqual(["chooseLevel"]);
+      expect(asked).toEqual([output]);
     });
   });
 });

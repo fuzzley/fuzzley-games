@@ -54,6 +54,17 @@
   @if (!viewport.isCompact()) {
     <button
       fzBarActions
+      fzBarSound
+      type="button"
+      class="action"
+      [soundOn]="soundOn()"
+      (click)="toggleSound.emit()"
+    ></button>
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action"
       title="Choose a level"
@@ -64,11 +75,22 @@
   }
 
   @if (viewport.isCompact()) {
-    <!-- Choose a level is the menu's one action. -->
     <fz-bar-overflow
       fzBarActions
       [items]="overflowItems()"
-      (choose)="chooseLevel.emit()"
+      (choose)="chooseFromMenu($event)"
     />
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action settings"
+      title="Settings"
+      (click)="openSettings.emit()"
+    >
+      <fz-icon name="settings" />
+    </button>
   }
 </fz-game-bar>

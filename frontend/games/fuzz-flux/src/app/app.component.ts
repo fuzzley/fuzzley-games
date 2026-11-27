@@ -17,11 +17,13 @@ import {
 import { ChooseLevelComponent } from "./levels/choose_level.component";
 import { newThingLine } from "../rules/run/describe";
 import { GameService } from "./play/game.service";
+import { SettingsComponent } from "./settings/settings.component";
+import { SettingsService } from "./settings/settings.service";
 
 /**
  * Shows the game: the bar, the board, a wide window's panels beside it, the
- * card over the board at a level's end, and Choose a level, as the bar and
- * the card open it.
+ * card over the board at a level's end, Choose a level, as the bar and the
+ * card open it, and the settings, as the bar opens them.
  *
  * A level that brings something new has a line about it, on the bar's
  * side of the board where the bar stands across the window. A phone on its
@@ -49,6 +51,7 @@ import { GameService } from "./play/game.service";
     LevelFiguresComponent,
     LevelTitleComponent,
     PlayRoomDirective,
+    SettingsComponent,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",
@@ -60,12 +63,19 @@ import { GameService } from "./play/game.service";
 export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   protected readonly game = inject(GameService);
+  private readonly settings = inject(SettingsService);
   private readonly board = viewChild.required(BoardComponent);
   private readonly bar = viewChild.required(BarComponent);
   private readonly panelFigures = viewChild(LevelFiguresComponent);
 
   /** Whether Choose a level is open. */
   protected readonly levelsOpen = signal(false);
+
+  /** Whether the settings are open. */
+  protected readonly settingsOpen = signal(false);
+
+  /** Whether the player wants sound, as Sound and the settings say. */
+  protected readonly soundOn = computed(() => this.settings.settings().sound);
 
   /** Whether the panels beside the board show the level, its figures and its buttons, in the bar's place. */
   protected readonly panelled = computed(() => this.board().panels() !== null);
@@ -117,6 +127,11 @@ export class AppComponent {
 
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
+  }
+
+  /** Turns the sound on or off, as Sound asks. */
+  protected toggleSound(): void {
+    this.settings.update({ sound: !this.soundOn() });
   }
 
   /** Does what a card's button asks, its sound played first. */
