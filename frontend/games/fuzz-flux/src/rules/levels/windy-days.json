@@ -1,0 +1,328 @@
+{
+  "id": "windy-days",
+  "name": "Windy days",
+  "about": "A wind that blows the fuzzballs sideways, up, and round.",
+  "levels": [
+    {
+      "name": "Crosswind",
+      "idea": "The wind blows to the right, so everything falls that way.",
+      "brings": "wind",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 20
+        },
+        {
+          "type": "gather",
+          "kind": "amber",
+          "count": 20
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      "wind": {
+        "dir": "right"
+      },
+      "id": 28,
+      "set": "windy-days",
+      "deals": [2, 11, 14, 28, 29, 32, 36, 40],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Updraft",
+      "idea": "The wind blows up, at bricks along the top.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 24,
+      "goals": [
+        {
+          "type": "brick"
+        }
+      ],
+      "board": [
+        "2121212",
+        ".1.1.1.",
+        "..1.1..",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "wind": {
+        "dir": "up"
+      },
+      "id": 29,
+      "set": "windy-days",
+      "deals": [1, 6, 11, 22, 24, 27, 34, 38],
+      "stars": [0, 7, 14]
+    },
+    {
+      "name": "Weather vane",
+      "idea": "The wind turns a quarter after every 3 moves.",
+      "brings": "turning wind",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "green",
+          "count": 22
+        },
+        {
+          "type": "gather",
+          "kind": "red",
+          "count": 22
+        }
+      ],
+      "board": [
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "wind": {
+        "dir": "down",
+        "every": 3,
+        "turn": 1
+      },
+      "id": 30,
+      "set": "windy-days",
+      "deals": [6, 9, 20, 27, 7, 15, 26, 36],
+      "stars": [0, 4, 8]
+    },
+    {
+      "name": "Leaf pile",
+      "idea": "The wind blows left, into a drift of dust.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 22,
+      "goals": [
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      "dust": [
+        "20000000",
+        "22000000",
+        "22100000",
+        "22110000",
+        "22110000",
+        "22100000",
+        "22000000",
+        "20000000"
+      ],
+      "wind": {
+        "dir": "left"
+      },
+      "id": 31,
+      "set": "windy-days",
+      "deals": [2, 5, 9, 15, 21, 27, 37, 11],
+      "stars": [0, 6, 13]
+    },
+    {
+      "name": "Kite weather",
+      "idea": "Twelve friends caged at the edges, and a wind that turns.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "cage"
+        }
+      ],
+      "board": [
+        "...??...",
+        "........",
+        "?......?",
+        "?......?",
+        "?......?",
+        "?......?",
+        "........",
+        "...??..."
+      ],
+      "wind": {
+        "dir": "down",
+        "every": 4,
+        "turn": 1
+      },
+      "id": 32,
+      "set": "windy-days",
+      "deals": [8, 9, 14, 18, 21, 5, 16, 17],
+      "stars": [0, 4, 8]
+    },
+    {
+      "name": "Gale",
+      "idea": "A cross of bricks, and a wind that turns after every 2 moves.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 18,
+      "goals": [
+        {
+          "type": "brick"
+        }
+      ],
+      "board": [
+        "........",
+        "...22...",
+        "...22...",
+        ".22..22.",
+        ".22..22.",
+        "...22...",
+        "...22...",
+        "........"
+      ],
+      "wind": {
+        "dir": "right",
+        "every": 2,
+        "turn": 1
+      },
+      "id": 33,
+      "set": "windy-days",
+      "deals": [9, 10, 15, 24, 29, 32, 6, 16],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Burrs on the breeze",
+      "idea": "Burrs across the board, and a wind to the right.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "violet",
+          "count": 28
+        },
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 28
+        }
+      ],
+      "board": [
+        "........",
+        ".*....*.",
+        "........",
+        "...**...",
+        "...**...",
+        "........",
+        ".*....*.",
+        "........"
+      ],
+      "wind": {
+        "dir": "right"
+      },
+      "id": 34,
+      "set": "windy-days",
+      "deals": [6, 7, 18, 27, 32, 8, 13, 23],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Eye of the storm",
+      "idea": "A hole in the middle, dust round it, and a wind that turns.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 22,
+      "goals": [
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "........",
+        "...__...",
+        "...__...",
+        "........",
+        "........",
+        "........"
+      ],
+      "dust": [
+        "00000000",
+        "01111110",
+        "01222210",
+        "01200210",
+        "01200210",
+        "01222210",
+        "01111110",
+        "00000000"
+      ],
+      "wind": {
+        "dir": "down",
+        "every": 3,
+        "turn": 1
+      },
+      "id": 35,
+      "set": "windy-days",
+      "deals": [1, 5, 9, 11, 12, 13, 20, 6],
+      "stars": [0, 5, 11]
+    },
+    {
+      "name": "The big bunch",
+      "idea": "The last level: six kinds, bricks, cages, dust and a turning wind.",
+      "kinds": ["blue", "red", "amber", "green", "violet", "pink"],
+      "moves": 33,
+      "goals": [
+        {
+          "type": "cage"
+        },
+        {
+          "type": "brick"
+        },
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        "........",
+        ".?....?.",
+        "..2..2..",
+        "........",
+        ".1....1.",
+        "........",
+        "..2..2..",
+        ".?....?.",
+        "........"
+      ],
+      "dust": [
+        "20000002",
+        "00000000",
+        "00011000",
+        "00100100",
+        "00100100",
+        "00100100",
+        "00011000",
+        "00000000",
+        "20000002"
+      ],
+      "wind": {
+        "dir": "down",
+        "every": 4,
+        "turn": 1
+      },
+      "id": 36,
+      "set": "windy-days",
+      "deals": [3, 20, 33, 34, 4, 6, 25, 28],
+      "stars": [0, 5, 10]
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "id": "bedtime",
+  "name": "Bedtime",
+  "about": "Sleepyheads to bring down to bed, and burrs that spread.",
+  "levels": [
+    {
+      "name": "Lights out",
+      "idea": "Two sleepyheads at the top and a bed under each.",
+      "brings": "sleepyhead",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 22,
+      "goals": [
+        {
+          "type": "sleepy"
+        }
+      ],
+      "board": [
+        ".z...z.",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "id": 19,
+      "set": "bedtime",
+      "deals": [1, 6, 12, 13, 16, 17, 19, 24],
+      "stars": [0, 7, 15]
+    },
+    {
+      "name": "Bunk beds",
+      "idea": "Three sleepyheads, each with a brick in its way down.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 26,
+      "goals": [
+        {
+          "type": "sleepy"
+        }
+      ],
+      "board": [
+        "z..z..z",
+        ".......",
+        ".......",
+        "1..1..1",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "id": 20,
+      "set": "bedtime",
+      "deals": [8, 10, 13, 14, 20, 29, 33, 6],
+      "stars": [0, 8, 16]
+    },
+    {
+      "name": "Sleepwalk",
+      "idea": "Four sleepyheads at two heights, over cages and bricks.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 24,
+      "goals": [
+        {
+          "type": "sleepy"
+        }
+      ],
+      "board": [
+        ".z....z.",
+        "........",
+        ".?....?.",
+        "........",
+        "...zz...",
+        "........",
+        "...11...",
+        "........"
+      ],
+      "id": 21,
+      "set": "bedtime",
+      "deals": [1, 10, 15, 18, 21, 27, 29, 34],
+      "stars": [0, 7, 14]
+    },
+    {
+      "name": "Burr patch",
+      "idea": "Five burrs in the middle, which spread when you leave them.",
+      "brings": "burr",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 18
+        },
+        {
+          "type": "gather",
+          "kind": "red",
+          "count": 18
+        }
+      ],
+      "board": [
+        ".......",
+        ".......",
+        "..*.*..",
+        "...*...",
+        "..*.*..",
+        ".......",
+        "......."
+      ],
+      "id": 22,
+      "set": "bedtime",
+      "deals": [29, 7, 10, 21, 26, 27, 2, 17],
+      "stars": [0, 4, 8]
+    },
+    {
+      "name": "Sticky situation",
+      "idea": "Burrs stand between you and eight caged friends.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "cage"
+        },
+        {
+          "type": "gather",
+          "kind": "amber",
+          "count": 18
+        }
+      ],
+      "board": [
+        "........",
+        ".?.**.?.",
+        "........",
+        "?*....*?",
+        "?*....*?",
+        "........",
+        ".?.**.?.",
+        "........"
+      ],
+      "id": 23,
+      "set": "bedtime",
+      "deals": [16, 10, 13, 23, 25, 26, 28, 32],
+      "stars": [0, 4, 8]
+    },
+    {
+      "name": "Nap in the thistles",
+      "idea": "Two sleepyheads come down through burrs and past bricks.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "sleepy"
+        }
+      ],
+      "board": [
+        "..z.z..",
+        ".......",
+        "..*.*..",
+        ".......",
+        "...*...",
+        ".......",
+        "..1.1..",
+        "......."
+      ],
+      "id": 24,
+      "set": "bedtime",
+      "deals": [2, 15, 20, 21, 31, 10, 13, 36],
+      "stars": [0, 5, 11]
+    },
+    {
+      "name": "Dust bunnies",
+      "idea": "Thick dust in the corners and the middle, and burrs between.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 29,
+      "goals": [
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "..*..*..",
+        "........",
+        "........",
+        "..*..*..",
+        "........",
+        "........"
+      ],
+      "dust": [
+        "22000022",
+        "20000002",
+        "00011000",
+        "00122100",
+        "00122100",
+        "00011000",
+        "20000002",
+        "22000022"
+      ],
+      "id": 25,
+      "set": "bedtime",
+      "deals": [17, 35, 39, 13, 14, 15, 21, 31],
+      "stars": [0, 7, 14]
+    },
+    {
+      "name": "Long way down",
+      "idea": "A tall, narrow board: four sleepyheads and two shelves of brick.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 28,
+      "goals": [
+        {
+          "type": "sleepy"
+        }
+      ],
+      "board": [
+        "z.zz.z",
+        "......",
+        "1.11.1",
+        "......",
+        "......",
+        ".2..2.",
+        "......",
+        "......",
+        "......"
+      ],
+      "id": 26,
+      "set": "bedtime",
+      "deals": [1, 17, 3, 7, 14, 19, 20, 21],
+      "stars": [0, 8, 16]
+    },
+    {
+      "name": "Pillow fort",
+      "idea": "The set's last: two sleepyheads walled in brick, over cages.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "sleepy"
+        },
+        {
+          "type": "cage"
+        }
+      ],
+      "board": [
+        "........",
+        ".222222.",
+        ".2z..z2.",
+        ".2....2.",
+        ".211112.",
+        "........",
+        ".?....?.",
+        "........",
+        "........"
+      ],
+      "id": 27,
+      "set": "bedtime",
+      "deals": [7, 35, 3, 11, 12, 18, 26, 27],
+      "stars": [0, 4, 9]
+    }
+  ]
+}

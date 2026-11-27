@@ -1,0 +1,276 @@
+{
+  "id": "bricks-and-bars",
+  "name": "Bricks and bars",
+  "about": "Bricks to break beside a bunch, and caged friends to free.",
+  "levels": [
+    {
+      "name": "Brick by brick",
+      "idea": "A row of bricks across the board, with one way through.",
+      "brings": "brick",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 14,
+      "goals": [
+        {
+          "type": "brick"
+        }
+      ],
+      "board": [
+        ".......",
+        ".......",
+        ".......",
+        "111.111",
+        "11...11",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "id": 10,
+      "set": "bricks-and-bars",
+      "deals": [1, 3, 6, 15, 16, 17, 19, 31],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Tough crowd",
+      "idea": "A knot of thick bricks, each a pile of 2 or 3 cushions.",
+      "brings": "thick brick",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "brick"
+        }
+      ],
+      "board": [
+        ".......",
+        ".......",
+        "..232..",
+        "..3.3..",
+        "..232..",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "id": 11,
+      "set": "bricks-and-bars",
+      "deals": [2, 3, 7, 8, 20, 33, 38, 4],
+      "stars": [0, 5, 10]
+    },
+    {
+      "name": "Swept under",
+      "idea": "Dust lies under a square of bricks and inside it.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "..1111..",
+        "..1..1..",
+        "..1..1..",
+        "..1111..",
+        "........",
+        "........"
+      ],
+      "dust": [
+        "00000000",
+        "00000000",
+        "00111100",
+        "00122100",
+        "00122100",
+        "00111100",
+        "00000000",
+        "00000000"
+      ],
+      "id": 12,
+      "set": "bricks-and-bars",
+      "deals": [1, 7, 8, 18, 28, 36, 2, 4],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Jailbreak",
+      "idea": "Seven friends in cages, each freed by a bunch of its own kind.",
+      "brings": "cage",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 13,
+      "goals": [
+        {
+          "type": "cage"
+        }
+      ],
+      "board": [
+        ".......",
+        ".B.?.R.",
+        ".......",
+        "...V...",
+        ".......",
+        ".G.?.A.",
+        "......."
+      ],
+      "id": 13,
+      "set": "bricks-and-bars",
+      "deals": [2, 4, 6, 15, 21, 32, 36, 3],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Six of one",
+      "idea": "The sixth kind arrives on a full board, where bunches are rarer.",
+      "kinds": ["blue", "red", "amber", "green", "violet", "pink"],
+      "moves": 19,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "pink",
+          "count": 14
+        },
+        {
+          "type": "gather",
+          "kind": "violet",
+          "count": 14
+        },
+        {
+          "type": "gather",
+          "kind": "green",
+          "count": 14
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      "id": 14,
+      "set": "bricks-and-bars",
+      "deals": [9, 31, 34, 1, 4, 15, 17, 19],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "The vault",
+      "idea": "Eight friends behind a wall of thick bricks: a blast reaches through.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 21,
+      "goals": [
+        {
+          "type": "cage"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        ".222222.",
+        ".2????2.",
+        ".2????2.",
+        ".222222.",
+        "........",
+        "........"
+      ],
+      "id": 15,
+      "set": "bricks-and-bars",
+      "deals": [7, 9, 18, 19, 21, 26, 30, 40],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Checkerboard",
+      "idea": "Bricks on every other square, so fuzzballs roll in under them.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 18,
+      "goals": [
+        {
+          "type": "brick"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        ".2.1.2.1",
+        "1.2.1.2.",
+        ".2.1.2.1",
+        "1.2.1.2.",
+        "........",
+        "........"
+      ],
+      "id": 16,
+      "set": "bricks-and-bars",
+      "deals": [6, 9, 17, 19, 21, 29, 30, 38],
+      "stars": [0, 5, 11]
+    },
+    {
+      "name": "Tight corners",
+      "idea": "A waisted board with a friend caged in each far corner.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 18,
+      "goals": [
+        {
+          "type": "cage"
+        },
+        {
+          "type": "gather",
+          "kind": "green",
+          "count": 16
+        }
+      ],
+      "board": [
+        "?..__..?",
+        "........",
+        "........",
+        "__....__",
+        "__....__",
+        "........",
+        "........",
+        "?..__..?"
+      ],
+      "id": 17,
+      "set": "bricks-and-bars",
+      "deals": [10, 13, 6, 7, 8, 14, 22, 24],
+      "stars": [0, 3, 6]
+    },
+    {
+      "name": "Clean sweep",
+      "idea": "The set's last: a brick ring over thick dust, cages, a dusty floor.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 21,
+      "goals": [
+        {
+          "type": "dust"
+        },
+        {
+          "type": "cage"
+        }
+      ],
+      "board": [
+        "........",
+        ".?....?.",
+        "..1221..",
+        "..2..2..",
+        "..2..2..",
+        "..1221..",
+        ".?....?.",
+        "........",
+        "........"
+      ],
+      "dust": [
+        "00000000",
+        "00000000",
+        "00000000",
+        "00022000",
+        "00022000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "11111111"
+      ],
+      "id": 18,
+      "set": "bricks-and-bars",
+      "deals": [1, 18, 20, 23, 30, 6, 11, 22],
+      "stars": [0, 5, 10]
+    }
+  ]
+}

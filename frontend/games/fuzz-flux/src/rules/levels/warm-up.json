@@ -1,0 +1,326 @@
+{
+  "id": "warm-up",
+  "name": "Warm-up",
+  "about": "Bunches, the four special fuzzballs, and dust.",
+  "levels": [
+    {
+      "name": "Three's company",
+      "idea": "A small board and a bunch waiting to be made.",
+      "brings": "bunch",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 14,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 10
+        },
+        {
+          "type": "gather",
+          "kind": "red",
+          "count": 10
+        }
+      ],
+      "board": ["......", "......", ".bb...", "...b..", "......", "......"],
+      "hint": [
+        [3, 3],
+        [3, 2]
+      ],
+      "id": 1,
+      "set": "warm-up",
+      "deals": [1, 2, 4, 7, 8, 9, 10, 11],
+      "stars": [0, 4, 9]
+    },
+    {
+      "name": "Four across",
+      "idea": "A line of 4 is one swap away, and makes the first dasher.",
+      "brings": "dasher",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 18,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "red",
+          "count": 14
+        },
+        {
+          "type": "gather",
+          "kind": "green",
+          "count": 12
+        }
+      ],
+      "board": ["......", "......", ".rr.r.", "...r..", "......", "......"],
+      "hint": [
+        [3, 3],
+        [3, 2]
+      ],
+      "id": 2,
+      "set": "warm-up",
+      "deals": [1, 2, 3, 4, 5, 6, 7, 8],
+      "stars": [0, 5, 11]
+    },
+    {
+      "name": "Square deal",
+      "idea": "Three corners of a square stand ready; the fourth makes a wisp.",
+      "brings": "wisp",
+      "kinds": ["blue", "red", "amber", "green", "pink"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "green",
+          "count": 14
+        },
+        {
+          "type": "gather",
+          "kind": "pink",
+          "count": 12
+        }
+      ],
+      "board": ["......", ".gg...", ".g.g..", "......", "......", "......"],
+      "hint": [
+        [3, 2],
+        [2, 2]
+      ],
+      "id": 3,
+      "set": "warm-up",
+      "deals": [1, 2, 3, 4, 5, 6, 7, 8],
+      "stars": [0, 5, 10]
+    },
+    {
+      "name": "Round the bend",
+      "idea": "Two lines that meet at a corner make a puffer.",
+      "brings": "puffer",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "amber",
+          "count": 16
+        },
+        {
+          "type": "gather",
+          "kind": "violet",
+          "count": 12
+        }
+      ],
+      "board": ["..a...", "..a...", "aa.a..", "......", "......", "......"],
+      "hint": [
+        [3, 2],
+        [2, 2]
+      ],
+      "id": 4,
+      "set": "warm-up",
+      "deals": [1, 2, 3, 5, 6, 7, 8, 9],
+      "stars": [0, 5, 10]
+    },
+    {
+      "name": "High five",
+      "idea": "Five in a line makes the frizzball, which takes a whole kind.",
+      "brings": "frizzball",
+      "kinds": ["blue", "red", "amber", "green", "pink"],
+      "moves": 19,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "pink",
+          "count": 18
+        },
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 14
+        }
+      ],
+      "board": [
+        ".......",
+        "...p...",
+        ".pp.pp.",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "hint": [
+        [3, 1],
+        [3, 2]
+      ],
+      "id": 5,
+      "set": "warm-up",
+      "deals": [1, 2, 4, 5, 6, 7, 8, 9],
+      "stars": [0, 6, 12]
+    },
+    {
+      "name": "Better together",
+      "idea": "Two pairs of specials stand side by side: swap a pair together.",
+      "brings": "pair",
+      "kinds": ["blue", "red", "amber", "green"],
+      "moves": 11,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 30
+        },
+        {
+          "type": "gather",
+          "kind": "red",
+          "count": 30
+        },
+        {
+          "type": "gather",
+          "kind": "amber",
+          "count": 30
+        }
+      ],
+      "board": [
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "specials": [
+        {
+          "x": 2,
+          "y": 2,
+          "kind": "blue",
+          "sp": "dash-h"
+        },
+        {
+          "x": 3,
+          "y": 2,
+          "kind": "red",
+          "sp": "puff"
+        },
+        {
+          "x": 3,
+          "y": 5,
+          "kind": "green",
+          "sp": "wisp"
+        },
+        {
+          "x": 4,
+          "y": 5,
+          "kind": "blue",
+          "sp": "frizz"
+        }
+      ],
+      "hint": [
+        [2, 2],
+        [3, 2]
+      ],
+      "id": 6,
+      "set": "warm-up",
+      "deals": [2, 4, 7, 9, 10, 15, 16, 17],
+      "stars": [0, 4, 8]
+    },
+    {
+      "name": "Mind the gap",
+      "idea": "The first board with its corners cut and a hole in the middle.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 17,
+      "goals": [
+        {
+          "type": "gather",
+          "kind": "violet",
+          "count": 14
+        },
+        {
+          "type": "gather",
+          "kind": "amber",
+          "count": 14
+        },
+        {
+          "type": "gather",
+          "kind": "blue",
+          "count": 14
+        }
+      ],
+      "board": [
+        "_....._",
+        ".......",
+        ".......",
+        "..._...",
+        ".......",
+        ".......",
+        "_....._"
+      ],
+      "id": 7,
+      "set": "warm-up",
+      "deals": [9, 11, 13, 31, 21, 22, 28, 1],
+      "stars": [0, 4, 8]
+    },
+    {
+      "name": "Dust-up",
+      "idea": "A patch of dust in the middle of an easy board.",
+      "brings": "dust",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 16,
+      "goals": [
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+      ],
+      "dust": [
+        "0000000",
+        "0011100",
+        "0111110",
+        "0111110",
+        "0111110",
+        "0011100",
+        "0000000"
+      ],
+      "id": 8,
+      "set": "warm-up",
+      "deals": [1, 6, 11, 14, 16, 17, 18, 27],
+      "stars": [0, 5, 10]
+    },
+    {
+      "name": "Spring cleaning",
+      "idea": "A ring of dust round the edge, thick at its corners.",
+      "kinds": ["blue", "red", "amber", "green", "violet"],
+      "moves": 18,
+      "goals": [
+        {
+          "type": "dust"
+        }
+      ],
+      "board": [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      "dust": [
+        "00000000",
+        "02111120",
+        "01000010",
+        "01000010",
+        "01000010",
+        "01000010",
+        "02111120",
+        "00000000"
+      ],
+      "id": 9,
+      "set": "warm-up",
+      "deals": [4, 15, 21, 25, 34, 16, 23, 28],
+      "stars": [0, 4, 9]
+    }
+  ]
+}
