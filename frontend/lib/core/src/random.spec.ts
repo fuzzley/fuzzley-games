@@ -2,6 +2,7 @@ import {
   type SeedStream,
   createRandom,
   drawAt,
+  hashOf,
   mixSeed,
   randomSeed,
   shuffled,
@@ -26,6 +27,28 @@ const NEGATIVE_PINS = {
   makeup: [1028477388, 2056954771, -1209535130],
   scenery: [-374761400, -749522789, -1124284182],
 } satisfies Record<SeedStream, readonly number[]>;
+
+/**
+ * What the Fuzz Flux sketch's `hash()` gives for a dozen inputs, negative
+ * and past 2³¹ among them, which the deals proven there rely on.
+ */
+const HASH_PINS: readonly (readonly [
+  readonly [number, number, number, number],
+  number,
+])[] = [
+  [[0, 0, 0, 0], 947022269],
+  [[1, 2, 3, 4], 3803265188],
+  [[4, 3, 2, 1], 3112682039],
+  [[12345, 7, 0, 3], 693479868],
+  [[12345, 7, 1, 3], 3303779923],
+  [[12345, 8, 0, 3], 2417337233],
+  [[-1, 0, 0, 0], 3746320181],
+  [[-7, -1, 5, 21], 2038295008],
+  [[2 ** 31, 1, 2, 3], 1167462016],
+  [[2 ** 31 + 9, 64, 5, 11], 3035051303],
+  [[3e9, 2 ** 32 - 1, 7, 100], 921200846],
+  [[-(2 ** 31), 2 ** 33 + 4, 9, 101], 1984837397],
+];
 
 describe("createRandom", () => {
   it("keeps Mulberry32's sequence, which saved games rely on", () => {
@@ -96,6 +119,25 @@ describe("mixSeed", () => {
     );
 
     expect(mixed.size).toBe(streams.length * 1000);
+  });
+});
+
+describe("hashOf", () => {
+  it.each(HASH_PINS)(
+    "keeps the sketch's number for %j, which its deals rely on",
+    ([a, b, c, d], hashed) => {
+      expect(hashOf(a, b, c, d)).toBe(hashed);
+    },
+  );
+
+  it("gives a whole number from 0 up to 2³²", () => {
+    const hashed = Array.from({ length: 1000 }, (_, n) =>
+      hashOf(n * 7919, -n, n, 2 ** 31 + n),
+    );
+
+    expect(
+      hashed.every((h) => Number.isInteger(h) && h >= 0 && h < 2 ** 32),
+    ).toBe(true);
   });
 });
 

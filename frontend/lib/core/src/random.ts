@@ -62,6 +62,25 @@ export function mixSeed(seed: number, n: number, stream: SeedStream): number {
   return seed ^ Math.imul(n, SEED_STREAMS[stream]);
 }
 
+/**
+ * Returns a whole number from 0 up to 2³² for four whole numbers, the same
+ * every time: a draw that keeps its place whatever else a move drew, since
+ * it hangs on no draw before it.
+ *
+ * Each number counts by its low 32 bits alone, so two 2³² apart hash alike.
+ * Its numbers are those of `hash()` in `docs/fuzz-flux/sketch/engine.mjs`,
+ * bit for bit, since the deals proven there rely on them, and
+ * `random.spec.ts` pins them.
+ */
+export function hashOf(a: number, b: number, c: number, d: number): number {
+  let h = 0x9e3779b9 ^ Math.imul(a | 0, 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 15), 0xc2b2ae35) ^ Math.imul(b | 0, 0x27d4eb2f);
+  h = Math.imul(h ^ (h >>> 13), 0x165667b1) ^ Math.imul(c | 0, 0x9e3779b1);
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b) ^ Math.imul(d | 0, 0xc2b2ae3d);
+  h = Math.imul(h ^ (h >>> 15), 0x27d4eb2f);
+  return (h ^ (h >>> 14)) >>> 0;
+}
+
 /** Returns a seed for a new deal. */
 export function randomSeed(random: () => number = Math.random): number {
   return Math.floor(random() * 2 ** 32) | 0;
