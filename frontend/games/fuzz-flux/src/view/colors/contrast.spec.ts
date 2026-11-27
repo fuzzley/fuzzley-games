@@ -34,7 +34,9 @@ const EYES = colorNumber(FUZZBALL.ink);
 // hand and a wave's mark, which lie over the pieces, keep it against the
 // grounds; the page among them is the color of the rim each wears, which
 // every piece keeps 3:1 against, so either reads over any piece. A tuft of
-// fluff takes its kind's ink, and is held as its kind is.
+// fluff takes its kind's ink, and is held as its kind is, or the
+// frizzball's. The effects' white, a ring's, a streak's and a flash's
+// light, keeps it against the grounds it spreads over.
 //
 // Some pairs keep less, as no ink could keep them at 3:1. A kind against
 // its second fur in a dark palette: not even white keeps 3:1 against the
@@ -90,6 +92,7 @@ describe("the board's contrast", () => {
       ["focus ring", ring],
       ["hint's hand", palette.marks],
       ["wave's mark", palette.marks],
+      ["effects' white", palette.flare],
     ];
     return [
       ...grounds.flatMap(([ground, color]) => against(ground, color, pieces)),

@@ -4,16 +4,25 @@ import { FRAMES } from "../../view/art/frame_names";
 import { type ImageLook, PieceLook } from "../../view/art/piece_look";
 import type { Sampled } from "../../view/timeline/timeline";
 import { ATLAS } from "../atlas";
-import { type PaintContext, acrossOf, downOf, shownScale } from "./painter";
+import {
+  type PaintContext,
+  acrossOf,
+  downOf,
+  shownScale,
+  tintIn,
+} from "./painter";
 
 /**
- * How much deeper each of a piece's images draws than the one behind it: a
- * layer sorts by depth alone, keeping those as deep in the order its list
- * holds them, which changes as their depths do, so images of one depth
- * would not stay in the order they were made. Far less than the depth
- * between two rows.
+ * How much deeper each of a piece's images draws than the one behind it,
+ * its glow last: a layer sorts by depth alone, keeping those as deep in
+ * the order its list holds them, which changes as their depths do, so
+ * images of one depth would not stay in the order they were made. Far
+ * less than the depth between two rows.
  */
 const IMAGE_DEPTH = 1 / 4096;
+
+/** Where a piece's glow draws among its images: over all the rest. */
+const GLOW_PLACE = 5;
 
 /**
  * Draws a piece as a move's timeline samples it, as the view's
@@ -87,6 +96,17 @@ export class PieceSprite {
         .setScale(pose.scaleX * look.eyesScale, pose.scaleY * look.eyesScale);
     }
     this.show(this.over, look.over, 4);
+  }
+
+  /** Shows an image as the piece's glow where the frame drawn last lights it, its body lit over all its images in the effects' white, and returns whether it does. */
+  dressGlow(
+    image: GameObjects.Image,
+    { palette }: Readonly<PaintContext>,
+  ): boolean {
+    const { glow } = this.look;
+    if (glow.frame === null || glow.alpha <= 0) return false;
+    tintIn(image, palette.flare);
+    return this.show(image, glow, GLOW_PLACE);
   }
 
   /** Hides every image of the piece. */

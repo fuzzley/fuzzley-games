@@ -1,5 +1,5 @@
 // The shell's part, played for the scene's specs: what the board plays,
-// made of a move played by hand, of a board standing still or of tracks a
+// made of a move played by hand, of a board standing still or of parts a
 // spec draws, a dark palette beside the art's light one, and a shell that
 // hands the scene each and keeps what the scene tells it, the scene run
 // for it.
@@ -24,7 +24,7 @@ import {
 } from "../view/timeline/build";
 import { FEEL } from "../view/timeline/feel";
 import { lookAt } from "../view/timeline/looks";
-import type { Look, PieceTrack, SpriteTrack } from "../view/timeline/timeline";
+import type { Look, PieceTrack, Timeline } from "../view/timeline/timeline";
 import { ART_PALETTE } from "./art_frames";
 import type { MoveFixture } from "./move_fixtures";
 import { moveStartOf } from "./shown_board";
@@ -73,23 +73,20 @@ export function stillPlayOf(grid: GridShown): BoardPlay {
   };
 }
 
-/** A board 3 squares by 3 with nothing on it, which a play of tracks drawn by hand plays over. */
+/** A board 3 squares by 3 with nothing on it, which a play a spec draws plays over. */
 const BARE_GRID: GridShown = {
   width: 3,
   height: 3,
   squares: Array.from({ length: 9 }, () => ({ piece: null, dust: 0 })),
 };
 
-/** Returns the play of a timeline drawing the tracks given and nothing more, over a bare board 3 squares by 3, at rest from the tap. */
-export function playOfTracks(
-  pieces: readonly PieceTrack[],
-  sprites: readonly SpriteTrack[] = [],
-): BoardPlay {
+/** Returns the play of a timeline of the parts a spec draws and nothing more, over a bare board 3 squares by 3, at rest from the tap. */
+export function drawnPlay(parts: Partial<Timeline>): BoardPlay {
   return {
     grid: BARE_GRID,
     timeline: {
-      pieces,
-      sprites,
+      pieces: [],
+      sprites: [],
       effects: [],
       flights: [],
       counts: [],
@@ -99,6 +96,7 @@ export function playOfTracks(
       dim: [],
       restMs: 0,
       end: null,
+      ...parts,
     },
     feel: FEEL,
     landed: false,

@@ -4,7 +4,7 @@ import type { Sampled } from "../timeline/timeline";
 import { eyesSeatOf } from "./eyes";
 import { FRAMES } from "./frame_names";
 import { eyesShiftOf } from "./piece_frames";
-import { type ImageLook, PieceLook, opacityOf } from "./piece_look";
+import { DIM_DEPTH, type ImageLook, PieceLook, opacityOf } from "./piece_look";
 
 /** Returns a plain red fuzzball, but as a spec changes it. */
 function fuzzball(change: Partial<Fuzzball> = {}): Fuzzball {
@@ -161,6 +161,45 @@ describe("PieceLook", () => {
     const across = look.of(sampled({ lookX: -1 }), WISP).eyesX;
 
     expect(across).toBeCloseTo(lookOf(WISP, { lookX: -1 }).eyesX, 9);
+  });
+
+  it("lights a glowing piece's body over all the rest, as opaque as it glows and is unfaded, at most a little under wholly", () => {
+    const look = lookOf(fuzzball(), { glow: 0.5, fade: 0.5 });
+
+    expect({ ...look.glow }).toEqual({
+      frame: FRAMES.body("red", "plain", "rest"),
+      alpha: 0.5 * 0.5 * 0.85,
+    });
+  });
+
+  it("lights no piece that glows none", () => {
+    expect(lookOf(fuzzball()).glow.alpha).toBe(0);
+  });
+
+  it("draws the board's dimming over a piece neither raised nor with its fur on end past halfway, wherever it stands", () => {
+    expect([
+      lookOf(fuzzball(), { y: 9 }).depth,
+      lookOf(fuzzball(), { y: 9, lift: 0.25 }).depth,
+    ]).toEqual([
+      expect.toSatisfy((depth: number) => depth < DIM_DEPTH),
+      expect.toSatisfy((depth: number) => depth < DIM_DEPTH),
+    ]);
+  });
+
+  it("draws a piece raised, or with its fur on end past halfway, over the board's dimming, wherever it stands", () => {
+    expect([
+      lookOf(fuzzball(), { y: -9, raise: 1 }).depth,
+      lookOf(fuzzball(), { y: -9, lift: 0.5 }).depth,
+    ]).toEqual([
+      expect.toSatisfy((depth: number) => depth > DIM_DEPTH),
+      expect.toSatisfy((depth: number) => depth > DIM_DEPTH),
+    ]);
+  });
+
+  it("draws a piece with its fur on end under one raised", () => {
+    expect(lookOf(fuzzball(), { y: 9, lift: 1 }).depth).toBeLessThan(
+      lookOf(fuzzball(), { y: -9, raise: 1 }).depth,
+    );
   });
 
   it("draws the lower of two pieces raised as far over the other", () => {

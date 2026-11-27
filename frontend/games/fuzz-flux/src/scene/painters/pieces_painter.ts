@@ -1,9 +1,12 @@
 import { itemAt } from "@fz/core/records";
-import type { GameObjects, Scene } from "phaser";
+import { type GameObjects, type Scene, TintModes } from "phaser";
 import { MOST_SQUARES } from "../../rules/levels/level_rules";
+import { FRAMES } from "../../view/art/frame_names";
+import { DIM_DEPTH } from "../../view/art/piece_look";
 import type { GridShown } from "../../view/run_state";
 import type { Place } from "../../view/timeline/timeline";
-import type { PaintContext, Painter } from "./painter";
+import { ATLAS } from "../atlas";
+import { PAST_CANVAS, type PaintContext, type Painter } from "./painter";
 import { PieceSprite } from "./piece_sprite";
 
 /** Describes a pool of pieces' sprites, and how many of them the frame before drew. */
@@ -16,13 +19,21 @@ interface Pool {
  * Draws each piece of the play's timeline that shows at the frame's
  * moment, from two pools made once: those on the board, as many as its
  * squares, over the rim; and those falling in from past its edge, as many
- * again, under it, which hides each until it reaches the board.
+ * again, under it, which hides each until it reaches the board. Among
+ * those on the board it draws the glow of the first that glows, the one a
+ * frame shows, as the timeline's limits keep a glow a gap from the last,
+ * a gap longer than any glow; and the board's dimming, in the page's
+ * color, at its depth among them.
  */
 export class PiecesPainter implements Painter {
   /** The sprites of the pieces on the board. */
   readonly onBoard: readonly PieceSprite[];
   /** The sprites of the pieces falling in from past the board's edge. */
   readonly fallingIn: readonly PieceSprite[];
+  /** The glow lighting a piece. */
+  readonly glow: GameObjects.Image;
+  /** The board's dimming, over all the canvas. */
+  readonly dim: GameObjects.Rectangle;
   private readonly board: Pool;
   private readonly falling: Pool;
 
@@ -38,26 +49,50 @@ export class PiecesPainter implements Painter {
     this.fallingIn = spritesIn(scene, layers.falling);
     this.board = { sprites: this.onBoard, drawn: 0 };
     this.falling = { sprites: this.fallingIn, drawn: 0 };
+    this.glow = scene.add
+      .image(0, 0, ATLAS, FRAMES.square)
+      .setTintMode(TintModes.FILL)
+      .setVisible(false);
+    this.dim = scene.add
+      .rectangle(0, 0, 2 * PAST_CANVAS, 2 * PAST_CANVAS)
+      .setDepth(DIM_DEPTH)
+      .setVisible(false);
+    layers.pieces.add([this.glow, this.dim]);
   }
 
-  /** Draws each piece shown at the frame's moment, a piece whose track starts past the board's edge among those falling in, and hides the sprites left over. */
+  /** Draws each piece shown at the frame's moment, a piece whose track starts past the board's edge among those falling in, its glow and the board's dimming, and hides what is left over. */
   draw(context: Readonly<PaintContext>): void {
     const { board, falling } = this;
     const { play, frame } = context;
     const tracks = play.timeline.pieces;
     let onBoard = 0;
     let fallingIn = 0;
+    let glowing = false;
     for (let index = 0; index < tracks.length; index++) {
       const sampled = itemAt(frame.pieces, index);
       if (!sampled.shown || sampled.drawn === null) continue;
       if (startsPastEdge(itemAt(tracks, index).look, play.grid)) {
         falling.sprites[fallingIn++]?.paint(sampled, sampled.drawn, context);
-      } else {
-        board.sprites[onBoard++]?.paint(sampled, sampled.drawn, context);
+        continue;
       }
+      const sprite = board.sprites[onBoard++];
+      sprite?.paint(sampled, sampled.drawn, context);
+      glowing ||= sprite?.dressGlow(this.glow, context) ?? false;
     }
     hideFrom(board, onBoard);
     hideFrom(falling, fallingIn);
+    if (!glowing) this.glow.setVisible(false);
+    this.dimTo(frame.board.dim, context.palette.page);
+  }
+
+  /** Dims the board as far as the frame has it, in the page's color, or shows no dimming for none. */
+  private dimTo(dim: number, page: number): void {
+    const { dim: shown } = this;
+    if (dim <= 0) {
+      shown.setVisible(false);
+      return;
+    }
+    shown.setFillStyle(page).setAlpha(dim).setVisible(true);
   }
 }
 

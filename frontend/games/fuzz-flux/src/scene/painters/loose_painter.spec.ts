@@ -1,15 +1,19 @@
 import { itemAt } from "@fz/core/records";
+import { type GameObjects, TintModes } from "phaser";
+import { ART_PALETTE } from "../../testing/art_frames";
 import type { Fuzzball } from "../../rules/catalog/pieces";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import {
   type Board,
   layoutOf,
   playOf,
-  playOfTracks,
+  drawnPlay,
   playTo,
   startBoard,
 } from "../../testing/scene_shell";
 import { FRAMES } from "../../view/art/frame_names";
+import { type Fluff, type TuftFlight, tuftAt } from "../../view/effects/tufts";
+import { FEEL } from "../../view/timeline/feel";
 import { lookAt } from "../../view/timeline/looks";
 import type {
   LooseDrawn,
@@ -45,14 +49,19 @@ function looseTrackOf(
 /** Runs the scene on a board drawing the loose sprites' tracks given, and returns it once it has drawn a frame of them. */
 async function boardOf(...tracks: readonly SpriteTrack[]): Promise<Board> {
   const board = await startBoard(MOVE_FIXTURES.bunch);
-  playTo(board, playOfTracks([], tracks), 16);
+  playTo(board, drawnPlay({ sprites: tracks }), 16);
   return board;
+}
+
+/** Returns the loose bits the board shows, frames and tufts alike. */
+function bitsShown({ scene }: Board): readonly GameObjects.Image[] {
+  return scene.loose.bits.filter(({ visible }) => visible);
 }
 
 /** Returns how many loose sprites the board shows, frames and copies alike. */
 function looseShown({ scene }: Board): number {
   return (
-    scene.loose.frames.filter(({ visible }) => visible).length +
+    scene.loose.bits.filter(({ visible }) => visible).length +
     scene.loose.copies.filter(({ body }) => body.visible).length
   );
 }
@@ -67,7 +76,7 @@ describe("LoosePainter", () => {
     );
     const { x, y, square } = layoutOf(board);
 
-    const image = itemAt(board.scene.loose.frames, 0);
+    const image = itemAt(board.scene.loose.bits, 0);
 
     expect({
       frame: image.frame.name,
@@ -125,6 +134,116 @@ describe("LoosePainter", () => {
     expect([looseShown(board), copies.length > 0]).toEqual([
       copies.length,
       true,
+    ]);
+  });
+});
+
+describe("LoosePainter's fluff", () => {
+  /** A fluff of 6 red tufts from the middle square at the tap. */
+  const FLUFF: Fluff = {
+    what: "fluff",
+    atMs: 0,
+    at: { x: 1, y: 1 },
+    tuft: FRAMES.tuft("red"),
+    count: 6,
+    power: 1,
+  };
+
+  /** Runs the scene on a board throwing the fluff given, and plays it a time in. */
+  async function fluffedBoard(
+    effects: readonly Fluff[],
+    ms = 16,
+  ): Promise<Board> {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+    playTo(board, drawnPlay({ effects }), ms);
+    return board;
+  }
+
+  it("throws each tuft of a fluff from its moment, where the view flies it", async () => {
+    const board = await fluffedBoard([FLUFF]);
+    const { x, y, square } = layoutOf(board);
+    const flight: TuftFlight = {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      length: 0,
+      width: 0,
+      alpha: 0,
+      frizzy: false,
+    };
+    tuftAt(FLUFF, 1, 16, FEEL, flight);
+
+    const tufts = bitsShown(board);
+
+    expect({
+      count: tufts.length,
+      frame: tufts[1]?.frame.name,
+      at: [tufts[1]?.x, tufts[1]?.y],
+      scale: [tufts[1]?.scaleX, tufts[1]?.scaleY],
+    }).toEqual({
+      count: 6,
+      frame: FRAMES.tuft("red"),
+      at: [
+        expect.closeTo(x + (flight.x + 0.5) * square, 9),
+        expect.closeTo(y + (flight.y + 0.5) * square, 9),
+      ],
+      scale: [
+        expect.closeTo(flight.length, 9),
+        expect.closeTo(flight.width, 9),
+      ],
+    });
+  });
+
+  it("fills every third tuft with the frizzball's color, and shows the rest in their own", async () => {
+    const board = await fluffedBoard([FLUFF]);
+
+    const fills = bitsShown(board).map(({ tint, tintMode }) =>
+      tintMode === TintModes.FILL ? tint : null,
+    );
+
+    expect(fills).toEqual([
+      ART_PALETTE.frizzball.body,
+      null,
+      null,
+      ART_PALETTE.frizzball.body,
+      null,
+      null,
+    ]);
+  });
+
+  it("lets each tuft go once its life is over", async () => {
+    const board = await fluffedBoard(
+      [FLUFF],
+      FEEL.tuftLifeMs + FEEL.tuftLifeSpreadMs + 16,
+    );
+
+    expect(bitsShown(board)).toEqual([]);
+  });
+
+  it("flies a tuft on as the next play starts", async () => {
+    const board = await fluffedBoard([FLUFF]);
+
+    playTo(board, drawnPlay({}), 16);
+
+    expect(bitsShown(board)).toHaveLength(6);
+  });
+
+  it("draws a loose frame in its own colors in a bit that last drew a tuft", async () => {
+    const board = await fluffedBoard([FLUFF]);
+
+    playTo(
+      board,
+      drawnPlay({
+        sprites: [looseTrackOf({ what: "frame", frame: FRAMES.cageBar })],
+      }),
+      FEEL.tuftLifeMs + FEEL.tuftLifeSpreadMs,
+    );
+
+    const [bar] = bitsShown(board);
+    expect([bitsShown(board).length, bar?.tintMode, bar?.tint]).toEqual([
+      1,
+      TintModes.MULTIPLY,
+      0xffffff,
     ]);
   });
 });

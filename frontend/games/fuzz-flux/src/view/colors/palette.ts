@@ -57,6 +57,12 @@ export interface BoardPalette extends PieceInks {
   readonly spark: number;
   /** What lies over the pieces to be read, the hint's hand and a wave's mark: the text, each with a rim of the page's color. */
   readonly marks: number;
+  /**
+   * The effects' white, the light a ring, a streak and a flash give off
+   * and a fuzzball's glow: the text, which shows on the board in every
+   * palette, as the sketch draws its white in the frizzball's color.
+   */
+  readonly flare: number;
 }
 
 /**
@@ -88,6 +94,7 @@ export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
     frizzball: { body: text, eyes: page },
     spark: colorNumber(roles.warning),
     marks: text,
+    flare: text,
     ...pieceInks(mode),
   };
 }

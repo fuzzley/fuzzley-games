@@ -1,7 +1,9 @@
-// What each of the board's painters draws a frame from, and where a place
-// on the board, in squares, lies on the canvas.
+// What each of the board's painters draws a frame from, where a place on
+// the board, in squares, lies on the canvas, how far past the canvas what
+// covers it reaches, and how an image takes a color.
 
 import type { ArtScale } from "@fz/phaser/shapes";
+import type { GameObjects } from "phaser";
 import type { BoardMetrics } from "../../view/board/metrics";
 import type { BoardPalette } from "../../view/colors/palette";
 import type { Frame } from "../../view/timeline/sample";
@@ -17,11 +19,16 @@ export interface PaintContext {
   readonly clock: PlayClock;
   /** Where the board lies on the canvas. */
   metrics: BoardMetrics;
+  /** How many device pixels a CSS pixel is. */
+  pixelRatio: number;
   /** The scale the atlas was last baked at, which each of its frames is shown at the board's square from. */
   baked: ArtScale;
   /** The palette the atlas was last baked in. */
   palette: BoardPalette;
 }
+
+/** How far past the canvas what covers it reaches, in device pixels, so a shaken board shows no edge of it. */
+export const PAST_CANVAS = 1 << 16;
 
 /** Draws a part of the board, in the layers it was given, each frame. */
 export interface Painter {
@@ -41,4 +48,9 @@ export function downOf(metrics: BoardMetrics, y: number): number {
 /** Returns how far a frame of the atlas is scaled to show at the board's square, as it was baked for another. */
 export function shownScale({ metrics, baked }: Readonly<PaintContext>): number {
   return metrics.square / baked.unit;
+}
+
+/** Tints an image in a color, over its own, where it is tinted in another. */
+export function tintIn(image: GameObjects.Image, color: number): void {
+  if (image.tint !== color) image.setTint(color);
 }

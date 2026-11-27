@@ -1,6 +1,7 @@
 // How a piece is drawn at a moment, as a move's timeline samples it: the
 // frame of each of its images and how opaque each shows, where its eyes
-// sit on its body, and how deep it draws among the board's other pieces.
+// sit on its body, its glow, and how deep it draws among the board's other
+// pieces and its dimming.
 
 import { clamp, lerp } from "@fz/core/math";
 import type { FuzzballFace } from "@fz/style/fuzzball";
@@ -32,25 +33,40 @@ const HALF_ON_END = 0.5;
  * How much deeper a piece draws for each square further down the board,
  * so the lower of two pieces raised as far draws over the other, as the
  * sketch draws them: little enough that no piece on the board, or falling
- * in from past its edge, reaches the depth of one raised a level more.
+ * in from past its edge, reaches the depth of the board's dimming or of
+ * one raised a level more.
  */
 const ROW_DEPTH = 1 / 64;
+
+/**
+ * How deep the board's dimming draws among the pieces: over each piece
+ * neither raised nor with its fur on end past halfway, and under the rest,
+ * as the sketch dims the board as a frizzball goes off.
+ */
+export const DIM_DEPTH = 0.25;
+
+/** How deep a piece raised no further draws once its fur stands on end past halfway, which puts it over the dimming. */
+const ON_END_DEPTH = 0.5;
+
+/** How opaque a piece's glow is at its brightest, over its body. */
+const GLOW_ALPHA = 0.85;
 
 /** Returns how opaque a sprite shows, as far faded as it is sampled. */
 export function opacityOf(fade: number): number {
   return clamp(1 - fade, 0, 1);
 }
 
-/** Returns how deep a sprite draws: by how far it is raised, and among those raised as far, deeper the further down the board it stands. */
-function depthOf(raise: number, y: number): number {
-  return raise + y * ROW_DEPTH;
+/** Returns how deep a piece draws: by how far it is raised or its fur stands on end, and among those as high, deeper the further down the board it stands. */
+function depthOf({ raise, lift, y }: Readonly<Sampled>): number {
+  const height = raise < 1 && lift >= HALF_ON_END ? ON_END_DEPTH : raise;
+  return height + y * ROW_DEPTH;
 }
 
 /**
  * Works out how a piece is drawn as it is sampled, into fields it keeps,
  * so a frame makes no record: what it wears behind it, its body, a second
- * body over it as one look gives way to another, its eyes, and what it
- * wears over them.
+ * body over it as one look gives way to another, its eyes, what it wears
+ * over them, and its glow, its body lit in the effects' white.
  *
  * As its fur stands on end, the frame with it on end fades in over the one
  * at rest. As a special's second fur grows in, the special's body fades in
@@ -69,6 +85,8 @@ export class PieceLook {
   readonly eyes: ImageLook = { frame: null, alpha: 0 };
   /** What the piece wears over its body and eyes, a cage. */
   readonly over: ImageLook = { frame: null, alpha: 0 };
+  /** Its glow, its body's frame lit over all the rest. */
+  readonly glow: ImageLook = { frame: null, alpha: 0 };
   /** How far across from the piece's place its eyes' middle lies, in squares, squashed, stretched and turned with it. */
   eyesX = 0;
   /** How far down from the piece's place its eyes' middle lies, in squares, squashed, stretched and turned with it. */
@@ -100,8 +118,13 @@ export class PieceLook {
     }
     show(this.eyes, eyesFrameOf(piece, sampled.face), alpha);
     show(this.over, overFrameOf(piece), alpha);
+    show(
+      this.glow,
+      this.body.frame,
+      alpha * clamp(sampled.glow, 0, 1) * GLOW_ALPHA,
+    );
     this.seatEyes(sampled, piece, fur, grown);
-    this.depth = depthOf(sampled.raise, sampled.y);
+    this.depth = depthOf(sampled);
     return this;
   }
 

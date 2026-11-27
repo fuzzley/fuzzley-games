@@ -8,15 +8,13 @@ import type { GridShown } from "../../view/run_state";
 import type { Timeline } from "../../view/timeline/timeline";
 import { ATLAS } from "../atlas";
 import {
+  PAST_CANVAS,
   type PaintContext,
   type Painter,
   acrossOf,
   downOf,
   shownScale,
 } from "./painter";
-
-/** How far past the canvas the rim reaches, in device pixels, so a shaken board shows no edge of it. */
-const RIM_REACH = 1 << 16;
 
 /**
  * Draws the board's squares as the play the board draws lays them out: a
@@ -136,10 +134,10 @@ export class BoardPainter implements Painter {
     this.rim
       .clear()
       .fillStyle(page)
-      .fillRect(-RIM_REACH, -RIM_REACH, 2 * RIM_REACH, top + RIM_REACH)
-      .fillRect(-RIM_REACH, bottom, 2 * RIM_REACH, RIM_REACH)
-      .fillRect(-RIM_REACH, top, left + RIM_REACH, bottom - top)
-      .fillRect(right, top, RIM_REACH, bottom - top);
+      .fillRect(-PAST_CANVAS, -PAST_CANVAS, 2 * PAST_CANVAS, top + PAST_CANVAS)
+      .fillRect(-PAST_CANVAS, bottom, 2 * PAST_CANVAS, PAST_CANVAS)
+      .fillRect(-PAST_CANVAS, top, left + PAST_CANVAS, bottom - top)
+      .fillRect(right, top, PAST_CANVAS, bottom - top);
   }
 }
 

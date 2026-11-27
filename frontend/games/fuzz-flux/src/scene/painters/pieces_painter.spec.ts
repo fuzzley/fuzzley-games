@@ -1,18 +1,19 @@
 import { itemAt } from "@fz/core/records";
-import type { GameObjects } from "phaser";
+import { type GameObjects, TintModes } from "phaser";
 import type { Fuzzball } from "../../rules/catalog/pieces";
+import { ART_PALETTE } from "../../testing/art_frames";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import {
   type Board,
   layoutOf,
   playOf,
-  playOfTracks,
+  drawnPlay,
   playTo,
   startBoard,
   stillTrackOf,
 } from "../../testing/scene_shell";
 import { FRAMES } from "../../view/art/frame_names";
-import { PieceLook } from "../../view/art/piece_look";
+import { DIM_DEPTH, PieceLook } from "../../view/art/piece_look";
 import { frameFor, sampleAt } from "../../view/timeline/sample";
 import type { PieceTrack, Sampled } from "../../view/timeline/timeline";
 import type { PieceSprite } from "./piece_sprite";
@@ -33,7 +34,7 @@ function fuzzball(change: Partial<Fuzzball> = {}): Fuzzball {
 /** Runs the scene on a board drawing the pieces' tracks given, and returns it once it has drawn a frame of them. */
 async function boardOf(...tracks: readonly PieceTrack[]): Promise<Board> {
   const board = await startBoard(MOVE_FIXTURES.bunch);
-  playTo(board, playOfTracks(tracks), 16);
+  playTo(board, drawnPlay({ pieces: tracks }), 16);
   return board;
 }
 
@@ -178,13 +179,69 @@ describe("PiecesPainter", () => {
     const board = await boardOf(stillTrackOf(piece));
     playTo(
       board,
-      playOfTracks([stillTrackOf(piece, { raise: 2, furIn: 0.5 })]),
+      drawnPlay({ pieces: [stillTrackOf(piece, { raise: 2, furIn: 0.5 })] }),
       16,
     );
 
     const depths = spriteAt(board, 0).images.map(({ depth }) => depth);
 
     expect(depths).toEqual([...new Set(depths)].sort((p, q) => p - q));
+  });
+
+  it("lights a glowing piece's body with the glow, over all its images, filled with the effects' white", async () => {
+    const piece = fuzzball({ caged: true });
+    const track = stillTrackOf(piece, { x: 2, glow: 1 });
+    const board = await boardOf(
+      stillTrackOf(fuzzball({ id: 2 }), { x: 0 }),
+      track,
+    );
+    const look = new PieceLook().of(sampledOf(track), piece);
+    const { glow } = board.scene.pieces;
+
+    expect({
+      shown: showing(glow),
+      at: [glow.x, glow.y],
+      fill: [glow.tint, glow.tintMode],
+      over: glow.depth > spriteAt(board, 1).over.depth,
+    }).toEqual({
+      shown: { ...look.glow },
+      at: [spriteAt(board, 1).body.x, spriteAt(board, 1).body.y],
+      fill: [ART_PALETTE.flare, TintModes.FILL],
+      over: true,
+    });
+  });
+
+  it("shows no glow where no piece glows", async () => {
+    const board = await boardOf(stillTrackOf(fuzzball(), { glow: 1 }));
+
+    playTo(board, drawnPlay({ pieces: [stillTrackOf(fuzzball())] }), 16);
+
+    expect(board.scene.pieces.glow.visible).toBe(false);
+  });
+
+  it("dims the board in the page's color as far as the timeline has it, at the dimming's depth among the pieces", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+
+    playTo(
+      board,
+      drawnPlay({ dim: [{ atMs: 0, ms: 0, to: 0.5, easing: "linear" }] }),
+      16,
+    );
+
+    const { dim } = board.scene.pieces;
+    expect([
+      dim.visible,
+      dim.isFilled,
+      dim.fillColor,
+      dim.alpha,
+      dim.depth,
+    ]).toEqual([true, true, ART_PALETTE.page, 0.5, DIM_DEPTH]);
+  });
+
+  it("shows no dimming where the board is not dimmed", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+
+    expect(board.scene.pieces.dim.visible).toBe(false);
   });
 
   it("draws a piece falling in from past the board's edge under the rim, which hides it", async () => {
@@ -225,7 +282,7 @@ describe("PiecesPainter", () => {
   it("hides a piece once it is gone", async () => {
     const board = await startBoard(MOVE_FIXTURES.bunch);
     const gone: PieceTrack = { ...stillTrackOf(fuzzball()), untilMs: 32 };
-    playTo(board, playOfTracks([gone]), 16);
+    playTo(board, drawnPlay({ pieces: [gone] }), 16);
 
     board.run.advance(32);
 

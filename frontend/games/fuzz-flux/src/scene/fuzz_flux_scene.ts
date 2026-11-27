@@ -4,6 +4,7 @@ import { type Viewport, roomInside } from "@fz/phaser/layout";
 import {
   canvasChanged,
   onFirstFrame,
+  softDisc,
   uniqueSceneKey,
   viewportOf,
 } from "@fz/phaser/scene";
@@ -15,12 +16,16 @@ import type { GridShown } from "../view/run_state";
 import { type Frame, frameFor, sampleAt } from "../view/timeline/sample";
 import type { Timeline } from "../view/timeline/timeline";
 import { BoardAtlas } from "./atlas";
+import { DISC } from "./disc";
 import { LAYERS, type Layer } from "./layers";
 import { BoardPainter } from "./painters/board_painter";
+import { BoardShake } from "./painters/board_shake";
+import { EffectsPainter } from "./painters/effects_painter";
 import { LoosePainter } from "./painters/loose_painter";
 import { MarksPainter } from "./painters/marks_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PiecesPainter } from "./painters/pieces_painter";
+import { PuffsPainter } from "./painters/puffs_painter";
 import { type BoardPlay, PlayClock } from "./play_clock";
 
 /** What the scene asks of the shell, and tells it. */
@@ -48,8 +53,9 @@ export interface FuzzFluxSceneOptions {
  * plays by, standing the play the shell hands it on it, hands the clock to
  * the shell each frame, and draws the play's timeline as it samples at the
  * moment the play stands at: the squares and their dust, the pieces, the
- * loose sprites and the waves' marks, on a board laid out to the canvas,
- * its art baked for it.
+ * effects, the waves' marks and what flies loose, the board dimmed and
+ * shaken as the timeline has it, on a board laid out to the canvas, its
+ * art baked for it.
  */
 export class FuzzFluxScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -72,12 +78,16 @@ export class FuzzFluxScene extends Scene {
 
   /** Draws the squares, their dust and the rim. */
   board!: BoardPainter;
-  /** Draws the pieces. */
+  /** Draws the puffs of dust a sweep raises. */
+  puffs!: PuffsPainter;
+  /** Draws the pieces, a glow and the dimming. */
   pieces!: PiecesPainter;
-  /** Draws the loose sprites. */
-  loose!: LoosePainter;
+  /** Draws the rings, the streaks, the bolts and the flash. */
+  effects!: EffectsPainter;
   /** Draws the waves' marks. */
   marks!: MarksPainter;
+  /** Draws the loose sprites and the fluff. */
+  loose!: LoosePainter;
   /** Every painter, back to front, which each frame draws. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
@@ -106,17 +116,29 @@ export class FuzzFluxScene extends Scene {
     const play = options.play();
     this.measure(play.grid);
     this.atlas = new BoardAtlas(this, options.palette(), this.square);
+    softDisc(this, DISC.key, DISC.size);
     const layers = this.layers();
     this.board = new BoardPainter(this, layers);
+    this.puffs = new PuffsPainter(this, layers.puffs);
     this.pieces = new PiecesPainter(this, layers);
-    this.loose = new LoosePainter(this, layers.loose);
+    this.effects = new EffectsPainter(this, layers);
     this.marks = new MarksPainter(this, layers.marks);
-    this.painters = [this.board, this.pieces, this.loose, this.marks];
+    this.loose = new LoosePainter(this, layers.loose);
+    this.painters = [
+      this.board,
+      this.puffs,
+      this.pieces,
+      this.effects,
+      this.marks,
+      this.loose,
+      new BoardShake(this.cameras.main),
+    ];
     this.context = {
       play,
       frame: this.frameOf(play.timeline),
       clock: this.clock,
       metrics: this.metrics,
+      pixelRatio: this.square.pixelRatio,
       baked: this.atlas.scale,
       palette: this.atlas.palette,
     };
@@ -156,6 +178,7 @@ export class FuzzFluxScene extends Scene {
       this.frameOf(play.timeline),
     );
     context.metrics = this.metrics;
+    context.pixelRatio = this.square.pixelRatio;
     context.baked = this.atlas.scale;
     context.palette = this.atlas.palette;
     this.painters.forEach(this.paint);
