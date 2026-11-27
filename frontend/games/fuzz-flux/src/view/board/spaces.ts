@@ -1,10 +1,22 @@
 // The board's squares in the screen's frame, x across from the left and y
 // down from the top, whichever way the wind has turned the board's own: the
-// square under a point on the canvas, and where a square lies there.
+// ways a square has neighbors, the square under a point on the canvas, and
+// where a square lies there.
 
 import type { Point } from "@fz/phaser/shapes";
 import type { Square } from "../../rules/board/cells";
 import type { BoardMetrics } from "./metrics";
+
+/** Every way on the screen a square has a neighbor. */
+export const WAYS = [
+  "up",
+  "right",
+  "down",
+  "left",
+] as const satisfies readonly string[];
+
+/** A way on the screen, such as "left". */
+export type Way = (typeof WAYS)[number];
 
 /**
  * Returns the square under a point on the canvas, in device pixels, or null
