@@ -1,7 +1,8 @@
 /**
  * What the scripts store for a page to take up: a level in play, kept by
  * the rules through `src/testing/screenshot_api.ts`, as the game stores
- * one, over which `check-layout.mjs` checks the layout, each ended.
+ * one. `check-layout.mjs` checks the layout over such levels ended, and
+ * `capture-screenshots.mjs` shows one mid-move.
  */
 import { join } from "node:path";
 import { importThroughVite } from "@fz/dev/script";

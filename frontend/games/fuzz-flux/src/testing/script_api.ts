@@ -18,7 +18,7 @@ export interface ScriptRun {
   readonly moves: readonly ScriptMove[];
 }
 
-/** Holds what `tools/check-layout.mjs` takes from the game: a level in play kept, and the version it is kept under. */
+/** Holds what `tools/check-layout.mjs` and `tools/capture-screenshots.mjs` take from the game: a level in play kept, and the version it is kept under. */
 export interface ScreenshotApi {
   /** Returns a level in play as storage keeps it, for a page to take up. */
   readonly keptRun: (run: ScriptRun) => object;
