@@ -1,5 +1,5 @@
-import { SR } from "@fz/dev/synth";
-import { shaped, toward } from "./voices.mjs";
+import { SR, amplitudeAt, osc } from "@fz/dev/synth";
+import { shaped, steep, swell, toward } from "./voices.mjs";
 
 /** A second of a steady level of 1, to shape. */
 const STEADY = new Float64Array(SR).fill(1);
@@ -51,5 +51,44 @@ describe("toward", () => {
       expect.closeTo(100 + 300 / Math.E, 6),
       expect.closeTo(100 + 300 / Math.E ** 2, 6),
     ]);
+  });
+});
+
+describe("swell", () => {
+  it("rises from nothing to 1 halfway and falls back to nothing at its end, and stays there", () => {
+    const swelling = swell(0.2);
+
+    expect([0, 0.1, 0.2, 0.3].map(swelling)).toEqual([
+      0,
+      1,
+      expect.closeTo(0, 6),
+      expect.closeTo(0, 6),
+    ]);
+  });
+
+  it("starts later and ends sooner by its power", () => {
+    const swelling = swell(0.2, 2);
+
+    expect([swelling(0.05), swelling(0.15)]).toEqual([
+      expect.closeTo(0.5, 6),
+      expect.closeTo(0.5, 6),
+    ]);
+  });
+});
+
+describe("steep", () => {
+  it("keeps a tone an octave under its cutoff, halves one's power at it and cuts one an octave over by 24 dB or more", () => {
+    const heard = (freq: number): number =>
+      20 * Math.log10(amplitudeAt(steep(osc("sine", freq, 0.5), 2000), freq));
+
+    expect({
+      under: heard(1000),
+      at: heard(2000),
+      overCut24: heard(4000) <= -24,
+    }).toEqual({
+      under: expect.closeTo(0, 1) as unknown,
+      at: expect.closeTo(-3, 1) as unknown,
+      overCut24: true,
+    });
   });
 });

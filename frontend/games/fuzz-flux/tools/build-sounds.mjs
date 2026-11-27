@@ -20,6 +20,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { CONSOLE, isStop, readArgs, stopWith } from "@fz/dev/script";
 import { SR, centered, dB, fade, normalize, wav } from "@fz/dev/synth";
+import { RECIPES as BOARD } from "./sounds/board.mjs";
 import { RECIPES as MOVE } from "./sounds/move.mjs";
 import { RECIPES as SPECIALS } from "./sounds/specials.mjs";
 
@@ -56,7 +57,7 @@ import { RECIPES as SPECIALS } from "./sounds/specials.mjs";
  *
  * @type {readonly Recipe[]}
  */
-export const RECIPES = [...MOVE, ...SPECIALS];
+export const RECIPES = [...MOVE, ...SPECIALS, ...BOARD];
 
 /** Where the WAVs are written, which git ignores. */
 const WAV_FOLDER = join(import.meta.dirname, "sounds/wav");

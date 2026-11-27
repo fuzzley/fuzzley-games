@@ -1,8 +1,8 @@
 // What the recipes share: the envelope each part of a sound is shaped by,
-// a value that settles toward another, the voices several sounds are made
-// of (a soft mallet's note, a small bell, a buzz, a rush of air and a
-// sparkle) and the small room many are heard in, each built of
-// `@fz/dev/synth`'s signals.
+// a swell, a value that settles toward another, a steep low-pass, the
+// voices several sounds are made of (a soft mallet's note, a small bell, a
+// buzz, a chirp, a rush of air and a sparkle) and the small room many are
+// heard in, each built of `@fz/dev/synth`'s signals.
 
 import {
   SR,
@@ -16,6 +16,7 @@ import {
   modes,
   noise,
   osc,
+  points,
   read,
   reverb,
   samples,
@@ -52,6 +53,18 @@ export function shaped(x, { attack, hold = 0, decay, curve = 1 }) {
 }
 
 /**
+ * Returns a swell: a rise from nothing to 1 and a fall back over `seconds`,
+ * half a sine's arch, bowed by a power, and nothing after.
+ *
+ * @param {number} seconds
+ * @param {number} [power] Above 1, it starts later and ends sooner; under 1, it is broader.
+ * @returns {(t: number) => number}
+ */
+export function swell(seconds, power = 1) {
+  return (t) => Math.sin((Math.PI * Math.min(t, seconds)) / seconds) ** power;
+}
+
+/**
  * Returns a value that moves from one number toward another, most of its
  * way early: two-thirds of it in `seconds`, and two-thirds of what is left
  * in as long again.
@@ -63,6 +76,18 @@ export function shaped(x, { attack, hold = 0, decay, curve = 1 }) {
  */
 export function toward(from, to, seconds) {
   return (t) => to + (from - to) * Math.exp(-t / seconds);
+}
+
+/**
+ * Returns a sound low-passed steeply, as a fourth-order Butterworth filter
+ * does, for a bright one that must keep nothing above 6 kHz.
+ *
+ * @param {Signal} x
+ * @param {number} cutoff In Hz.
+ * @returns {Signal}
+ */
+export function steep(x, cutoff) {
+  return filter(filter(x, "lp", cutoff, 0.54), "lp", cutoff, 1.31);
 }
 
 /**
@@ -286,4 +311,58 @@ export function buzz(freq, seconds, top, tilt) {
     out[i] = 0.6 * v;
   }
   return out;
+}
+
+/**
+ * Describes a chirp, its pitches in Hz.
+ *
+ * @typedef {object} ChirpHow
+ * @property {number} from The pitch it starts on.
+ * @property {number} rise How many semitones it climbs.
+ * @property {number} seconds
+ * @property {readonly [number, number]} [open] Its first vowel's two resonances.
+ * @property {readonly [number, number]} [close] Its last vowel's.
+ * @property {number} [over] How long its climb takes, in seconds.
+ * @property {number} [wobble] How deep its vibrato grows, a share of its pitch.
+ */
+
+/**
+ * Returns a chirp: a buzz that climbs, through two resonances that move
+ * from one vowel to another as a mouth opens, a vibrato growing in from
+ * 80 ms, and dying away in its last 90 ms.
+ *
+ * @param {ChirpHow} how
+ * @returns {Signal}
+ */
+export function chirped({
+  from,
+  rise,
+  seconds,
+  open = [390, 1130],
+  close = [950, 1420],
+  over = 0.1,
+  wobble = 0.012,
+}) {
+  const sung = (/** @type {number} */ t) => {
+    const climbed = from * 2 ** ((rise * Math.min(1, t / over)) / 12);
+    const late = Math.max(0, Math.min(1, (t - 0.08) / 0.08));
+    return climbed * (1 + wobble * late * Math.sin(2 * Math.PI * 7 * t));
+  };
+  const source = buzz(sung, seconds, 5500, 1.1);
+  const vowel = (/** @type {0 | 1} */ k) =>
+    points(
+      [
+        [0, open[k]],
+        [over * 1.2, close[k]],
+      ],
+      seconds,
+    );
+  return shaped(
+    mix([
+      filter(source, "bp", vowel(0), 5),
+      { x: filter(source, "bp", vowel(1), 7), gain: 0.7 },
+      { x: filter(source, "lp", 900), gain: 0.2 },
+    ]),
+    { attack: 0.012, hold: Math.max(0, seconds - 0.012 - 0.09), decay: 0.03 },
+  );
 }
