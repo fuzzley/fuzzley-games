@@ -1,8 +1,8 @@
 // A wave's board as its bunches strike it, before it falls: what gathering
-// a fuzzball does to its square, the special a bunch leaves, and what a
-// bunch does beside it, each element taking its part through its rule.
-// Every hit is written down in the order struck, and every goal counted as
-// it goes.
+// a fuzzball or the frizzball does to its square, the special a bunch
+// leaves, and what a bunch does beside it, each element taking its part
+// through its rule. Every hit is written down in the order struck, and
+// every goal counted as it goes.
 
 import { itemAt, recordOf } from "@fz/core/records";
 import type { Game } from "../board/board";
@@ -21,6 +21,7 @@ import type {
 } from "../elements/element_rule";
 import { type Taken, countedOff } from "../move/goals";
 import type { Blast, Hit } from "../move/record";
+import { commonestKind } from "./frizzball";
 
 /**
  * Describes where a hit came from: its square, the step that reached it,
@@ -101,30 +102,38 @@ export class Striking {
   }
 
   /**
-   * Gathers a square's fuzzball, sweeping what lies under it, and returns
-   * the special it wore going off there, or null for a plain one.
+   * Gathers a square's fuzzball or the frizzball, sweeping what lies under
+   * it, and returns what goes off there: the special the fuzzball wore, or
+   * the frizzball, taking the kind the board as it stands holds most of;
+   * null for a plain fuzzball.
    *
-   * @throws {Error} for a square that holds no fuzzball.
+   * @throws {Error} for a square that holds neither.
    */
   gather(square: number, struck: Struck): SetOff | null {
-    const fuzzball = this.fuzzballAt(square);
+    const piece = itemAt(this.pieces, square);
+    if (piece?.what !== "fuzzball" && piece?.what !== "frizzball") {
+      throw new Error(
+        `Square ${String(square)} holds no fuzzball and no frizzball.`,
+      );
+    }
     this.pieces[square] = null;
-    this.countOff({ what: "gather", kind: fuzzball.kind });
-    this.hits.push({
-      ...struck,
-      what: "gathered",
-      piece: fuzzball.id,
-      kind: fuzzball.kind,
-    });
+    const kind = piece.what === "fuzzball" ? piece.kind : null;
+    if (kind !== null) {
+      this.countOff({ what: "gather", kind });
+    }
+    this.hits.push({ ...struck, what: "gathered", piece: piece.id, kind });
     this.takePart("struckUnder", square, struck);
-    return fuzzball.special === null
+    if (piece.what === "frizzball") {
+      return {
+        what: "frizzball",
+        square,
+        piece: piece.id,
+        kind: commonestKind({ pieces: this.pieces }, this.game.kinds),
+      };
+    }
+    return piece.special === null
       ? null
-      : {
-          what: fuzzball.special,
-          square,
-          piece: fuzzball.id,
-          kind: fuzzball.kind,
-        };
+      : { what: piece.special, square, piece: piece.id, kind: piece.kind };
   }
 
   /**

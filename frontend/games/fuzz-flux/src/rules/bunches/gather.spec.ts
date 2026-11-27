@@ -465,13 +465,19 @@ describe("gatherBunch", () => {
     });
   });
 
-  it("throws for a bunch on a square that holds no fuzzball", () => {
-    const game = gameFrom(["1"]);
-    const striking = new Striking(game, NO_PART);
-    const bunch = { squares: [0], kind: "red", makes: null } as const;
+  it.each([
+    ["gathered", null],
+    ["staying", { what: "dasher-down", square: 0 }],
+  ] as const)(
+    "throws for a bunch whose %s square holds no fuzzball",
+    (_, makes) => {
+      const game = gameFrom(["1"]);
+      const striking = new Striking(game, NO_PART);
+      const bunch = { squares: [0], kind: "red", makes } as const;
 
-    expect(() => gatherBunch(striking, bunch)).toThrow(/holds no fuzzball/);
-  });
+      expect(() => gatherBunch(striking, bunch)).toThrow(/holds no fuzzball/);
+    },
+  );
 
   it("leaves the game it is handed as it was", () => {
     const game = gameFrom({
