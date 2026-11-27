@@ -8,9 +8,9 @@ import {
 } from "@fz/core/sound_mix";
 import type { EffectKind, PickupId } from "../../rules/catalog/pickups";
 import {
-  type ROCK_KINDS,
   type RockKindId,
   type RockSize,
+  type SizeOf,
   hasTrait,
 } from "../../rules/catalog/rocks";
 import type { WeaponId } from "../../rules/catalog/weapons";
@@ -368,7 +368,7 @@ export function startSoundOf(kind: EffectKind): SoundName | null {
 
 /** Gives a sound for each size a kind of rock comes in. */
 type BySize<Kind extends RockKindId> = Readonly<
-  Record<keyof (typeof ROCK_KINDS)[Kind]["hits"], SoundName>
+  Record<SizeOf<Kind>, SoundName>
 >;
 
 /**

@@ -8,9 +8,9 @@ import { createRandom } from "@fz/core/random";
 import type { Point } from "@fz/phaser/shapes";
 import { TURN } from "../../../rules/angles";
 import type {
-  ROCK_KINDS,
   RockKindId,
   RockSize,
+  SizeOf,
 } from "../../../rules/catalog/rocks";
 import {
   type Corner,
@@ -87,12 +87,6 @@ type Marks = Partial<
 
 /** Draws a kind's marks on a dome cut at a size, from the draws the dome left. */
 type MarkDome = (random: () => number, dome: Dome, size: RockSize) => Marks;
-
-/** The sizes a kind of rock comes in, as the catalog gives its hits at each. */
-type SizeOf<K extends RockKindId> = Extract<
-  keyof (typeof ROCK_KINDS)[K]["hits"],
-  RockSize
->;
 
 /** Describes how a kind of rock is cut: at each size it comes in, and its marks. */
 interface KindCut<S extends RockSize> {

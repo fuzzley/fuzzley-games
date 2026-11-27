@@ -223,6 +223,12 @@ export const ROCK_KINDS = {
 /** A rock kind's id, such as "iron". */
 export type RockKindId = keyof typeof ROCK_KINDS;
 
+/** The sizes a kind of rock comes in, as the catalog gives its hits at each. */
+export type SizeOf<K extends RockKindId> = Extract<
+  keyof (typeof ROCK_KINDS)[K]["hits"],
+  RockSize
+>;
+
 /** Every rock kind's id, in How to play's order. */
 export const ROCK_KIND_IDS = keysOf(ROCK_KINDS);
 

@@ -12,7 +12,7 @@ import {
   mountSoundLab,
 } from "@fz/dev/sound-lab-page";
 import { type PickupId, pickup } from "../src/rules/catalog/pickups";
-import type { RockKindId, RockSize } from "../src/rules/catalog/rocks";
+import type { RockKindId, SizeOf } from "../src/rules/catalog/rocks";
 import type { LoggedRock } from "../src/rules/field/events";
 import { type Field, createField, steerField } from "../src/rules/field/field";
 import { endEffect } from "../src/rules/rocks/pickups";
@@ -168,7 +168,11 @@ function unitsAcross(x: number): number {
 }
 
 /** Returns a rock of a kind and size at a place across the field, as its events log it. */
-function rock(kind: RockKindId, size: RockSize, x: number): LoggedRock {
+function rock<Kind extends RockKindId>(
+  kind: Kind,
+  size: SizeOf<Kind>,
+  x: number,
+): LoggedRock {
   return { x: unitsAcross(x), y: SHIP.y, kind, size, slot: 0 };
 }
 
@@ -192,10 +196,10 @@ function letGo(field: Field): void {
 }
 
 /** Returns a rock's break at a time, at static's multiplier it scored at, 0 for one a comet smashed. */
-function broken(
+function broken<Kind extends RockKindId>(
   at: number,
-  kind: RockKindId,
-  size: RockSize,
+  kind: Kind,
+  size: SizeOf<Kind>,
   times: number,
   x: number,
 ): Moment {
@@ -283,7 +287,7 @@ const TEN_RISES = TEN_BREAKS.filter(
 
 /** A large rock's pieces, each its size, its time, its count in the chain the game counted before the uplift and its place. */
 const RUBBLE: readonly {
-  size: Exclude<RockSize, "boulder">;
+  size: SizeOf<"stone">;
   at: number;
   chain: number;
   x: number;
@@ -583,7 +587,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
     what: "A boulder and a medium rock broken under fire, then the ten sparks they shed gathered one after another, each a note up the ladder, an octave under the bell's, the tenth bringing static to ×2, its chime with it; then static's hold run out with no spark, its fall, and another medium rock broken, its two sparks gathered from the ladder's foot again. Before, there were no sparks: the shots and the breaks alone.",
     cues: heard([
       ...burst(0, 0.45),
-      broken(0.2, "stone", "boulder", 1, 0.3),
+      broken(0.2, "boulder", "boulder", 1, 0.3),
       broken(0.45, "stone", "medium", 1, -0.2),
       ...TEN_SPARKS.map(gathered),
       stepped(LAST_SPARK, 1),
