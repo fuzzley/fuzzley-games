@@ -50,4 +50,25 @@
       <span class="btn-text">Restart</span>
     </button>
   }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      title="Choose a level"
+      (click)="chooseLevel.emit()"
+    >
+      <fz-icon name="grid" />
+    </button>
+  }
+
+  @if (viewport.isCompact()) {
+    <!-- Choose a level is the menu's one action. -->
+    <fz-bar-overflow
+      fzBarActions
+      [items]="overflowItems()"
+      (choose)="chooseLevel.emit()"
+    />
+  }
 </fz-game-bar>

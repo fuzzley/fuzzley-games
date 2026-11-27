@@ -87,6 +87,9 @@ spell them the same way every time.
 - **Solitaire:** foundation, tableau, column, stock, waste, free cell, reserve,
   deal, redeal, suit, rank, run, Card back, Card style, Desktop deck. A rules
   page does not say where a pile is on the screen.
+- **Fuzz Flux:** fuzzball, bunch, dasher, puffer, wisp, frizzball, dust,
+  brick, cage, burr, sleepyhead, wind, deal, moves to spare. Best is a level's
+  most moves to spare.
 
 ## Spelling and form
 

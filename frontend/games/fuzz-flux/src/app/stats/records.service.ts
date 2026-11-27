@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, type Signal, computed, inject } from "@angular/core";
 import { storedSignal } from "@fz/ui/storage";
 import type { Level } from "../../rules/levels/level";
 import {
@@ -38,9 +38,12 @@ export class RecordsService {
     }),
   });
 
+  /** Each level's record, by its id, a level with none left out. */
+  readonly levels: Signal<LevelRecords> = computed(() => this.records().levels);
+
   /** Returns the seed of the deal a level begins on next: its first, until a move is made on it. */
   nextDeal(level: Level): number {
-    return nextDealOf(this.records().levels, level);
+    return nextDealOf(this.levels(), level);
   }
 
   /** Uses up a level's deal as the first move is made on it, where it is the one it was to begin on next. */

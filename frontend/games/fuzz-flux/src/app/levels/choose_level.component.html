@@ -1,0 +1,11 @@
+<fz-levels
+  [open]="open()"
+  [intro]="intro"
+  [marks]="marks()"
+  [current]="current()"
+  [levels]="levels"
+  [mostStars]="mostStars"
+  figure="Best"
+  (chosen)="play($event)"
+  (closed)="closed.emit()"
+/>

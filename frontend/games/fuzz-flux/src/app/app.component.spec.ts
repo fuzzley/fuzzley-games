@@ -138,6 +138,27 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
   });
 
+  it("opens Choose a level from the bar", async () => {
+    await renderApp();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Choose a level" }),
+    );
+
+    expect(screen.getByRole("dialog", { name: "Levels" })).toBeVisible();
+  });
+
+  it("closes Choose a level as it asks", async () => {
+    await renderApp();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Choose a level" }),
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Close levels" }));
+
+    expect(screen.queryByRole("dialog", { name: "Levels" })).toBeNull();
+  });
+
   it("hands the board each goal's picture in the bar, for its copies to fly to", async () => {
     const { settle, board } = await renderApp();
 

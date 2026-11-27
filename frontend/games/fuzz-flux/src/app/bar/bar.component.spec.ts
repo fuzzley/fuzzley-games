@@ -1,5 +1,5 @@
 import { itemAt } from "@fz/core/records";
-import { installFakeViewport } from "@fz/game-ui/testing";
+import { installFakeViewport, openBarMenu } from "@fz/game-ui/testing";
 import { render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { ELEMENT_RULES, WIND_RULE } from "../../rules/elements/element_rules";
@@ -32,6 +32,7 @@ async function renderBar(panelled = false): Promise<string[]> {
     on: {
       hint: () => asked.push("hint"),
       restart: () => asked.push("restart"),
+      chooseLevel: () => asked.push("chooseLevel"),
     },
   });
   return asked;
@@ -109,5 +110,50 @@ describe("BarComponent", () => {
       "data-placement",
       "bottom",
     );
+  });
+
+  it("asks for Choose a level", async () => {
+    const asked = await renderBar();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Choose a level" }),
+    );
+
+    expect(asked).toEqual(["chooseLevel"]);
+  });
+
+  describe("on a compact screen", () => {
+    beforeEach(() => {
+      installFakeViewport(390, 844);
+    });
+
+    it("moves Choose a level into the menu", async () => {
+      await renderBar();
+
+      const items = await openBarMenu(userEvent.setup());
+
+      expect(items).toEqual(["Choose a level"]);
+    });
+
+    it("moves the link home into the menu where there is no room for it", async () => {
+      installFakeViewport(340, 700);
+      await renderBar();
+
+      const items = await openBarMenu(userEvent.setup());
+
+      expect(items[0]).toBe("Fuzzley Games");
+    });
+
+    it("asks for Choose a level from the menu", async () => {
+      const asked = await renderBar();
+      const user = userEvent.setup();
+      await openBarMenu(user);
+
+      await user.click(
+        screen.getByRole("menuitem", { name: "Choose a level" }),
+      );
+
+      expect(asked).toEqual(["chooseLevel"]);
+    });
   });
 });

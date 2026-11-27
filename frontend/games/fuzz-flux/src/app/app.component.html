@@ -56,10 +56,12 @@
   [panelled]="panelled()"
   (hint)="game.hint()"
   (restart)="restart()"
+  (chooseLevel)="levelsOpen.set(true)"
 />
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
+<app-choose-level [open]="levelsOpen()" (closed)="levelsOpen.set(false)" />
 <fz-confirm-dialog />
 <fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />
