@@ -1,5 +1,5 @@
-import { SIM_TIMEOUT_MS } from "@fz/brick-wall/testing/timing";
 import { createRandom } from "@fz/core/random";
+import { SIM_TIMEOUT_MS } from "@fz/core/testing";
 import {
   type RandomFlight,
   clearanceProblemsOf,

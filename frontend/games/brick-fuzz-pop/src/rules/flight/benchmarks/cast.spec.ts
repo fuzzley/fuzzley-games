@@ -1,5 +1,5 @@
-import { SIM_TIMEOUT_MS, described } from "@fz/brick-wall/testing/timing";
 import { createRandom } from "@fz/core/random";
+import { SIM_TIMEOUT_MS, described } from "@fz/core/testing";
 import {
   castByScan,
   randomField,

@@ -111,7 +111,10 @@ above:
 - **`@fz/core/testing`:** `playUntil()` and `playFor()` play any game with
   a `tick(ms, steer)` a frame (`FRAME_MS`) at a time, in a spec in Node too.
   `variantOfSpec()` gives the variant a spec file is named for in its
-  folder, such as the speed a spec of every level plays.
+  folder, such as the speed a spec of every level plays. `SIM_TIMEOUT_MS`
+  is how long a slow `sim` test or `pure` search may take, and
+  `sortedTimes()`, `quantile()` and `described()` read a benchmark's times
+  at their median and 99th percentile.
 - **`@fz/phaser/testing`:** the fake canvas's scenes and `collectErrors()`,
   the harness that runs a real scene headless, and
   `@fz/phaser/testing/pure` for a spec in Node are the `phaser-core`

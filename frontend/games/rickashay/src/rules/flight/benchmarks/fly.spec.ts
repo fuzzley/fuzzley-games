@@ -1,6 +1,6 @@
 import { AIMS } from "@fz/brick-wall/rules/aims";
-import { SIM_TIMEOUT_MS, described } from "@fz/brick-wall/testing/timing";
 import { createRandom } from "@fz/core/random";
+import { SIM_TIMEOUT_MS, described } from "@fz/core/testing";
 import { levelOpenings, unflown } from "../../../testing/cast_reference";
 import { TRAIT_RULES } from "../../bricks/trait_rules";
 import { FLIGHT_RULES } from "../../tuning";

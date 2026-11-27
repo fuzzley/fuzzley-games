@@ -96,7 +96,7 @@ and certified again.
 ## Slow Specs and the Benchmarks
 
 - **A test in `sim` that can run past half a second alone takes
-  `SIM_TIMEOUT_MS`** (`src/testing/timing.ts`) as its describe's `timeout`,
+  `SIM_TIMEOUT_MS`** (`@fz/core/testing`) as its describe's `timeout`,
   since `yarn test` runs `sim` beside every workspace's specs.
 - **A long check in `pure` is split into seeded batches,** each well inside
   Vitest's 5 s, as each game's random walls are: `yarn test:coverage` runs
@@ -104,7 +104,7 @@ and certified again.
   its hook or its test `SIM_TIMEOUT_MS`.
 - **The benchmarks hold one time only.** A game's flight benchmarks, in
   `sim`, print their times at the median and the 99th percentile
-  (`described()`, `src/testing/timing.ts`) and hold none of them, as no
+  (`described()`, `@fz/core/testing`) and hold none of them, as no
   runner times anything alike twice. Only `guide.spec.ts` holds one,
   `guideOf()`'s 99th percentile, under a generous bound.
   `yarn vitest run --project sim --reporter=verbose src/rules/flight/benchmarks`,

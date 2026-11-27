@@ -1,12 +1,12 @@
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
+import { createRandom, shuffled } from "@fz/core/random";
+import { keysOf } from "@fz/core/records";
 import {
   SIM_TIMEOUT_MS,
   described,
   quantile,
   sortedTimes,
-} from "@fz/brick-wall/testing/timing";
-import { createRandom, shuffled } from "@fz/core/random";
-import { keysOf } from "@fz/core/records";
+} from "@fz/core/testing";
 import { levelOpenings, unflown } from "../../../testing/cast_reference";
 import { FLIGHT_RULES } from "../../tuning";
 import type { RoundStart } from "../events";

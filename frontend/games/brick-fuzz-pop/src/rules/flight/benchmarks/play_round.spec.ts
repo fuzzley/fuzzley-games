@@ -1,7 +1,7 @@
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
-import { SIM_TIMEOUT_MS, described } from "@fz/brick-wall/testing/timing";
 import { createRandom } from "@fz/core/random";
+import { SIM_TIMEOUT_MS, described } from "@fz/core/testing";
 import { shotOf } from "../../levels/certificate";
 import { LEVELS, levelStart, parseLevel } from "../../levels/levels";
 import { playRound } from "../../round/round";
