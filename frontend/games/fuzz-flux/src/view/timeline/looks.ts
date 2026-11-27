@@ -60,6 +60,8 @@ export const RAISED = {
   moving: 2,
   /** A special just made. */
   made: 3,
+  /** A sleepyhead put to bed, from the fall that brings it there, over what falls into its square behind it. */
+  bedded: 3,
   /** A dasher or a puffer going off. */
   goingOff: 4,
   /** A frizzball going off, a wisp's copy in flight, or the hint's hand, over all the rest. */

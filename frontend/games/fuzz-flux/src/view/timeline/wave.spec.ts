@@ -25,6 +25,18 @@ const FIRST = itemAt(TWO_WAVES.record.waves, 0);
 /** The second of the two waves. */
 const SECOND = itemAt(TWO_WAVES.record.waves, 1);
 
+/** The move played by hand whose one wave puts a sleepyhead to bed on square 10, the fuzzball 13 falling into the square behind it. */
+const BEDDED_MOVE = MOVE_FIXTURES.sleepyheadBedded;
+
+/** The board that move's swap leaves. */
+const BEDDED_ON = afterSwap(
+  moveStartOf(BEDDED_MOVE).grid,
+  BEDDED_MOVE.record.swap,
+);
+
+/** That move's one wave. */
+const BEDDED = itemAt(BEDDED_MOVE.record.waves, 0);
+
 /** Returns a wave played alone from 0 on a board, in a motion, and the timeline it makes. */
 function played(
   wave: Wave,
@@ -97,6 +109,41 @@ describe("playWave", () => {
 
     expect(pieceAt(timeline, 1, FEEL.fallWaitMs).y).toBe(0);
     expect(pieceAt(timeline, 1, FEEL.fallWaitMs + 1).y).toBeGreaterThan(0);
+  });
+
+  it("waits a gap for each sleepyhead the wave puts to bed before the next wave goes on", () => {
+    const awake = {
+      ...BEDDED,
+      hits: BEDDED.hits.filter(({ what }) => what !== "bedded"),
+    };
+
+    expect(
+      played(BEDDED, BEDDED_ON).endMs - played(awake, BEDDED_ON).endMs,
+    ).toBe(FEEL.bedGapMs);
+  });
+
+  it("shakes the head of a sleepyhead the wave's blast ruffles, the shake dying away", () => {
+    const ruffling = MOVE_FIXTURES.sleepyheadRuffled;
+    const grid = afterSwap(moveStartOf(ruffling).grid, ruffling.record.swap);
+    const { timeline } = played(itemAt(ruffling.record.waves, 0), grid);
+    const sleepyhead = timeline.pieces.find(({ id }) => id === 6);
+
+    expect(sleepyhead?.keys.wobble?.map(({ to }) => to)).toEqual([
+      FEEL.ruffledWobble,
+      0,
+    ]);
+  });
+
+  it("draws a sleepyhead put to bed over the fuzzball the same fall brings into its square", () => {
+    const { endMs, timeline } = played(BEDDED, BEDDED_ON);
+    const landedMs =
+      endMs - FEEL.bedGapMs - FEEL.waveGapMs * quickeningOf(1, FEEL);
+    const [sleepyhead, fuzzball] = [2, 13].map((piece) =>
+      pieceAt(timeline, piece, landedMs),
+    );
+
+    expect([sleepyhead?.y, fuzzball?.y]).toEqual([3, 3]);
+    expect(sleepyhead?.raise).toBeGreaterThan(fuzzball?.raise ?? Infinity);
   });
 
   it("lets the next wave go on a wave's gap after the last of a stack has landed", () => {

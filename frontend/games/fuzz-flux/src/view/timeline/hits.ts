@@ -9,6 +9,7 @@ import type { Hit } from "../../rules/move/record";
 import { brushedOff } from "./events/burr";
 import { dusted } from "./events/dust";
 import { gathered } from "./events/gathered";
+import { ruffled } from "./events/sleepyhead";
 import type { Part } from "./part";
 import type { Reach } from "./reach";
 import type { WavePlay } from "./wave_play";
@@ -63,6 +64,7 @@ function isOf<What extends StruckWhat>(
 const HIT_EVENTS: readonly Listed[] = [
   playing("gathered", gathered),
   playing("dusted", dusted),
+  playing("ruffled", ruffled),
   playing("unburred", brushedOff),
 ];
 
