@@ -18,6 +18,9 @@ export const ART_PALETTE = boardPalette(ART_ROLES, "light");
 /** The scale the art's specs draw at: a square 100 device pixels across, a pixel to each of the design's units, at 2 device pixels to a CSS pixel. */
 export const ART_SCALE: ArtScale = { unit: 100, pixelRatio: 2 };
 
+/** The smallest square the board lays out, 40 CSS pixels, at 2 device pixels to one, where the art's least lines are held to a CSS pixel. */
+export const SMALLEST_SCALE: ArtScale = { unit: 40 * 2, pixelRatio: 2 };
+
 /**
  * Returns a number to a billionth, so two worked out alike but for a
  * rounding, such as a point round a curve, are equal.

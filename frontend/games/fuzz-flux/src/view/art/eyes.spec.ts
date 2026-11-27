@@ -2,7 +2,6 @@ import { colorNumber } from "@fz/phaser/color";
 import {
   type Area,
   type ArtFrame,
-  type ArtScale,
   type DrawCommand,
   extentOf,
 } from "@fz/phaser/shapes";
@@ -14,16 +13,18 @@ import {
   lookOffset,
 } from "@fz/style/fuzzball";
 import { KIND_IDS } from "../../rules/catalog/kinds";
-import { ART_SCALE, billionths } from "../../testing/art_frames";
+import {
+  ART_SCALE,
+  SMALLEST_SCALE,
+  billionths,
+} from "../../testing/art_frames";
+import { seatOf } from "./bodies";
 import { BODY, SQUARE } from "./design_square";
 import { EYES_GRID, EYES_LOOK, eyesFrames, eyesSeatOf } from "./eyes";
-import { FRAMES } from "./frame_names";
+import { FRAMES, FURS } from "./frame_names";
 
 /** The eyes at the specs' scale, a device pixel to each of the design's units. */
 const EYES = eyesFrames(ART_SCALE);
-
-/** The smallest square the board lays out, 40 CSS pixels, at 2 device pixels to one. */
-const SMALLEST: ArtScale = { unit: 40 * 2, pixelRatio: 2 };
 
 /** The eyes' ink. */
 const INK = colorNumber(FUZZBALL.ink);
@@ -88,24 +89,23 @@ describe("eyesFrames", () => {
     },
   );
 
-  it("draws a line of a face a CSS pixel wide at least, at the smallest square", () => {
-    const lines = eyesFrames(SMALLEST)
+  it("draws a line of a face a CSS pixel wide at least at the smallest square, shown as small as a wisp's, the smallest a fuzzball is drawn", () => {
+    const lines = eyesFrames(SMALLEST_SCALE)
       .flatMap(({ commands }) => commands)
       .filter((command) => command.kind === "line");
+    const shown = eyesSeatOf("blue", "wisp").scale;
 
-    expect(Math.min(...lines.map(({ width }) => width))).toBeGreaterThanOrEqual(
-      Math.ceil(SMALLEST.pixelRatio),
-    );
+    expect(
+      billionths(Math.min(...lines.map(({ width }) => width)) * shown),
+    ).toBeGreaterThanOrEqual(Math.ceil(SMALLEST_SCALE.pixelRatio));
   });
 });
 
 describe("eyesSeatOf", () => {
   it.each(KIND_IDS)(
-    "sits %s's eyes at its body's middle, wherever it sits in its square",
+    "sits a plain %s's eyes at its body's middle, wherever it sits in its square",
     (kind) => {
-      const { x, y, scale } = eyesSeatOf(kind);
-
-      expect({ x, y, scale }).toEqual(
+      expect(eyesSeatOf(kind, "plain")).toEqual(
         {
           blue: { x: 0, y: 0, scale: 1 },
           red: { x: 0, y: 0, scale: 1 },
@@ -115,6 +115,19 @@ describe("eyesSeatOf", () => {
           pink: { x: 0, y: (BODY * 0.22) / SQUARE, scale: 1 },
         }[kind],
       );
+    },
+  );
+
+  it.each(FURS)(
+    "sits an amber %s's eyes where its body sits, as much smaller as it is drawn",
+    (fur) => {
+      const seat = seatOf("amber", fur);
+
+      expect(eyesSeatOf("amber", fur)).toEqual({
+        x: seat.x / SQUARE,
+        y: seat.y / SQUARE,
+        scale: seat.scale,
+      });
     },
   );
 });

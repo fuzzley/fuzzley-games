@@ -5,6 +5,7 @@
 // as large as the design draws them, and centered across it, as the design
 // draws them, where the house's mark has them a little to the right.
 
+import { recordOf } from "@fz/core/records";
 import { colorNumber } from "@fz/phaser/color";
 import { type EyesStyle, eyesCommands } from "@fz/phaser/fuzzball";
 import {
@@ -16,15 +17,13 @@ import {
 import {
   FUZZBALL,
   FUZZBALL_FACES,
+  type FuzzballFace,
   type FuzzballLook,
 } from "@fz/style/fuzzball";
-import type { KindId } from "../../rules/catalog/kinds";
-import { KIND_ART } from "./bodies";
+import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
+import { seatOf } from "./bodies";
 import { BODY, SQUARE } from "./design_square";
-import { FRAMES } from "./frame_names";
-
-/** How many of the design's units a unit of the house fuzzball's grid is, its body as large as a fuzzball's. */
-const GRID = BODY / FUZZBALL.body.r;
+import { FRAMES, type FrameName, FURS, type Fur } from "./frame_names";
 
 /**
  * How many squares a unit of the house fuzzball's grid is on a plain
@@ -36,7 +35,7 @@ const GRID = BODY / FUZZBALL.body.r;
  * their seat's scale, its look the face's own (`restingLook()`, up for
  * `plead`) unless it looks somewhere else.
  */
-export const EYES_GRID = GRID / SQUARE;
+export const EYES_GRID = BODY / FUZZBALL.body.r / SQUARE;
 
 /**
  * How far a whole look shifts a fuzzball's eyes from where they sit, on the
@@ -63,34 +62,69 @@ export interface EyesSeat {
   readonly scale: number;
 }
 
-/**
- * Returns where a plain fuzzball's eyes sit on its kind: at its body's
- * middle, wherever its kind's body sits in its square.
- */
-export function eyesSeatOf(kind: KindId): EyesSeat {
-  const { seat } = KIND_ART[kind];
-  return { x: seat.x / SQUARE, y: seat.y / SQUARE, scale: 1 };
-}
+/** Where each kind's eyes sit in each fur, made once, so finding them makes nothing. */
+const EYES_SEATS = recordOf(KIND_IDS, (kind) =>
+  recordOf(FURS, (fur): EyesSeat => {
+    const { x, y, scale } = seatOf(kind, fur);
+    return { x: x / SQUARE, y: y / SQUARE, scale };
+  }),
+);
 
 /**
- * Returns the eyes in each of the house fuzzball's faces at a scale, in its
- * ink, with its glints, each frame drawn about a body's middle and looking
- * straight out, a line of a face a CSS pixel wide at least.
+ * Returns where a fuzzball's eyes sit on its kind in a fur: at its body's
+ * middle, wherever its body sits in its square, and as much smaller as a
+ * special's fuzzball is drawn.
  */
-export function eyesFrames(scale: ArtScale): readonly ArtFrame[] {
-  const by = (GRID * scale.unit) / SQUARE;
-  const style: EyesStyle = {
-    color: colorNumber(FUZZBALL.ink),
-    glint: colorNumber(FUZZBALL.glint),
-    leastLine: Math.ceil(scale.pixelRatio),
+export function eyesSeatOf(kind: KindId, fur: Fur): EyesSeat {
+  return EYES_SEATS[kind][fur];
+}
+
+/** Says what a fuzzball's eyes are drawn in: their color and their glints'. */
+export type EyesInks = Pick<Required<EyesStyle>, "color" | "glint">;
+
+/** The least of their size a fuzzball's eyes are shown at, a wisp's, the smallest a fuzzball is drawn. */
+const LEAST_EYES_SCALE = Math.min(
+  ...Object.values(EYES_SEATS).flatMap((seats) =>
+    Object.values(seats).map(({ scale }) => scale),
+  ),
+);
+
+/**
+ * Returns a frame of the eyes in a face, under a name, in inks at a scale,
+ * drawn about a body's middle and looking straight out, a line of a face a
+ * CSS pixel wide at least wherever the scene shows it, down to `leastScale`
+ * of its size.
+ */
+export function eyesFrame(
+  name: FrameName,
+  face: FuzzballFace,
+  inks: EyesInks,
+  scale: ArtScale,
+  leastScale: number,
+): ArtFrame {
+  const by = EYES_GRID * scale.unit;
+  const style = {
+    ...inks,
+    leastLine: Math.ceil(scale.pixelRatio) / leastScale,
   };
   const centering = { x: -MARK_EYES_RIGHT * by, y: 0 };
-  return FUZZBALL_FACES.map((face) =>
-    centered(
-      FRAMES.eyes(face),
-      eyesCommands(by, style, { face, look: { x: 0, y: 0 } }).map((command) =>
-        shifted(command, centering),
-      ),
+  return centered(
+    name,
+    eyesCommands(by, style, { face, look: { x: 0, y: 0 } }).map((command) =>
+      shifted(command, centering),
     ),
+  );
+}
+
+/** The house fuzzball's eyes' inks, which every kind wears. */
+const HOUSE_EYES: EyesInks = {
+  color: colorNumber(FUZZBALL.ink),
+  glint: colorNumber(FUZZBALL.glint),
+};
+
+/** Returns the fuzzballs' eyes in each of the house fuzzball's faces at a scale, in its ink and its glints. */
+export function eyesFrames(scale: ArtScale): readonly ArtFrame[] {
+  return FUZZBALL_FACES.map((face) =>
+    eyesFrame(FRAMES.eyes(face), face, HOUSE_EYES, scale, LEAST_EYES_SCALE),
   );
 }
