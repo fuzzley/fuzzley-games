@@ -66,6 +66,44 @@ describe("deal", () => {
     });
   });
 
+  it("keeps each brick's layers as the level's picture lays them", () => {
+    const game = deal(levelOf("11"), 2, DESIGN_HOLDS_AND_GOALS);
+
+    expect(pictureOf(game.board).pieces.slice(2, 5)).toEqual([
+      "ag232ga",
+      "br3r3rr",
+      "bg232rv",
+    ]);
+  });
+
+  it("leaves each gap the level's picture draws", () => {
+    const game = deal(levelOf("7"), 1, DESIGN_HOLDS);
+
+    expect(pictureOf(game.board).pieces).toEqual([
+      "_rabba_",
+      "bbrbgbv",
+      "bragrgb",
+      "rrv_gar",
+      "rabgvrg",
+      "agvvavg",
+      "_rbvgr_",
+    ]);
+  });
+
+  it("burrs each fuzzball of any kind the level's picture burrs", () => {
+    const game = deal(levelOf("22"), 1, DESIGN_HOLDS);
+
+    expect(pictureOf(game.board).marks).toEqual([
+      ".......",
+      ".......",
+      "..*.*..",
+      "...*...",
+      "..*.*..",
+      ".......",
+      ".......",
+    ]);
+  });
+
   it("keeps each caged fuzzball the level's picture lays, and cages each it leaves to any kind", () => {
     const game = deal(levelOf("13"), 2, DESIGN_HOLDS_AND_GOALS);
 
