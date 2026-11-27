@@ -4,8 +4,16 @@
 
 import { recordOf } from "@fz/core/records";
 import type { Board } from "../rules/board/board";
-import { ELEMENT_IDS, type ElementId } from "../rules/catalog/elements";
-import type { ElementRule, SquareState } from "../rules/elements/element_rule";
+import {
+  type BrickLayers,
+  ELEMENT_IDS,
+  type ElementId,
+} from "../rules/catalog/elements";
+import type {
+  Change,
+  ElementRule,
+  SquareState,
+} from "../rules/elements/element_rule";
 
 /** Every element's rule taking part in no moment of a move. */
 export const NO_PART: Readonly<Record<ElementId, ElementRule>> = recordOf(
@@ -63,6 +71,85 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
     },
     burr: DESIGN_HOLDS.burr,
   };
+
+/**
+ * Every element's rule holding and counting what
+ * `DESIGN_HOLDS_AND_GOALS` does, and taking the part the design's sketch
+ * gives it as a wave strikes: a bunch opens a cage and brushes off a burr
+ * on each fuzzball it takes in, and knocks a brick or brushes off a burr
+ * beside it; and a layer of dust is swept from under each fuzzball
+ * gathered or made special.
+ */
+export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
+  dust: {
+    ...DESIGN_HOLDS_AND_GOALS.dust,
+    struckUnder: ({ piece, dust }) =>
+      dust === 0
+        ? null
+        : {
+            square: { piece, dust: dust === 2 ? 1 : 0 },
+            hit: "dusted",
+            counts: true,
+          },
+  },
+  brick: { ...DESIGN_HOLDS_AND_GOALS.brick, besideBunch: knocked },
+  cage: {
+    ...DESIGN_HOLDS_AND_GOALS.cage,
+    inBunch: (square) => uncaged(square, null),
+  },
+  sleepyhead: DESIGN_HOLDS_AND_GOALS.sleepyhead,
+  burr: {
+    ...DESIGN_HOLDS_AND_GOALS.burr,
+    inBunch: (square) => unburred(square, null),
+    besideBunch: (square) => unburred(square, "unburred"),
+  },
+};
+
+/** The layers a brick has left once knocked, by the layers it had. */
+const LAYERS_LEFT = { 2: 1, 3: 2, 4: 3 } as const satisfies Readonly<
+  Record<Exclude<BrickLayers, 1>, BrickLayers>
+>;
+
+/** Returns a brick on a square knocked, a layer off, or broken at its last, which counts. */
+function knocked({ piece, dust }: SquareState): Change | null {
+  if (piece?.what !== "brick") {
+    return null;
+  }
+  return piece.layers === 1
+    ? { square: { piece: null, dust }, hit: "broken", counts: true }
+    : {
+        square: {
+          piece: { ...piece, layers: LAYERS_LEFT[piece.layers] },
+          dust,
+        },
+        hit: "knocked",
+        counts: false,
+      };
+}
+
+/** Returns a caged fuzzball on a square let out, which counts, with the hit given. */
+function uncaged(
+  { piece, dust }: SquareState,
+  hit: "uncaged" | null,
+): Change | null {
+  return piece?.what === "fuzzball" && piece.caged
+    ? { square: { piece: { ...piece, caged: false }, dust }, hit, counts: true }
+    : null;
+}
+
+/** Returns a burred fuzzball on a square brushed off, which counts, with the hit given. */
+function unburred(
+  { piece, dust }: SquareState,
+  hit: "unburred" | null,
+): Change | null {
+  return piece?.what === "fuzzball" && piece.burred
+    ? {
+        square: { piece: { ...piece, burred: false }, dust },
+        hit,
+        counts: true,
+      }
+    : null;
+}
 
 /** Returns how many squares of a board a test holds for, asked of each square's piece. */
 function countOf(
