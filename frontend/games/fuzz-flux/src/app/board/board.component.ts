@@ -30,14 +30,7 @@ import type { Pictures } from "../../scene/pictures";
 import { type BoardMetrics, boardMetrics } from "../../view/board/metrics";
 import { BOARD_ROLES, boardPalette } from "../../view/colors/palette";
 import { GameService } from "../play/game.service";
-
-/** The keys needed to play, one at a time, which describe the board. */
-const BOARD_KEYS: readonly string[] = [
-  "Arrow keys: move the ring, or swap the fuzzball you hold that way.",
-  "Space or Enter: pick up the fuzzball under the ring, or set off the special you hold.",
-  "Esc: put the fuzzball down.",
-  "H: show a hint.",
-];
+import { BoardGridComponent } from "./board_grid.component";
 
 /** The narrowest the room left of the board shows anything in, in CSS pixels: a short word or two of the line about a new thing. */
 const LEAST_BESIDE_CSS_PX = 80;
@@ -46,18 +39,17 @@ const LEAST_BESIDE_CSS_PX = 80;
  * Shows the board: the canvas the scene draws the level on, which hears the
  * keys, the mouse and fingers while the board has the focus; the level's
  * squares drawn in CSS, where the scene will draw them, until it has; the
- * focus ring round the board where the scene laid it out; and the canvas's
- * own cards (`<fz-canvas-cards>`), that the board is still loading on a
- * slow connection, or that it couldn't be drawn.
+ * grid of its squares over the canvas where the scene laid the board out,
+ * which takes the focus and lets the pointer through; and the canvas's own
+ * cards (`<fz-canvas-cards>`), that the board is still loading on a slow
+ * connection, or that it couldn't be drawn.
  *
- * Only the canvas and its ring are an application to assistive technology,
- * named for the level and described by its keys, so a screen reader hands
- * it the keys rather than reading with them; the canvas in it is hidden,
- * and the announcer says what happens.
+ * The grid is what assistive technology reads of the board, and the canvas
+ * under it is hidden; the announcer says what happens.
  */
 @Component({
   selector: "app-board",
-  imports: [CanvasCardsComponent, PhaserCanvasComponent],
+  imports: [BoardGridComponent, CanvasCardsComponent, PhaserCanvasComponent],
   host: {
     "[style.--across]": "grid().width",
     "[style.--pixel-ratio]": "pixelRatio()",
@@ -71,7 +63,7 @@ export class BoardComponent {
   private readonly injector = inject(Injector);
   private readonly theme = inject(ThemeService);
   private readonly roles = this.theme.roles(BOARD_ROLES);
-  private readonly play = viewChild.required<ElementRef<HTMLElement>>("play");
+  private readonly boardGrid = viewChild.required(BoardGridComponent);
   protected readonly canvas = viewChild.required(PhaserCanvasComponent);
 
   /** Each goal's picture on the page, in the level's order, which a fuzzball's copy flies to. */
@@ -79,15 +71,6 @@ export class BoardComponent {
 
   /** Whether the player wants sound. */
   readonly sound = input(true);
-
-  /** The keys needed to play, which describe the board. */
-  protected readonly keys = BOARD_KEYS;
-
-  /** Names the board for the level on it, as "Fuzz Flux, level 16: Checkerboard". */
-  protected readonly label = computed(() => {
-    const { number, name } = this.game.state().level;
-    return `Fuzz Flux, level ${String(number)}: ${name}`;
-  });
 
   /** The board of the level in play, as the screen shows it, a new value only as a move is made. */
   protected readonly grid = computed(() => this.game.state().grid);
@@ -163,7 +146,7 @@ export class BoardComponent {
 
   /**
    * Where the board lies on the canvas, in CSS pixels, for the placeholder
-   * and the focus ring, or null where the stylesheet fills the canvas.
+   * and the grid, or null where the stylesheet fills the canvas.
    */
   protected readonly boardStyle = computed(() => {
     const shown = this.shown();
@@ -268,11 +251,11 @@ export class BoardComponent {
     });
   }
 
-  /** Puts the focus on the board after Angular's next render, as a level begins. */
+  /** Puts the focus on the board's tab stop after Angular's next render, as a level begins. */
   focus(options?: FocusOptions): void {
     afterNextRender(
       () => {
-        this.play().nativeElement.focus(options);
+        this.boardGrid().focus(options);
       },
       { injector: this.injector },
     );
@@ -280,9 +263,15 @@ export class BoardComponent {
 
   /**
    * Takes the focus for a press on the board, which Phaser's pointer
-   * otherwise keeps from it, so the keys work after a tap or a click.
+   * otherwise keeps from it, so the keys work after a tap or a click; with
+   * no ring, which shows for the keys alone.
    */
   protected takeFocusForPress(): void {
-    this.play().nativeElement.focus({ preventScroll: true });
+    this.boardGrid().focus({ preventScroll: true, focusVisible: false });
+  }
+
+  /** Hands the grid's tab stop the focus that lands on the board itself, as a script's may. */
+  protected passFocusToGrid(): void {
+    this.boardGrid().focus();
   }
 }

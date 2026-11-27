@@ -216,6 +216,11 @@ Only in the folders that draw.
 - **Phaser's mouse prevents the default of `mousedown`,** which keeps the
   focus off the board. An element that should take the focus at a click
   focuses itself on `pointerdown`, as Snake's board does.
+- **In a play room, the canvas lies in an element that can take the focus,**
+  if only by a `tabindex` of -1, as Fuzz Flux's board does. While the focus
+  is in it, `fzPlayRoom` cancels the `pointerdown` of a press on what can't,
+  and the browser then sends no `mousedown`, so Phaser's mouse hears
+  nothing.
 
 ## Phaser 4's surprises
 

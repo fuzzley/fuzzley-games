@@ -1,0 +1,45 @@
+// The grid lies over the board, where the board places it, filling the
+// canvas until it does, and takes no press: each goes through to the canvas
+// beneath it.
+:host {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+// The keys' list, with no markers a screen reader could read into the
+// board's description.
+#board-keys {
+  list-style: none;
+}
+
+// The board's rows, `--down` of them, each the board's width, its squares
+// `--across` to a row, as the host hands them; each row and each square in
+// its own line, as a gap leaves its place empty.
+.grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(var(--down), 1fr);
+}
+
+.row {
+  display: grid;
+  grid-row: var(--line);
+  grid-template-columns: repeat(var(--across), 1fr);
+}
+
+// The square with the focus from the keyboard is ringed in the text color,
+// as Minesweeper's and Sudoku's are, just inside the square's edge, so the
+// board's edge never clips it where the room spares no margin, its corners
+// as round as the well's 17 of a square's 100, 3 in from the edge
+// (src/view/art/well.ts).
+.cell {
+  grid-column: var(--column);
+  border-radius: 20%;
+
+  &:focus-visible {
+    outline: var(--fz-focus-ring-width) solid var(--fz-text);
+    outline-offset: calc(-1 * var(--fz-focus-ring-width));
+  }
+}

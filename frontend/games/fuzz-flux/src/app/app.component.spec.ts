@@ -2,6 +2,7 @@ import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { BugReportService } from "@fz/game-ui/bug_report";
+import { PhaserCanvasComponent } from "@fz/phaser/canvas";
 import {
   installCompressionStreams,
   installFakeViewport,
@@ -21,7 +22,7 @@ import { viewport } from "@fz/phaser/testing/pure";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { setPageVisibility } from "@fz/ui/testing";
-import { render, screen, within } from "@testing-library/angular";
+import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { squareOf } from "../rules/board/cells";
 import { BoardFrames } from "../testing/board_frames";
@@ -39,6 +40,8 @@ interface RenderedApp {
   /** Lets the page settle. */
   readonly settle: () => Promise<void>;
   readonly board: BoardComponent;
+  /** The board's canvas, which a press on the board lands on. */
+  readonly canvas: HTMLElement;
 }
 
 /**
@@ -59,6 +62,8 @@ async function renderApp(...providers: Provider[]): Promise<RenderedApp> {
     settle: () => fixture.whenStable(),
     board: fixture.debugElement.query(By.directive(BoardComponent))
       .componentInstance as BoardComponent,
+    canvas: fixture.debugElement.query(By.directive(PhaserCanvasComponent))
+      .nativeElement as HTMLElement,
   };
 }
 
@@ -245,10 +250,18 @@ describe("AppComponent", () => {
     });
   });
 
-  it("hands the board the focus as the page loads", async () => {
+  it("hands the board the focus as the page loads, on its first square", async () => {
     await renderApp();
 
-    expect(screen.getByRole("application")).toHaveFocus();
+    expect(screen.getAllByRole("gridcell")[0]).toHaveFocus();
+  });
+
+  it("cancels no press on the board, which Phaser's mouse then hears", async () => {
+    const { canvas } = await renderApp();
+
+    const heard = fireEvent.pointerDown(canvas);
+
+    expect(heard).toBe(true);
   });
 
   it("lands the move in play as the player looks away", async () => {

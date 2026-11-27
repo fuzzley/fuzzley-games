@@ -3,7 +3,8 @@
 // the swap that lines up 3 blue clears the first, runs the second out of
 // moves and leaves the third in play with 5 moves left, the third
 // teaching that swap with the hand, as a level that brings something new
-// does; and the fourth deals a puffer in its top left corner.
+// does; and the fourth deals a puffer in its top left corner. Beside them,
+// a level on a board with a gap.
 
 import { levelsOf } from "@fz/core/levels";
 import { levelSetOf } from "../rules/levels/level";
@@ -77,6 +78,33 @@ export const SMALL_LEVELS: readonly LevelEntry[] = levelsOf([
         goals: [{ type: "gather", kind: "red", count: 20 }],
         specials: [{ x: 0, y: 0, kind: "red", sp: "puff" }],
       }),
+    ],
+  }),
+]);
+
+/**
+ * A level on a board 5 squares across and 4 down, its bottom left square a
+ * gap, so the board's width, height and gaps can't be mistaken for one
+ * another.
+ */
+export const GAPPED_LEVELS: readonly LevelEntry[] = levelsOf([
+  levelSetOf({
+    id: "gapped",
+    name: "Gapped",
+    about: "A level for the board's specs.",
+    levels: [
+      {
+        id: 1,
+        set: "gapped",
+        name: "Gap",
+        idea: "A board wider than it is tall, with a gap.",
+        kinds: ["blue", "red", "amber", "green"],
+        board: ["rgarg", "garga", "bbabr", "_rgag"],
+        deals: [1],
+        stars: [0, 2, 4],
+        moves: 5,
+        goals: [{ type: "gather", kind: "blue", count: 3 }],
+      },
     ],
   }),
 ]);

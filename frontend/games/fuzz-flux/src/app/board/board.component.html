@@ -1,12 +1,17 @@
+<!--
+  The canvas and the grid over it, which a press anywhere on them focuses.
+  The grid takes no press, so each reaches the canvas. This can take the
+  focus, though it is no tab stop, so the room around the board cancels no
+  press on it, which would keep the press from Phaser's mouse; it keeps the
+  focus a press gives the grid from the mouse, which would move it here, and
+  hands the grid the focus that does land here.
+-->
 <div
-  #play
   class="play"
-  role="application"
-  tabindex="0"
-  aria-roledescription="game board"
-  aria-describedby="board-keys"
-  [attr.aria-label]="label()"
+  tabindex="-1"
   (pointerdown)="takeFocusForPress()"
+  (mousedown)="$event.preventDefault()"
+  (focus)="passFocusToGrid()"
 >
   <fz-phaser-canvas [scene]="scene" [options]="hostOptions">
     <!-- The level's squares, where the scene will draw them, until it does. -->
@@ -18,23 +23,12 @@
       </div>
     </div>
   </fz-phaser-canvas>
-  <div class="ring" [style]="boardStyle()"></div>
+  <app-board-grid [style]="boardStyle()" />
 </div>
 
 <!--
-  The keys needed to play, one at a time, which describe the application.
-  `role="list"`, as Safari's VoiceOver stops calling a list with no markers
-  one.
--->
-<ul id="board-keys" class="fz-visually-hidden" role="list" aria-label="Keys">
-  @for (key of keys; track $index) {
-    <li>{{ key }}</li>
-  }
-</ul>
-
-<!--
-  The game's panels, laid where the board says, outside the application,
-  read as a page is.
+  The game's panels, laid where the board says, outside the grid, read as a
+  page is.
 -->
 <ng-content />
 

@@ -92,6 +92,13 @@ move it with the arrow keys, Home and End.
   focus back to the board, so the player goes on typing, and one pressed
   from the keyboard keeps it.
 
+A board of squares drawn on a canvas, as Fuzz Flux's is
+(`frontend/games/fuzz-flux/src/app/board/`), lays a grid of ARIA's own roles
+over the canvas, a cell over each square, which lets every press through.
+Angular Aria's grid won't do there: it takes the arrow keys to move the
+focus itself, and stops them there, cancelled, so the scene, which hears the
+keys around the board, never would.
+
 A board that moves by itself, as Snake's, Brick Breaker's, Asteroid
 Breaker's, Brick Fuzz Pop's and Rickashay's do
 (`frontend/games/snake/src/app/board/` is the smallest), is no grid. It is

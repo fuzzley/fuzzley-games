@@ -3,33 +3,19 @@
 // The board takes the room the stage gives it, and the canvas fills it. The
 // scene lays the board out in the room inside the canvas, a margin round it
 // where the room spares one (`boardMetrics()`), and the component works out
-// where, so the placeholder and the focus ring sit where the scene draws,
-// before it has and after; until the board is measured, they fill it.
+// where, so the placeholder and the grid sit where the scene draws, before
+// it has and after; until the board is measured, they fill it.
 :host {
   @include canvas-board-host;
 }
 
-// The keys' list, with no markers a screen reader could read into the
-// application's description.
-#board-keys {
-  list-style: none;
-}
-
-// The application a screen reader hands the keys to, around the canvas and
-// the ring alone.
+// The canvas and the grid over it, apart from the panels and the cards.
 .play {
   position: absolute;
   inset: 0;
-  outline: none;
 }
 
 .placeholder {
-  position: absolute;
-  inset: 0;
-}
-
-.squares,
-.ring {
   position: absolute;
   inset: 0;
 }
@@ -39,6 +25,8 @@
 // (src/view/art/well.ts, 3 and 17 of a square's 100), and none in a gap,
 // where the page shows through.
 .squares {
+  position: absolute;
+  inset: 0;
   display: grid;
   grid-template-columns: repeat(var(--across), 1fr);
   grid-auto-rows: 1fr;
@@ -48,12 +36,6 @@
   margin: 3%;
   border-radius: 18%;
   background-color: var(--fz-panel);
-}
-
-// Around the board, 2px out from its edge, while the application, `.play`,
-// has the focus from the keyboard.
-.ring {
-  @include board-focus-ring(2px, $application: ".play");
 }
 
 .cards {

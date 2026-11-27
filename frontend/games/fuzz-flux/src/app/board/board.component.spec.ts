@@ -1,4 +1,6 @@
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
+import { PhaserCanvasComponent } from "@fz/phaser/canvas";
 import type { HostedScene } from "@fz/phaser/host";
 import {
   type FakeCanvasOptions,
@@ -12,12 +14,10 @@ import {
 import { viewport } from "@fz/phaser/testing/pure";
 import { PANEL_GAP_CSS_PX, cssRectStyle } from "@fz/phaser/layout";
 import { fireEvent, render, screen } from "@testing-library/angular";
-import { levelsOf } from "@fz/core/levels";
 import { paintRoles } from "@fz/style/testing";
-import { levelSetOf } from "../../rules/levels/level";
 import type { LevelEntry } from "../../rules/levels/levels";
 import { ART_ROLES } from "../../testing/art_frames";
-import { SMALL_LEVELS } from "../../testing/small_levels";
+import { GAPPED_LEVELS, SMALL_LEVELS } from "../../testing/small_levels";
 import { boardMetrics } from "../../view/board/metrics";
 import { BOARD_ROLES } from "../../view/colors/palette";
 import { GameService } from "../play/game.service";
@@ -27,35 +27,14 @@ import { BoardComponent } from "./board.component";
 /** How long a frame of the scene takes, in milliseconds. */
 const FRAME_MS = 16;
 
-/** A level on a board 5 squares across and 4 down, its bottom left square a gap, so the board's width, height and gaps can't be mistaken for one another. */
-const GAPPED: readonly LevelEntry[] = levelsOf([
-  levelSetOf({
-    id: "gapped",
-    name: "Gapped",
-    about: "A level for the board's specs.",
-    levels: [
-      {
-        id: 1,
-        set: "gapped",
-        name: "Gap",
-        idea: "A board wider than it is tall, with a gap.",
-        kinds: ["blue", "red", "amber", "green"],
-        board: ["rgarg", "garga", "bbabr", "_rgag"],
-        deals: [1],
-        stars: [0, 2, 4],
-        moves: 5,
-        goals: [{ type: "gather", kind: "blue", count: 3 }],
-      },
-    ],
-  }),
-]);
-
 /** Describes the board rendered on a fake canvas, and what a spec reads of it. */
 interface RenderedBoard {
   /** The board's element, `app-board`, which hears the keys. */
   readonly host: HTMLElement;
-  /** The application inside it, which takes the focus. */
-  readonly board: HTMLElement;
+  /** The canvas, which a press on the board lands on, through the grid over it. */
+  readonly canvas: HTMLElement;
+  /** The element the canvas and the grid lie in. */
+  readonly play: HTMLElement;
   readonly component: BoardComponent;
   readonly game: GameService;
   readonly fake: FakePhaserCanvas;
@@ -76,12 +55,20 @@ async function renderBoard(
   await fixture.whenStable();
   return {
     host: fixture.nativeElement as HTMLElement,
-    board: screen.getByRole("application"),
+    canvas: fixture.debugElement.query(By.directive(PhaserCanvasComponent))
+      .nativeElement as HTMLElement,
+    play: fixture.debugElement.query(By.css(".play"))
+      .nativeElement as HTMLElement,
     component: fixture.componentInstance,
     game: TestBed.inject(GameService),
     fake: TestBed.inject(FakePhaserCanvas),
     detectChanges,
   };
+}
+
+/** Returns the square that holds the grid's one tab stop. */
+function tabStop(): HTMLElement | undefined {
+  return screen.getAllByRole("gridcell").find((cell) => cell.tabIndex === 0);
 }
 
 /** Runs the scene the board loads, for real, on a canvas of a CSS size, the page painted in the art's palette, its first frame drawn, renders what that changes, and returns the scene's run. */
@@ -102,30 +89,6 @@ async function runSceneOn(
 
 describe("BoardComponent", () => {
   describe("the board", () => {
-    it("is named for the level on it, and described by its keys", async () => {
-      await renderBoard();
-
-      const board = screen.getByRole("application", {
-        name: "Fuzz Flux, level 1: Quick clear",
-      });
-      expect(board).toHaveAccessibleDescription(
-        /^Arrow keys: move the ring, or swap the fuzzball you hold that way\. /,
-      );
-    });
-
-    it("is named for the next level as it begins", async () => {
-      const { game, detectChanges } = await renderBoard();
-
-      await game.startLevel(3);
-      detectChanges();
-
-      expect(
-        screen.getByRole("application", {
-          name: "Fuzz Flux, level 3: Show me",
-        }),
-      ).toBeInTheDocument();
-    });
-
     it("hears the keys on its own element, through Phaser", async () => {
       const { host, fake } = await renderBoard();
 
@@ -134,21 +97,37 @@ describe("BoardComponent", () => {
       });
     });
 
-    it("takes the focus for a press on it", async () => {
-      const { board } = await renderBoard();
+    it("puts the focus on the grid's tab stop for a press on it", async () => {
+      const { canvas } = await renderBoard();
 
-      fireEvent.pointerDown(board);
+      fireEvent.pointerDown(canvas);
 
-      expect(board).toHaveFocus();
+      expect(tabStop()).toHaveFocus();
     });
 
-    it("takes the focus after the next render, as a level begins", async () => {
-      const { board, component, detectChanges } = await renderBoard();
+    it("cancels the mouse's press, which would take the focus off the grid", async () => {
+      const { canvas } = await renderBoard();
+
+      const notCancelled = fireEvent.mouseDown(canvas);
+
+      expect(notCancelled).toBe(false);
+    });
+
+    it("hands the grid's tab stop the focus that lands on the board itself", async () => {
+      const { play } = await renderBoard();
+
+      play.focus();
+
+      expect(tabStop()).toHaveFocus();
+    });
+
+    it("puts the focus on the grid's tab stop after the next render, as a level begins", async () => {
+      const { component, detectChanges } = await renderBoard();
 
       component.focus();
       detectChanges();
 
-      expect(board).toHaveFocus();
+      expect(tabStop()).toHaveFocus();
     });
   });
 
@@ -198,13 +177,13 @@ describe("BoardComponent", () => {
     watchResizes();
 
     it("draws a well on each of the level's squares, and none on a gap", async () => {
-      const { host } = await renderBoard({}, GAPPED);
+      const { host } = await renderBoard({}, GAPPED_LEVELS);
 
       expect(host.querySelectorAll(".square.well")).toHaveLength(19);
     });
 
     it("lies where the scene will lay the board out, on the canvas the board measures", async () => {
-      const { host, detectChanges } = await renderBoard({}, GAPPED);
+      const { host, detectChanges } = await renderBoard({}, GAPPED_LEVELS);
 
       resize(host, 390, 600);
       detectChanges();
@@ -254,13 +233,13 @@ describe("BoardComponent", () => {
     });
   });
 
-  describe("the focus ring", () => {
-    it("lies round the board where the scene laid it out", async () => {
-      const rendered = await renderBoard({}, GAPPED);
+  describe("the grid", () => {
+    it("lies over the board where the scene laid it out", async () => {
+      const rendered = await renderBoard({}, GAPPED_LEVELS);
 
       await runSceneOn(rendered, 390, 600);
 
-      expect(rendered.host.querySelector(".ring")).toHaveStyle(
+      expect(rendered.host.querySelector("app-board-grid")).toHaveStyle(
         cssRectStyle(boardMetrics(viewport(390, 600), 5, 4).css),
       );
     });

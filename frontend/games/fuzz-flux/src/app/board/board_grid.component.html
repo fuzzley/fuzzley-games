@@ -1,0 +1,43 @@
+<!--
+  The board's squares, a row at a time, each cell over the square the scene
+  draws. A gap is no cell, and a row of gaps no row, so the grid says how
+  big the board is, and each row and each cell where it lies.
+-->
+<div
+  class="grid"
+  role="grid"
+  aria-describedby="board-keys"
+  [attr.aria-label]="label()"
+  [attr.aria-rowcount]="grid().height"
+  [attr.aria-colcount]="grid().width"
+>
+  @for (row of rows(); track row.line) {
+    <div
+      class="row"
+      role="row"
+      [attr.aria-rowindex]="row.line"
+      [style.--line]="row.line"
+    >
+      @for (cell of row.cells; track cell.index) {
+        <div
+          class="cell"
+          role="gridcell"
+          [tabindex]="cell.tabIndex"
+          [attr.aria-colindex]="cell.column"
+          [style.--column]="cell.column"
+        ></div>
+      }
+    </div>
+  }
+</div>
+
+<!--
+  The keys needed to play, one at a time, which describe the board.
+  `role="list"`, as Safari's VoiceOver stops calling a list with no markers
+  one.
+-->
+<ul id="board-keys" class="fz-visually-hidden" role="list" aria-label="Keys">
+  @for (key of keys; track $index) {
+    <li>{{ key }}</li>
+  }
+</ul>
