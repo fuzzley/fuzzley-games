@@ -1,6 +1,6 @@
 import { isOneOf, keysOf } from "@fz/core/records";
 import { ELEMENT_IDS } from "../catalog/elements";
-import { ELEMENT_RULES, STAND_INS } from "./element_rules";
+import { ELEMENT_RULES, STAND_INS, WIND_RULE } from "./element_rules";
 
 /** Every element brought in, its rule its own. */
 const BROUGHT_IN = ELEMENT_IDS.filter((id) => !isOneOf(id, STAND_INS));
@@ -24,5 +24,11 @@ describe("STAND_INS", () => {
     expect(STAND_INS).toEqual(
       ELEMENT_IDS.filter((id) => isOneOf(id, STAND_INS)),
     );
+  });
+});
+
+describe("WIND_RULE", () => {
+  it("takes the wind's part in no move, as the stand-in", () => {
+    expect(WIND_RULE.afterMove).toBeUndefined();
   });
 });

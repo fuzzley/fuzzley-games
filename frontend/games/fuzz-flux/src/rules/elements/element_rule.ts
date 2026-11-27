@@ -4,9 +4,10 @@
 // game as a move ends, or of the board, in the board's own frame: an
 // element answers for a square it bears on, and for any other as a hook
 // left out does. Each hook reads what it is handed and changes nothing, so
-// a move plays the same every time.
+// a move plays the same every time. The wind's rule is built the same way,
+// its one hook asked after each move that leaves the level in play.
 
-import type { Board, Game } from "../board/board";
+import type { Board, Game, TurningWind } from "../board/board";
 import type { DustLayers } from "../catalog/elements";
 import type { ElementGoalId } from "../catalog/goals";
 import type { Piece } from "../catalog/pieces";
@@ -122,4 +123,18 @@ export interface ElementRule {
   readonly wisp?: WispAim;
   /** The goal it counts for. */
   readonly goal?: ElementGoal;
+}
+
+/** Describes how a turning wind stands once a move is played, and the turn it gives the board's frame then. */
+export interface WindTurn {
+  /** The wind as the move leaves it, its wait counted down or begun again. */
+  readonly wind: TurningWind;
+  /** How many quarter turns clockwise it turns the board's frame now, or 0 where it waits. */
+  readonly quarters: number;
+}
+
+/** Describes the wind's part in a move: the hook left out where it takes none. */
+export interface WindRule {
+  /** Returns how a turning wind stands after a move that leaves the level in play, and how far it turns the board's frame then. */
+  readonly afterMove?: (wind: TurningWind) => WindTurn;
 }
