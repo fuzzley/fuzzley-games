@@ -62,6 +62,6 @@ export const RAISED = {
   made: 3,
   /** A dasher or a puffer going off. */
   goingOff: 4,
-  /** A frizzball going off, or a wisp's copy in flight, over all the rest. */
+  /** A frizzball going off, a wisp's copy in flight, or the hint's hand, over all the rest. */
   top: 5,
 } as const satisfies Readonly<Record<string, number>>;
