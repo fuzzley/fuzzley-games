@@ -1,6 +1,7 @@
 // Elements' rules made up for specs, so a spec can play a moment of a move
 // with an element that takes part in it, or with none, whichever of the
-// elements' own rules have been brought in.
+// elements' own rules have been brought in; and the wind's, made up the
+// same way.
 
 import { itemAt, recordOf } from "@fz/core/records";
 import type { Board } from "../rules/board/board";
@@ -13,6 +14,7 @@ import type {
   Change,
   ElementRule,
   SquareState,
+  WindRule,
 } from "../rules/elements/element_rule";
 
 /** Every element's rule taking part in no moment of a move. */
@@ -166,6 +168,18 @@ export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> = {
       },
     },
   },
+};
+
+/**
+ * The wind's rule as the design's sketch plays it: after each move a
+ * turning wind waits a move less, and once it has waited its moves it
+ * turns the board's frame its quarters and begins its wait again.
+ */
+export const DESIGN_WIND: WindRule = {
+  afterMove: (wind) =>
+    wind.wait > 1
+      ? { wind: { ...wind, wait: wind.wait - 1 }, quarters: 0 }
+      : { wind: { ...wind, wait: wind.every }, quarters: wind.quarters },
 };
 
 /** Returns whether a square holds up a sleepyhead: the nearest piece above it, past gaps and empty squares, is one. */

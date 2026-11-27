@@ -1,5 +1,5 @@
 import type { Goal } from "../catalog/goals";
-import { countedOff, stillCounts } from "./goals";
+import { countedOff, goalsMet, stillCounts } from "./goals";
 
 /** A level's goals: two that gather blue, one red, and every cage. */
 const GOALS: readonly Goal[] = [
@@ -71,5 +71,15 @@ describe("stillCounts", () => {
       stillCounts(game, { what: "cage" }),
       stillCounts(game, { what: "brick" }),
     ]).toEqual([false, false, false]);
+  });
+});
+
+describe("goalsMet", () => {
+  it("finds every goal met where each needs nothing more, one counted on below 0 among them", () => {
+    expect(goalsMet({ goalsLeft: [0, -2, 0] })).toBe(true);
+  });
+
+  it("finds a goal still open where one needs more", () => {
+    expect(goalsMet({ goalsLeft: [0, 1, -2] })).toBe(false);
   });
 });

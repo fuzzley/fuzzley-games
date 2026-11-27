@@ -1,7 +1,7 @@
 // What a move counts toward its goals as it plays: a fuzzball gathered
 // counts toward each goal that gathers its kind, and an element's change
 // toward each goal of that element's. A goal counts on below 0, met all
-// the same.
+// the same, and a move that ends with every goal met clears the level.
 
 import { itemAt } from "@fz/core/records";
 import type { Game } from "../board/board";
@@ -31,6 +31,11 @@ export function stillCounts(
   return game.goals.some(
     (goal, place) => counts(goal, taken) && itemAt(game.goalsLeft, place) > 0,
   );
+}
+
+/** Returns whether every goal of a game is met, none still needing more. */
+export function goalsMet(game: Pick<Game, "goalsLeft">): boolean {
+  return game.goalsLeft.every((left) => left <= 0);
 }
 
 /** Returns whether a goal counts something taken. */
