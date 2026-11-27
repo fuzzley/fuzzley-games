@@ -1148,22 +1148,18 @@ export function play(s, a, b, keep = false) {
       /** @type {Hit[]} */
       const hits = [];
       const fallsDown = settle(s, keep, hits);
-      const steps = cascade(s, findBunches(s), [], flags, keep, 1);
-      record.gust = {
-        rot: s.rot,
-        steps: [
-          {
-            n: 0,
-            bunches: [],
-            blasts: [],
-            hits,
-            falls: fallsDown,
-            left: s.left.slice(),
-            score: s.score,
-          },
-          ...steps,
-        ],
+      /** @type {Step} */
+      const fall = {
+        n: 0,
+        bunches: [],
+        blasts: [],
+        hits,
+        falls: fallsDown,
+        left: s.left.slice(),
+        score: s.score,
       };
+      const steps = cascade(s, findBunches(s), [], flags, keep, 1);
+      record.gust = { rot: s.rot, steps: [fall, ...steps] };
       if (goalsMet(s)) {
         s.won = true;
         record.won = true;
