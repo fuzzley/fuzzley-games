@@ -25,6 +25,19 @@ const STEPS: readonly Square[] = [
   { x: 0, y: -1 },
 ];
 
+/** Describes a board size's lines: its rows, from the top, and its columns, from the left. */
+interface Lines {
+  readonly rows: readonly (readonly number[])[];
+  readonly columns: readonly (readonly number[])[];
+}
+
+/**
+ * Each board size's lines, by its width and height, worked out the first
+ * time a board of that size asks: a move asks for them at every step of
+ * its fall and every look for bunches.
+ */
+const LINES = new Map<string, Lines>();
+
 /** Returns a square's index on a board so many squares wide. */
 export function indexOf({ x, y }: Square, width: number): number {
   return y * width + x;
@@ -49,23 +62,32 @@ export function neighborsOf(
 }
 
 /** Returns the squares of each row of a board, from the top, each row's from the left. */
-export function rowsOf({
-  width,
-  height,
-}: BoardSize): readonly (readonly number[])[] {
-  return Array.from({ length: height }, (_, y) =>
-    Array.from({ length: width }, (_, x) => indexOf({ x, y }, width)),
-  );
+export function rowsOf(size: BoardSize): readonly (readonly number[])[] {
+  return linesOf(size).rows;
 }
 
 /** Returns the squares of each column of a board, from the left, each column's from the top. */
-export function columnsOf({
-  width,
-  height,
-}: BoardSize): readonly (readonly number[])[] {
-  return Array.from({ length: width }, (_, x) =>
-    Array.from({ length: height }, (_, y) => indexOf({ x, y }, width)),
-  );
+export function columnsOf(size: BoardSize): readonly (readonly number[])[] {
+  return linesOf(size).columns;
+}
+
+/** Returns a board size's lines, kept from the first time a board of that size asked. */
+function linesOf({ width, height }: BoardSize): Lines {
+  const key = `${String(width)} ${String(height)}`;
+  const kept = LINES.get(key);
+  if (kept !== undefined) {
+    return kept;
+  }
+  const lines = {
+    rows: Array.from({ length: height }, (_, y) =>
+      Array.from({ length: width }, (_, x) => indexOf({ x, y }, width)),
+    ),
+    columns: Array.from({ length: width }, (_, x) =>
+      Array.from({ length: height }, (_, y) => indexOf({ x, y }, width)),
+    ),
+  };
+  LINES.set(key, lines);
+  return lines;
 }
 
 /** Returns whether a square, by its column and row, is on a board. */
