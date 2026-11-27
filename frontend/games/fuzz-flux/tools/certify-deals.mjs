@@ -12,7 +12,8 @@
  * `certificates.json` keeps them, by the level's id and then the deal's
  * seed, each move a pair of squares, from and to, but in the screen's
  * frame, which `play()` takes. It lays them out as Prettier lays them out,
- * so a run writes the same bytes as the last unless a line changed.
+ * so a run writes the same bytes as the last unless a line changed. The
+ * specs in `src/rules/levels/every_level/` replay every line.
  *
  * With `--set`, it certifies only that set's levels, and writes only its
  * file. It waits its turn in the queue `yarn verify:changed` keeps, so its
