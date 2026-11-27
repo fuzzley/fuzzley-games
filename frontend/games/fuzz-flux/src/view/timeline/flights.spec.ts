@@ -3,6 +3,7 @@ import type { Fuzzball } from "../../rules/catalog/pieces";
 import type { GoalShown } from "../run_state";
 import { FEEL } from "./feel";
 import { type Claim, flightsOf } from "./flights";
+import { cue } from "./part";
 
 /** A goal of red fuzzballs, and one of dust. */
 const GOALS: readonly Goal[] = [
@@ -161,9 +162,9 @@ describe("flightsOf", () => {
     const countedMs = 100 + FEEL.unflownCountMs;
 
     expect(sounds).toEqual([
-      { atMs: countedMs, sound: "tick", cents: 0, volume: 1 },
-      { atMs: countedMs, sound: "tick", cents: 0, volume: 1 },
-      { atMs: countedMs, sound: "goal", cents: 0, volume: 1 },
+      cue("tick", countedMs),
+      cue("tick", countedMs),
+      cue("goal", countedMs),
     ]);
   });
 });

@@ -9,6 +9,7 @@ import type { FuzzballFace } from "@fz/style/fuzzball";
 import type { KindId } from "../../rules/catalog/kinds";
 import type { Fuzzball, Piece } from "../../rules/catalog/pieces";
 import { FRAMES } from "../art/frame_names";
+import type { LadderedSound } from "../effects/ladder";
 import type { SoundName } from "../effects/sounds";
 import type { Counts } from "./flights";
 import {
@@ -87,19 +88,30 @@ export type Part =
   | { readonly what: "counted"; readonly atMs: number; readonly counts: Counts }
   | { readonly what: "dust"; readonly change: DustChange }
   | { readonly what: "mark"; readonly mark: WaveMark }
-  /** A sound, climbing the move's ladder of notes to a rung where it is a note. */
+  /** A sound at its own pitch. */
   | {
       readonly what: "sound";
       readonly atMs: number;
       readonly sound: SoundName;
-      /** Its rung on the ladder, from 0 for the first wave's, or null for a sound that is no note. */
-      readonly rung: number | null;
+      readonly rung: null;
+      readonly volume: number;
+    }
+  /** A sound that climbs the move's ladder of notes, on a rung of it. */
+  | {
+      readonly what: "sound";
+      readonly atMs: number;
+      readonly sound: LadderedSound;
+      /** Its rung on the ladder, from 0 for the first wave's. */
+      readonly rung: number;
       readonly volume: number;
     }
   /** A key of how far the board dims. */
   | { readonly what: "dim"; readonly key: Key }
   /** A moment the board waits for before it goes on, such as a hop far enough through that it may fall. */
   | { readonly what: "hold"; readonly atMs: number };
+
+/** Describes a part that cues a sound, at its own pitch or on a rung of the ladder. */
+export type SoundPart = Extract<Part, { readonly what: "sound" }>;
 
 /** Returns the parts that move a piece's look to new numbers over a while, a key a number, each from where it stands as the key starts. */
 export function moves(
@@ -149,17 +161,17 @@ export function facingAgain(
 }
 
 /** Returns the part that cues a sound at a moment, as loud as a share of its own loudness. */
-export function cue(sound: SoundName, atMs: number, volume = 1): Part {
+export function cue(sound: SoundName, atMs: number, volume = 1): SoundPart {
   return { what: "sound", atMs, sound, rung: null, volume };
 }
 
 /** Returns the part that cues a sound at a moment on a rung of the move's ladder of notes, from 0 for the first wave's, as loud as a share of its own loudness. */
 export function noteCue(
-  sound: SoundName,
+  sound: LadderedSound,
   atMs: number,
   rung: number,
   volume = 1,
-): Part {
+): SoundPart {
   return { what: "sound", atMs, sound, rung, volume };
 }
 

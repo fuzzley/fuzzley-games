@@ -8,7 +8,7 @@
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import { squareOf } from "../../rules/board/cells";
 import type { Piece } from "../../rules/catalog/pieces";
-import { rungCentsOf } from "../effects/ladder";
+import { onRung } from "../effects/ladder";
 import type { GoalShown, GridShown } from "../run_state";
 import { byStart } from "./by_start";
 import type { FeelTuning } from "./feel";
@@ -23,7 +23,7 @@ import {
   limitSounds,
 } from "./limits";
 import { lookAt, restingFace } from "./looks";
-import type { Part } from "./part";
+import type { Part, SoundPart } from "./part";
 import type {
   Becomes,
   Channel,
@@ -69,7 +69,7 @@ export class Draft {
   readonly #claims: Claim[] = [];
   readonly #dust: DustChange[] = [];
   readonly #marks: WaveMark[] = [];
-  readonly #sounds: SoundCue[] = [];
+  readonly #sounds: SoundPart[] = [];
   readonly #dim: Key[] = [];
   readonly #goals: readonly GoalShown[];
   #hurriedFromMs = Infinity;
@@ -154,12 +154,7 @@ export class Draft {
           this.#marks.push(part.mark);
           break;
         case "sound":
-          this.#sounds.push({
-            atMs: part.atMs,
-            sound: part.sound,
-            cents: part.rung === null ? 0 : rungCentsOf(part.rung),
-            volume: part.volume,
-          });
+          this.#sounds.push(part);
           break;
         case "dim":
           this.#dim.push(part.key);
@@ -240,7 +235,9 @@ export class Draft {
       counts,
       dust: byStart(this.#dust),
       marks: limitMarks(byStart(this.#marks), pools, feel),
-      sounds: limitSounds(byStart([...this.#sounds, ...sounds]), feel),
+      sounds: limitSounds(byStart([...this.#sounds, ...sounds]), feel).map(
+        playedAs,
+      ),
       dim: byStart(this.#dim),
       restMs,
       end,
@@ -287,6 +284,15 @@ export class Draft {
     keys.set(channel, ofChannel);
     return ofChannel;
   }
+}
+
+/** Returns the cue a sound part plays as: a sound on a rung of the ladder plays the take nearest it, tuned by the cents between. */
+function playedAs(part: SoundPart): SoundCue {
+  const { sound, cents } =
+    part.rung === null
+      ? { sound: part.sound, cents: 0 }
+      : onRung(part.sound, part.rung);
+  return { atMs: part.atMs, sound, cents, volume: part.volume };
 }
 
 /** Returns a piece's track as the timeline has it, its glows kept by the flashes' limit among its keys, each list in the order it starts. */

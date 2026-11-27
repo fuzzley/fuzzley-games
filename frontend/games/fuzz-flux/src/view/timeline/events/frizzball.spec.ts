@@ -8,7 +8,7 @@ import {
   pieceAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
-import { TOP_RUNG, rungCentsOf } from "../../effects/ladder";
+import { TOP_RUNG, onRung } from "../../effects/ladder";
 import { FEEL } from "../feel";
 import { RAISED } from "../looks";
 import { reachesOf } from "../reach";
@@ -75,8 +75,8 @@ describe("frizzballOff", () => {
   const timeline = blastTimeline(MOVE_FIXTURES.frizzballGoesOff, frizzballOff);
 
   it("zaps no more than the most its static plays", () => {
-    const zaps = strikingOver(FEEL.mostZaps + 2).sounds.filter(
-      ({ sound }) => sound === "zap",
+    const zaps = strikingOver(FEEL.mostZaps + 2).sounds.filter(({ sound }) =>
+      sound.startsWith("zap"),
     );
 
     expect(zaps).toHaveLength(FEEL.mostZaps);
@@ -87,8 +87,7 @@ describe("frizzballOff", () => {
       { atMs: OFF_MS, sound: "zap", cents: 0, volume: 1 },
       {
         atMs: OFF_MS + FEEL.frizzballStepMs,
-        sound: "zap",
-        cents: rungCentsOf(TOP_RUNG),
+        ...onRung("zap", TOP_RUNG),
         volume: 1,
       },
       {

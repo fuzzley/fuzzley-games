@@ -152,7 +152,7 @@ describe("Draft", () => {
       ],
       sounds: [
         { atMs: 30, sound: "swap", cents: 0, volume: 1 },
-        { atMs: 70, sound: "pop", cents: 700, volume: 0.8 },
+        { atMs: 70, sound: "pop-g5", cents: 0, volume: 0.8 },
       ],
       dim: [keyAt(60, 0.4), keyAt(90, 0)],
     });

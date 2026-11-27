@@ -9,7 +9,7 @@ import {
   pieceAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
-import { rungCentsOf } from "../../effects/ladder";
+import { noteVolumeOf, onRung } from "../../effects/ladder";
 import { FEEL } from "../feel";
 import type { Motion } from "../less_motion";
 import type { Part } from "../part";
@@ -76,14 +76,12 @@ describe("bunchOf", () => {
         { atMs: bubblesMs, sound: "pop", cents: 0, volume: FEEL.bubbleVolume },
         {
           atMs: bubblesMs + FEEL.bubbleGapMs,
-          sound: "pop",
-          cents: rungCentsOf(1),
+          ...onRung("pop", 1),
           volume: FEEL.bubbleVolume,
         },
         {
           atMs: bubblesMs + 2 * FEEL.bubbleGapMs,
-          sound: "pop",
-          cents: rungCentsOf(2),
+          ...onRung("pop", 2),
           volume: FEEL.bubbleVolume,
         },
       ]);
@@ -151,9 +149,8 @@ describe("bunchOf", () => {
   it("plays a wave's second bunch's note a rung higher and softer", () => {
     expect(bunchTimeline(MOVE_FIXTURES.bunch, 1).sounds[0]).toEqual({
       atMs: HOPS_MS + FEEL.bunchGapMs,
-      sound: "note",
-      cents: rungCentsOf(1),
-      volume: FEEL.laterBunchVolume,
+      ...onRung("note", 1),
+      volume: FEEL.laterBunchVolume * noteVolumeOf(1),
     });
   });
 
@@ -161,12 +158,13 @@ describe("bunchOf", () => {
     const timeline = bunchTimeline(MOVE_FIXTURES.dasherAcrossMade);
 
     it("plays a chord of two notes, and the dasher's sound as it is made", () => {
-      expect(timeline.sounds.filter(({ sound }) => sound !== "pop")).toEqual([
+      expect(
+        timeline.sounds.filter(({ sound }) => !sound.startsWith("pop")),
+      ).toEqual([
         { atMs: HOPS_MS, sound: "note", cents: 0, volume: 1 },
         {
           atMs: HOPS_MS + FEEL.chordGapMs,
-          sound: "note",
-          cents: rungCentsOf(FEEL.chordRungs),
+          ...onRung("note", FEEL.chordRungs),
           volume: FEEL.chordSecondVolume,
         },
         {

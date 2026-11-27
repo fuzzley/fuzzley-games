@@ -12,8 +12,8 @@ import type { SoundName } from "../effects/sounds";
 import type { GoalShown } from "../run_state";
 import { byStart } from "./by_start";
 import type { FeelTuning } from "./feel";
-import type { Part } from "./part";
-import type { Flight, GoalCount, SoundCue } from "./timeline";
+import { type Part, type SoundPart, cue } from "./part";
+import type { Flight, GoalCount } from "./timeline";
 
 /** Describes what a goal counts: a fuzzball of a kind gathered, or one of an element cleared. */
 export type Counts =
@@ -33,7 +33,7 @@ export interface FlightsAndCounts {
   /** Each count, in the order it lands. */
   readonly counts: readonly GoalCount[];
   /** A tick as each count lands, and a goal's sound as one is met, in the order they play. */
-  readonly sounds: readonly SoundCue[];
+  readonly sounds: readonly SoundPart[];
 }
 
 /** Describes the moment a goal counts one more. */
@@ -101,12 +101,7 @@ export function flightsOf(
     sounds: counts.flatMap(({ atMs, left }) => {
       const sounds: readonly SoundName[] =
         left === 0 ? ["tick", "goal"] : ["tick"];
-      return sounds.map((sound): SoundCue => ({
-        atMs,
-        sound,
-        cents: 0,
-        volume: 1,
-      }));
+      return sounds.map((sound) => cue(sound, atMs));
     }),
   };
 }

@@ -7,9 +7,11 @@
 // starts, and keeps what fits.
 
 import { isKeyOf } from "@fz/core/records";
+import { rungCentsOf } from "../effects/ladder";
 import { GAPPED, type SoundName } from "../effects/sounds";
 import type { FeelTuning } from "./feel";
-import type { Effect, SoundCue, SpriteTrack, WaveMark } from "./timeline";
+import type { SoundPart } from "./part";
+import type { Effect, SpriteTrack, WaveMark } from "./timeline";
 
 /** Describes something that starts at a moment. */
 interface Timed {
@@ -104,23 +106,23 @@ export function limitFluff(
 /**
  * Returns the sound cues but those of a sound with a gap that start
  * sooner than its gap after the last kept of that sound on that rung, as
- * the sketch names each rung's sound apart.
+ * the sketch names each rung's sound apart, whichever take then plays it.
  */
 export function limitSounds(
-  cues: readonly SoundCue[],
+  cues: readonly SoundPart[],
   feel: FeelTuning,
-): readonly SoundCue[] {
+): readonly SoundPart[] {
   const lastMs = new Map<string, number>();
-  return cues.filter(({ atMs, sound, cents }) => {
+  return cues.filter(({ atMs, sound, rung }) => {
     const gap = gapOf(sound);
     if (gap === null) {
       return true;
     }
-    const tuned = `${sound}@${String(cents)}`;
-    if (atMs - (lastMs.get(tuned) ?? -Infinity) < feel[gap]) {
+    const rungSound = `${sound}@${String(rung === null ? 0 : rungCentsOf(rung))}`;
+    if (atMs - (lastMs.get(rungSound) ?? -Infinity) < feel[gap]) {
       return false;
     }
-    lastMs.set(tuned, atMs);
+    lastMs.set(rungSound, atMs);
     return true;
   });
 }

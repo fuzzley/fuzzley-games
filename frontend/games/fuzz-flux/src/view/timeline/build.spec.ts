@@ -2,7 +2,7 @@ import { boardFrom } from "../../testing/board_picture";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import { pieceAt } from "../../testing/played_parts";
 import { gridOf, moveStartOf } from "../../testing/shown_board";
-import { rungCentsOf } from "../effects/ladder";
+import { onRung } from "../effects/ladder";
 import { FEEL } from "./feel";
 import { type PlaySettings, heldTimelineOf, timelineOf } from "./build";
 
@@ -234,9 +234,9 @@ describe("timelineOf", () => {
 
     expect(
       timeline.sounds
-        .filter(({ sound }) => sound === "pop")
-        .map(({ cents }) => cents),
-    ).toEqual([rungCentsOf(1), rungCentsOf(2)]);
+        .filter(({ sound }) => sound.startsWith("pop"))
+        .map(({ sound, cents }) => ({ sound, cents })),
+    ).toEqual([onRung("pop", 1), onRung("pop", 2)]);
   });
 
   it("ends a level cleared with the Cleared card, lighting each star it earned", () => {

@@ -3,6 +3,7 @@ import { mostAtOnce } from "../../testing/at_once";
 import type { MoveFixture } from "../../testing/move_fixtures";
 import { moveStartOf } from "../../testing/shown_board";
 import { SKETCH_MOVES } from "../../testing/sketch_moves";
+import { TOP_RUNG } from "../effects/ladder";
 import { timelineOf } from "./build";
 import { FEEL } from "./feel";
 import {
@@ -15,13 +16,8 @@ import {
   limitSounds,
 } from "./limits";
 import { lookAt } from "./looks";
-import type {
-  Effect,
-  SoundCue,
-  SpriteTrack,
-  Timeline,
-  WaveMark,
-} from "./timeline";
+import { cue, noteCue } from "./part";
+import type { Effect, SpriteTrack, Timeline, WaveMark } from "./timeline";
 
 /** Returns a fluff of so many tufts at a moment. */
 function fluff(atMs: number, count: number): Effect {
@@ -44,11 +40,6 @@ function bar(fromMs: number, untilMs: number): SpriteTrack {
     look: lookAt({ x: 0, y: 0 }),
     keys: {},
   };
-}
-
-/** Returns a cue of a sound at a moment. */
-function cue(sound: SoundCue["sound"], atMs: number): SoundCue {
-  return { atMs, sound, cents: 0, volume: 1 };
 }
 
 /** Returns a ring spreading for a while from a moment. */
@@ -153,14 +144,21 @@ describe("limitSounds", () => {
 
   it("keeps a sound's gap on each rung apart, as the sketch names each rung's sound", () => {
     const cues = [
-      { ...cue("pop", 0), cents: 200 },
-      { ...cue("pop", 0), cents: 400 },
-      { ...cue("pop", 0), cents: 400 },
+      noteCue("pop", 0, 1),
+      noteCue("pop", 0, 2),
+      noteCue("pop", 0, 2),
     ];
 
-    expect(limitSounds(cues, FEEL).map(({ cents }) => cents)).toEqual([
-      200, 400,
+    expect(limitSounds(cues, FEEL)).toEqual([
+      noteCue("pop", 0, 1),
+      noteCue("pop", 0, 2),
     ]);
+  });
+
+  it("keeps one gap across the rungs past the ladder's top, which play as the top", () => {
+    const cues = [noteCue("pop", 0, TOP_RUNG), noteCue("pop", 0, TOP_RUNG + 1)];
+
+    expect(limitSounds(cues, FEEL)).toEqual([noteCue("pop", 0, TOP_RUNG)]);
   });
 
   it("keeps every cue of a sound with no gap", () => {
