@@ -1,5 +1,5 @@
 import { LEGEND } from "./legend";
-import { layOut, pictureProblem } from "./picture";
+import { layOut, readPictures } from "./picture";
 
 describe("layOut", () => {
   it("puts on each square, row by row, what its letter does", () => {
@@ -68,9 +68,13 @@ describe("layOut", () => {
   });
 });
 
-describe("pictureProblem", () => {
-  it("finds nothing wrong with pictures that lay a board out", () => {
-    expect(pictureProblem(["b.", "_1"], ["10", "02"])).toBeNull();
+describe("readPictures", () => {
+  it("lays out pictures that lay a board out", () => {
+    expect(readPictures(["b.", "_1"], ["10", "02"])).toMatchObject({
+      width: 2,
+      height: 2,
+      dust: [1, 0, 0, 2],
+    });
   });
 
   it.each<[string, readonly string[], readonly string[] | null, string]>([
@@ -113,6 +117,6 @@ describe("pictureProblem", () => {
       "its dust lies on a gap at column 2, row 1",
     ],
   ])("finds %s", (_, board, dust, problem) => {
-    expect(pictureProblem(board, dust)).toBe(problem);
+    expect(readPictures(board, dust)).toBe(problem);
   });
 });

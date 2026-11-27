@@ -19,24 +19,10 @@ export interface LaidOut {
 }
 
 /**
- * Returns what is wrong with a level's pictures, its board's and its
- * dust's, or null where they lay a board out: every row as long as the
- * first, each letter the legend's, and the dust, where the level has any,
- * of the board's shape, in the dust's digits, and on no gap.
- */
-export function pictureProblem(
-  board: readonly string[],
-  dust: readonly string[] | null,
-): string | null {
-  const read = readPictures(board, dust);
-  return typeof read === "string" ? read : null;
-}
-
-/**
  * Returns a board as a level's pictures lay it out, the dust's picture
  * null for a level with none.
  *
- * @throws {Error} for pictures `pictureProblem()` finds wrong.
+ * @throws {Error} for pictures `readPictures()` finds wrong.
  */
 export function layOut(
   board: readonly string[],
@@ -49,8 +35,13 @@ export function layOut(
   return read;
 }
 
-/** Returns a board as a level's pictures lay it out, or what is wrong with them. */
-function readPictures(
+/**
+ * Returns a board as a level's pictures lay it out, its board's and its
+ * dust's, or what is wrong with them where they lay none out: every row
+ * as long as the first, each letter the legend's, and the dust, where the
+ * level has any, of the board's shape, in the dust's digits, and on no gap.
+ */
+export function readPictures(
   board: readonly string[],
   dust: readonly string[] | null,
 ): LaidOut | string {
