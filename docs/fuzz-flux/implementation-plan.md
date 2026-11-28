@@ -1,7 +1,9 @@
 # Fuzz Flux: the implementation plan
 
-**Part 1 is done:** built, checked and merged into `main` on 2026-11-27, as
-"Part 1, as built" below says. Part 2 starts at your word.
+**Parts 1 and 2 are done.** Part 1 was built, checked and merged into
+`main` on 2026-11-27, and Part 2, the game, on 2026-11-28, as "Part 1, as
+built" and "Part 2, as built" below say. The game is live in the catalog,
+marked "In development" until you take the mark off (§11).
 
 Written 2026-11-26, as a companion to [`design.md`](design.md), and given
 your answers to §2.1 the same day. The design says what the game is: its 16
@@ -178,6 +180,466 @@ another session, with no conflict. The work log (§7) stays on its branch.
   `--force`, move at any commit, so a retake can't tell a change in its
   page from its timing.
 
+## Part 2, as built (2026-11-28)
+
+Built on 2026-11-27 and 28 to §5.2, by packages in worktrees of their own
+(§6), on `fuzz-flux`, cut from `main` at a7a9b395, and merged into `main` on
+2026-11-28 with its code at 1e3bf145. Every commit was reviewed as
+`commit-review-process` says, each finding taken or left with its reason in
+the commit's message. It came to 177 commits against §1's 144 or so. The
+packages landed in this order, with their commits: K1 3, K2 4, P1 3, A1 3,
+V1 5, R1 6, R0 3, N1 7, A2 7, R2 8, N2 3, V2 10, V3 5, R3 10, P2 4, S1 8, P3
+6, A3 3, U1 6, U3 3, U2 8, X4 4, X3 4, X1 4, T1 6, X2 4, Y2 2, Y1 2, X5 8,
+Y3 4, Z1 6, D1 3, F1 7 and F2 5; and 3 of the orchestrator's: the game's own
+part in CI, the screenshots, and this section.
+
+Three of them §5.2 doesn't have: N2, which made the sounds that climb the
+ladder at rungs of their own; A3, a look pass over the second furs and the
+frizzball; and F2, after F1, for the frame's budget (all below). After K2
+the rules, the look, the motion and the sound ran side by side, as §6.2 has
+it, and five packages ran at once where five were ready and none waited on
+another: R1, V2, R0, A1 and P1 after K2, V1 taking P1's slot as it landed;
+and T1 beside X1 to X4. U2 ran beside U3, A3 beside U1, Y1 and Y2 beside X5,
+Y3 beside Z1, and D1 beside F1; F2 ran alone. The work log (§7) stays on its
+branch.
+
+**Q2, Warm-up's proof, checked at 0cce570e:**
+
+- `node tools/report-levels.mjs --set warm-up` exited 0, and its 9 rows
+  are the sketch's `results-table.md` rows byte for byte.
+- `sim` on one worker, with Warm-up alone certified: 7 files, 56 tests,
+  31 s by the clock and 26.6 s by Vitest's, against §9's 100 s on CI's
+  runner.
+
+**Q3, the feel gate, checked at 65295b3c:** Warm-up was played end to end
+in headless Chrome, at 1280 × 800 by the mouse and at 390 × 844 and a
+pixel ratio of 3 by touch, each level by real presses along its deal's
+certified line. All 9 levels cleared at both sizes, 3 stars each, Next
+level going on; weak moves ended level 9 Out of moves, with what each open
+goal still needed, and still cleared levels 1 and 6, with 1 star. No
+console errors and no failed requests. The sprite was fetched and decoded
+(28.24 s) and the audio context ran from the first press; a reload after a
+move came back to the same board; Fast and Less motion were kept; Choose a
+level showed Warm-up alone, as it should until the other sets joined.
+
+**The port against the sketch:** every golden game R0 wrote from the
+sketch, 1,512 games of 24,707 moves, plays wave by wave as the sketch
+played it, on the game's own rules for every element and the wind. Each
+set's report rows, moves, deals and stars are the sketch's byte for byte,
+and each of the 288 certificates' lines is the sketch's, turned to the
+board's frame on a windy level. The casual player clears every level
+within its floor on its deals; Sticky situation (23) sits at the edge,
+80.47 clears in 100 where it asks 76. The mutation passes §6.6 asks for
+each ended with every survivor killed or named equivalent: R1's 93
+mutants (1 equivalent), R2's 82 (2), R3's 98 (3), P2's 59 (3), V1's 52,
+V2's 61 (1), X1's 40, X2's 78 (2), X3's 46, X4's 58, and X5's 56 and 7.
+
+**§9's budgets,** as measured on the devbox: each figure from the body of
+a commit of the package named, or, where marked "at the tip", measured by
+F1 at 3a4afa12 or F2 at ac7f10e0 and given in its report.
+
+| What                                                                                            | Budget                                                                                         | As measured                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A frame of the busiest move, two frizzballs on The big bunch's board, at six times CPU throttle | median ≤ 4 ms                                                                                  | **not met:** the busiest move's median 9.71, 9.41, 9.09 and 9.51 ms before F2 (37f7381d), 8.32, 8.57, 8.43 and 8.54 after (ac7f10e0), at 390 × 844 and a pixel ratio of 3, its 95th percentile 24.8 to 29.4 ms after; the board at rest 4.68, 4.61 and 4.72 ms before, 4.09, 4.08 and 4.24 after; the move's worst frame, the one its keys land in, 225 to 242 ms (F2, at the tip) |
+| `play()` over every level's deals with random moves                                             | median ≤ 100 µs, 99th percentile ≤ 1 ms                                                        | 76 µs and 320 µs bundled for Node, 122 µs and 487 µs in Vitest, the sketch's own 39.5 µs and 154 µs on the same machine (R3); 126 µs and 519 µs in Vitest (F1, at the tip)                                                                                                                                                                                                         |
+| `timelineOf()`, two frizzballs on a board 8 by 9                                                | ≤ 4 ms                                                                                         | median 2.2 ms, 99th percentile 4.2 to 5.9 ms as the runner's collector falls (V2); median 2.24 ms (F1, at the tip)                                                                                                                                                                                                                                                                 |
+| The proof, on one thread                                                                        | none in §9; the sketch proved all 36 levels in 10 s (C14)                                      | `certify:deals` for every set 23.6 s (F1, at the tip); P2's probe of 288 deals 22.6 s, against the sketch's 6.3 s                                                                                                                                                                                                                                                                  |
+| A reload of a game in play                                                                      | 33 moves in ≤ 50 ms                                                                            | at most 6.9 ms (U1)                                                                                                                                                                                                                                                                                                                                                                |
+| `sim` on one worker                                                                             | under 100 s on CI's runner                                                                     | **over, by F1's estimate:** 72 s on a quiet devbox with every set, about 105 s on CI's slower runner (F1, at the tip); 90.1 s on the devbox loaded by other runs (Y3); 31 s with Warm-up alone (Q2). The merge's CI run gives CI's figure                                                                                                                                          |
+| The game's suite in CI                                                                          | no more than Asteroid Breaker's 195 s                                                          | in a part of its own (below); 98 s on four cores with `CI=true` on the devbox (3ac1bcf1). The merge's CI run gives CI's figure                                                                                                                                                                                                                                                     |
+| The report for all 36 levels                                                                    | under a minute (the sketch's: 10 s)                                                            | 40.6 s on 24 threads (Y3)                                                                                                                                                                                                                                                                                                                                                          |
+| `check:layout`                                                                                  | a square ≥ 40 CSS px on a phone 320 px wide; a button ≥ 44                                     | passes at every shape; every square 40 CSS px or more but a 9-row board's on a small phone on its side, 35.5 (below)                                                                                                                                                                                                                                                               |
+| Layout shift on load                                                                            | 0, by Lighthouse                                                                               | 0 at both sizes, cold and with a level in play, by a `PerformanceObserver`; Lighthouse itself not run (F1, at the tip)                                                                                                                                                                                                                                                             |
+| Pools                                                                                           | sized for the timeline's worst move                                                            | at the busiest move, rings 65 of 72, loose bits 359 of 420, flights 0 of 14 (F1, at the tip)                                                                                                                                                                                                                                                                                       |
+| The atlas                                                                                       | at most two 2048 × 2048 pages at a pixel ratio of 3                                            | 2290 × 2728, 75% of two pages (A2); 85% with the pictures for the page (S1); with the rings' 14 rungs, 1126 × 1322 to 1324 × 1500 at a phone's square of 120 device px, and 2724 × 3050, about 99% of two pages, at the largest (F2)                                                                                                                                               |
+| The sound sprite                                                                                | ≤ 300 KB a format                                                                              | 28.1 s: Ogg 228,801 bytes, M4A 268,275 (N2)                                                                                                                                                                                                                                                                                                                                        |
+| The bundle                                                                                      | main chunk with its preloads ≤ 467 kB; certificates only at `?debug`; art in the scene's chunk | 403.5 kB; the certificates in the debug menu's chunk alone, the art in the scene's (F1, at the tip)                                                                                                                                                                                                                                                                                |
+| Contrast                                                                                        | 3:1 for a graphic pair, 4.5:1 for text                                                         | every pair but those judged (below); the tightest held, green on Soft pastel's thick dust, 3.03 (A1)                                                                                                                                                                                                                                                                               |
+| Coverage floors                                                                                 | a little under the figures                                                                     | 98.89 / 96.92 / 99.43 / 99.01 (statements, branches, functions, lines), the floors raised with them (F2, at the tip)                                                                                                                                                                                                                                                               |
+
+**What Part 2 did that §5.2 doesn't say:**
+
+- **The players and the hint weigh a board in the sketch's decimals,**
+  not §4.6's whole numbers. `bots.mjs`' `worth()` and `glance()` weigh in
+  2.5, 1.4, 1.8, 1.6, 1.2 and 1.1, and 1.5 and 0.7. Written in whole
+  tenths, the same in exact arithmetic, the careful player breaks ties
+  otherwise: two levels' star thresholds move (4 and 9 to 5 and 10, 7 and
+  14 to 6 and 13) and the certificates change.
+  `phaserGameLayers({ exact: true })` allows `+`, `-`, `*`, `/` and Math's
+  exact functions, which
+  IEEE-754 makes the same on every engine, so the port sums the sketch's
+  weights in the sketch's order, for the hint and the players only.
+- **K2's readings of §4.3.** A hit's union is keyed by `what`; the
+  sketch's `ruffle` is `ruffled`; there is no score, since nothing reads
+  one; a swap carries `refused`; `Level.id` is the level's number. An
+  element's rule has no hook for holding a bunch, since only fuzzballs
+  bunch, and gains `struckUnder` and `givenFur`. The contracts grew as
+  packages needed, most in a commit of their own: R3's wind rule beside
+  the elements' (`WindRule`, `WIND_RULE`, a stand-in until X5),
+  `DASHERS_TURNED` and each board size's rows and columns kept, S1's
+  `EndBeats.hurriedFromMs`, U2's `RunState.starsLit`, A3's
+  `FRAMES.frizzballSparks`, X4's `FRAMES.burrTuft`, X5's
+  `Timeline.windTurnsMs` and its `wind-turns` part, and N2's `SOUNDS`.
+- **The level files are the design's, laid out by Prettier** (P1), where
+  C13 copies them as they are: a spec holds each equal in content to the
+  design's, which `.prettierignore` keeps as written, so a redraw copies
+  the design's file and then runs Prettier. P1 reads a thick brick as a
+  brick among a board's 4 kinds of thing (else level 36 holds 5), and a
+  level as holding at most 3 goals.
+- **V1's board and keys.** The board's margin is 16 CSS px, shrinking so
+  a square is 40 on a phone 320 px wide. The keys' `switch` ends in no
+  `never` default (§8): lint's exhaustiveness holds it, and the line
+  couldn't run.
+- **R1's readings.** "After a settle no bunch stands" can't hold for one
+  settle, so it is held as the waves coming to rest within `MOST_WAVES`;
+  `deal()` returns the whole `Game`, the wind's frame turned at the deal,
+  where R1's item 5 says the opening board.
+- **The golden games' samples are a module** (R0), not `samples.json`,
+  which written out whole would be 0.7 to 3 MB: `golden_samples.ts` keeps
+  19 positions, 114 KB, and `golden.mjs --print <set>:<game>` writes any
+  game out. A digest takes the board after the move, not after each wave,
+  which the record doesn't keep, beside each wave's bunches, blasts, hits,
+  falls and goals left, which fix the board between. The games are 430 KB
+  in `src/rules/golden/`. None plays the encore; R3's `encore()` agrees
+  with the sketch's on all 772 that end cleared.
+- **N1 touched `lib/`,** which §1 keeps for Z1, in two commits of its
+  own, as its brief let a piece any game could use go: `encodeSprite()`
+  takes a sprite's own `encoding`, since the design's 72 kb/s AAC keeps
+  the sprite under §9's 300 KB where the house's 96 kb/s would be about
+  341 KB; and Asteroid Breaker's end of a sprite is `@fz/dev/sounds`'
+  `endedByGap()`, its sprite's bytes unchanged.
+- **`bakedScale()` caps the atlas's square** at 288 device px, 96 CSS px
+  at a pixel ratio of 3, a larger square showing its frames scaled up
+  (A2): §9 and S1's item 2 bake at "the largest square the layout gives",
+  and the layout gives none.
+- **N2, a package of its own.** N1 found the ladder of C11 and N1's item
+  5 flawed in two ways. A chord raised as a block by detune leaves the key
+  on 8 waves of 10: wave 2's `note-4` plays D5+F#5+B5 where the design's
+  chord is D5+G5+C6. And detune speeds a sound as it raises it, so at A6 a
+  note lasted 88 ms of its 297.
+  - N2 made `note`, `pop` and `zap` at C5, G5, D6 and A6, each at that
+    rung's own pitch. `onRung(sound, rung)` plays a rung from the take
+    nearest it, at most 300 cents off, so every rung lasts 89 to 121% of
+    the sound made at its own pitch.
+  - A bunch's chord is its notes, each on its rung, as the design's
+    `note()` builds them: for 4 or more, the note 2 rungs up, 22 ms later
+    at 0.6; for 5 or more, the note 4 up as well, 44 ms later at 0.5. A
+    stacked chord peaks 1.1 to 1.7 dB above the design's take.
+  - `SOUNDS` lost `note-4` and `note-5` and gained 9 takes, 53 sounds, in
+    the commit that encodes the sprite rather than one of its own (§6.7),
+    since the build's spec holds the sprite to `SOUNDS`.
+- **The timeline owns the ladder.** V2's draft turned a rung into cents
+  from the foot, so every laddered sound would have played its foot take
+  raised by up to 2100 cents, what N2 was added to stop. The timeline,
+  not the scene, picks the take: a cue on a rung carries `onRung()`'s
+  take and cents, and a note is `noteVolumeOf(rung)` as loud, so the
+  scene plays a `SoundCue` as it is given (V3's first commit).
+- **Two of the sketch's quirks kept** (R2). A dasher and a puffer swapped
+  together strike lopsidedly, left and above at step 0, right and below at
+  step 1 (`engine.mjs:455-473`); and the sketch's comment on its trade
+  says a special goes off "bunch or no bunch", where its code leaves that
+  to the bunch. A step orders the hits and when a special set off goes
+  off, so a fix in the sketch would move the proven deals, the report and
+  the certificates, a redraw of every set (C1, C13), for a timing a
+  player sees only on that one pair. Both are ported as they are, for
+  your word (below).
+- **The storyboard's clips hold, not the design's words.**
+  `measures.spec.ts` holds a bunch of 3 at rest 22 frames after the swap,
+  730 ms, and the five waves at 119 frames, 3966 ms: the clips, at 30 a
+  second, the design read its measures from, and the sketch's (C1). From
+  the tap, 3 frames before the swap, that is 833 ms and 4.07 s, which
+  design.md (line 456), §1 and V2's item 8 write as 900 ms and 3.9
+  seconds.
+- **`timelineOf()` takes the player's settings and the scene's pools:**
+  `timelineOf(record, start, feel, settings, cleared, pools = POOLS)`, its
+  settings the speed and Less motion together (`PlaySettings`), where C10
+  has `(record, board, feel, pace)`. `POOLS` is 72 rings, 12 streaks, 5
+  bolts, 1 flash and 3 marks, the most the busiest moves show at once
+  (V2), and 16 gust lines (X5).
+- **`FeelTuning` holds the sketch's numbers too,** not only the design's
+  tables (§4.4): K2's 95, then 153 of V2's that the sketch plays a move
+  by and the design's words don't give, 21 of V3's and each element's
+  own, 336 at the tip. `feel.spec.ts` holds each of the sketch's to the
+  line that sets it. Two of the sounds' gaps are the sketch's, puff's 80
+  ms and goal's 200 ms, where design.md writes "10 to 60 ms" (K2). The
+  tuning panel's sliders run from one step to three times the design's
+  number, 22 shares capped at 1, since three times gave negative fades
+  (V3).
+- **`play()`'s budget is held by its plain-Node figure** (the table).
+  The sketch's figures the budget was set beside are plain Node's: 47 µs
+  and 0.41 ms in the plan's own measurement, 39.5 µs and 154 µs on R3's
+  benchmark. So the port's plain-Node figure is the one held to it;
+  Vitest's module runner adds the rest. It first read 307 µs and 856 µs.
+  Keeping each board size's lines once, `findBunches()` answering at once
+  where no line of a kind stands, and `hasLegalMove()` stopping at the
+  first move brought it there, none changing what a move does. R2's
+  `storyboards.spec.ts` went, since `play.spec.ts` holds every fixture's
+  whole record.
+- **The sketch fixed once, in its record** (C1). A gust's first wave, the
+  fall the wind's turn starts, wrote down the goals left after the whole
+  gust, so a count shown from the record would drop, rise and drop again.
+  `engine.mjs` now writes that wave before the gust's waves play (R3,
+  d6759ec2). The report wrote the same results, table and certificates,
+  and one golden game changed, windy-days' 169 (level 32's deal 8), so no
+  level's figures moved.
+- **A certificate's line is kept in the screen's frame,** which `play()`
+  takes, where C14 and the sketch's `certificates.json` keep the board's;
+  the two agree on every level without wind. `sketchLineOf()` turns each
+  move to the board's frame as the board stands before it, so a windy
+  level compares: 67 of Windy days' 72 lines read otherwise in the file,
+  and none differs from the sketch's once turned (P2, P3, Y3). P2's
+  players share a loop §4.1 doesn't list, `play_out.ts`; the casual
+  player's `care` is fixed at the sketch's 65, the only one used.
+- **The scene takes no motion option** (S1's item 1): Less motion is
+  chosen as the timeline is built. It plays one clock with the shell's
+  cues on it, and a tap hurries that clock through a level's end from the
+  moment `EndBeats.hurriedFromMs` names, which S1 added (C20).
+- **A3, a look pass of its own.** S1's pictures beside the design's
+  `art/specials.webp` showed what A2 had seen: on a light palette every
+  special's second fur a dark navy, where the design mixes the kind's ink
+  38% toward black, and the frizzball a shaggy black ball with faint
+  sparks, where the design's is a sun of 18 rays and 4 zigzag sparks. A3
+  mixed the fur at 0.38 (A1 had 0.64), its rim in the square's color
+  telling it from its fuzzball, so a kind against its fur is a judged
+  pair and each fur keeps 7:1 or more against every ground; drew the
+  design's sun, on a light palette with a body of `#3c434b` against the
+  design's `#39414d` and white eyes with pupils, since blank white eyes
+  read empty at 51 px; and gave the sparks a frame of their own, which
+  alone turn as the static steps, as the sketch turns them.
+- **Contrast: some pairs judged, not held at 3:1** (§9). A1's inks are
+  darker on light palettes and lighter on dark ones than the design drew,
+  to keep 3:1. The pairs the design draws close are judged, each reasoned
+  in `contrast.spec.ts`: a kind against its second fur on a dark palette
+  (even white is only 1.6:1 against gold), a cushion against the one
+  beneath, dust against a clean square, a cage's bars against the square,
+  a kind against its burr, the nightcap against the body; and as the
+  elements landed, a dark palette's darkest cushion undersides near 2:1
+  against thick dust (X1), the nightcap's trim about 1.9:1 against the
+  body on dark palettes (X3), and the burr's edge 2.17 to 2.30 against the
+  squares on dark ones, as the design has it (X4).
+- **U1's words and bar.** A move is said in 12 words or fewer, and 4 of
+  the sketch's lines for a new thing are reworded (the burr, the wisp, the
+  thick brick's "2 to 4 layers", the pair). A review found the copies
+  flying only to the panel's goal pictures, so nowhere on a phone; there
+  they fly to the bar's. On a phone the bar sits at the bottom, as the
+  house's does.
+- **U3's grid is ARIA's own roles, not `ngGrid`** (C12). Angular Aria's
+  grid takes the arrow keys and cancels them, and Phaser drops a cancelled
+  key, so the scene would never hear them. A cell lies over each square,
+  with one tab stop, every press let through and the canvas hidden; the
+  focused square is the ring, in `--fz-text`, and the held fuzzball is
+  `aria-selected`. The canvas lies in a focusable element, since while the
+  focus is in a play room `fzPlayRoom` cancels a `pointerdown`, and the
+  browser then sends Phaser no `mousedown`. The `phaser-core` and
+  `web-game-accessibility` skills gained a caveat each.
+- **T1's three fixes first.** On a phone the
+  bar's status clipped the moves figure, so a compact bar leaves the
+  level's number and name to a screen reader, as the rail already did,
+  showing them on the cards and in Choose a level, and moves Restart into
+  the overflow menu, as Sudoku's and Minesweeper's compact bars do:
+  design.md's "The bar has the level's number and name" (line 606) holds
+  for a roomy window's bar and panel. The debug menu's sliders are named
+  in words (`view/debug/slider_names.ts`), and two painters' pools are
+  sized from the feel, so their sliders take. T1 kept the certificate
+  loader the game's own rather than lift it into `@fz/game-ui`, which
+  would change `@fz/brick-wall`.
+- **Q3's merge into `main` wasn't made mid-build.** The gate merges "at
+  your word" so you can play Warm-up on the live site; no word came while
+  the build ran, and the build doesn't stop for the gate (§6.2), so it
+  went on, and the game reaches `main` through `merge-to-main` at the end,
+  the tuning panel and Copy numbers with it.
+- **X3 left out the quilt and the breathing.** The sketch lays a quilt
+  along the bottom row of a sleepyhead level (`feel.mjs:2026`) and lets a
+  sleepyhead breathe; neither is in the design's words, and each needs a
+  change to the scene or to `GridShown`.
+- **X2's cage opens a lead early.** A fuzzball running into a special
+  opens its cage a lead before the run, where the sketch opens none. Less
+  motion plays the cage the same, as the sketch and the design's list
+  have it.
+- **The bar's wind turns with the gust** (X5, two commits more than its
+  item). The timeline says when the wind turns, and the bar's arrow and
+  count wait for the gust to set in, then turn the short way over 380 ms
+  with the sketch's overshoot.
+- **The layout check's square rule.** §9 and T1's item 1 hold a square
+  to 40 CSS px on a phone 320 px wide, and T1's check held every shape to
+  that. But levels 18, 26, 27 and 36 are 9 rows tall, and a window 320 px
+  tall can't hold 9 rows of 40 however the board is laid out. On a small
+  phone on its side, 568 × 320 at twice the pixels, the board's room is
+  504 by 320, and a 9-row board's squares are 35.5 CSS px, filling 319.5
+  of the 320.
+  - Decided without a redraw: the check asks for 40 wherever the board's
+    room holds its rows and columns at 40, and elsewhere for the largest
+    square of whole device pixels the room allows, as `boardMetrics()`
+    lays it out (Y2's 5ba822f8). At every other shape a 9-row board's
+    squares are 40 or more.
+  - design.md's "A square is never under 40 px" (line 641) now disagrees
+    with it.
+- **Each Y folded its floors and its report into its join.** The floors
+  and the report go through `LEVELS`, so they turn on only as a set joins
+  it: §5.2's three commits a Y became the set certified and the join
+  (Y1), one commit beside the layout rule (Y2), and Windy days certified,
+  the wind's column, the join and the bar's fix (Y3). Y2 landed before
+  Y1, so Bedtime was levels 10 to 18 until Bricks and bars joined before
+  it; a level keeps its id, so no saved game, progress or record moved. As
+  each set joined, the layout check's cleared ending moved to the largest
+  board: Pillow fort, then Clean sweep.
+- **Y3's bar fix and the cleared ending.** On a phone held upright, The
+  big bunch's bar (the wind's arrow and "turns in 4" beside three goals
+  and the moves) cut off its moves figure, by 4 CSS px at 390 px wide and
+  26 at 320. A crowded bar, a wind beside three goals
+  (`LevelFiguresComponent`'s `crowded`), now stands each goal's count
+  under its picture, and the five figures take 169 CSS px at every upright
+  phone shape. The layout check's cleared ending is now The big bunch on
+  its deal 20, held by a spec to the level of the most goals with a
+  turning wind; before the fix, the check failed at four phone shapes.
+- **Z1's lifts, and what it left with the bar's line.** Four lifts (the
+  table below); one helper for what's
+  thrown off a piece, a brick's cushions and a cage's bars alike
+  (`view/timeline/thrown.ts`); and the specs taking `ELEMENT_RULES` and
+  `WIND_RULE` by name, the partial rules they keep in
+  `testing/partial_rules.ts`, and 12 comments that said "the made-up
+  elements and wind" made true. Not lifted, each by the line of §3.1's bar
+  it fails: `LOAD_HELP`, since no adopter gets shorter, a library being
+  unable to import a game's chunk; `fzPlayRoom` cancelling `mousedown`
+  rather than `pointerdown`, since there is no copy to take and every
+  board lies in a focusable element; the spring and Less motion, with one
+  user; the effects and the ARIA grid, whose users mean different things;
+  and the gesture reader, which would need a mode. `levelsOfSet()` went
+  into `@fz/dev/script`, not `@fz/dev/certify`, which a report script
+  would import oddly.
+- **D1 narrowed "never a file to write again".** §5.2 has the game's
+  `AGENTS.md` say a failed golden game or replay is the bug, never a file
+  to write again. A script writes the golden games and the certificates
+  from the sketch, so writing them again hides nothing: the rule is kept
+  for the moves played by hand, whose records are the sketch's play, and
+  the oracle's line says a failed golden game, certificate or floor is a
+  fault to find in the port. The `fuzz-flux-content` skill's redraw adds
+  two steps C13 doesn't name, bundling the feel page again and drawing
+  the design's level pictures again, and goes through every set a change
+  moves.
+- **F1 changed `@fz/game-ui`'s `<fz-levels>`:** every tile of a row
+  stands as tall as the tallest (they were 97, 99 and 119 px where a name
+  wrapped or a tile had no record), in all four games' dialogs, their
+  layout checks passing. It read the floors' leeway of 4 from `design.md`
+  rather than writing it again, and made the README say what the game is.
+- **F2, a package of its own, for the frame.** F1 found the frame over
+  §9's 4 ms and named the levers. F2 pulled those that keep the look, each
+  a commit with its figures (the table): a frame samples no track gone and
+  no look standing still between its keys; the atlas holds a ring at 14
+  rungs of a ladder of line to radius (`view/art/ring_ladder.ts`,
+  `FRAMES.ring` a family of frames), and a ring no wider than a square is
+  drawn from its rung rather than stroked; and the board's wells and dust
+  are stamped on one texture, again only where they change. The
+  orchestrator stopped it there, the levers left costing the look or the
+  shell's flow (For you, below).
+- **The game's suite runs in a CI part of its own.** K1 changed neither
+  the matrix nor the CI skill's list, so the suite ran in "the rest", on
+  one worker beside three other suites, as Rickashay's did, and Q2 kept it
+  so. With every set certified it would be the longest suite in that
+  part, which took 139 s on CI without it. So it runs alone with all four
+  cores (`--only fuzz-flux --jobs 1`), the last part leaving it out too,
+  the workflow's comment and the CI skill with it (3ac1bcf1).
+- **Files §4.1 doesn't list:** the timeline's types are
+  `view/timeline/timeline.ts`, where §4.1 puts the builder, which lives
+  beside it; S1's `piece_frames`, `piece_look`, `flourishes` and `tufts`
+  in the view; P3's `tools/set_option.mjs`; T1's
+  `view/debug/slider_names.ts`; and F2's `testing/played_parts.ts`.
+
+**What it adds to the libraries,** beside Part 1's:
+
+| Entry                        | What Part 2 added or changed                                                                                                                                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@fz/core/random`            | `hashShareOf(a, b, c, d)`, `hashOf()`'s number over 2³², a share from 0 up to 1, which six of Fuzz Flux's view files each worked out (Z1)                                                                                            |
+| `@fz/dev/script`             | `levelsOfSet(levels, set, usage)`, the levels of the set `--set` names, and `setIdsOf()`, moved from `@fz/dev/certify`, adopted by Fuzz Flux's and Rickashay's report and certify scripts and by `@fz/dev/certify`'s `jobsOf()` (Z1) |
+| `@fz/dev/sounds`             | `encodeSprite()`'s `encoding`, with `Encoding` exported; `endedByGap()`, from Asteroid Breaker's build (N1)                                                                                                                          |
+| `@fz/phaser/scene`           | `BakedAtlas`, `AtlasBaking`, `AtlasFrames`: a game's one atlas, baked again only for a new palette or scale (Z1)                                                                                                                     |
+| `@fz/brick-wall/scene/atlas` | `WallAtlas` is a `BakedAtlas`; `WallFrames` gave way to `AtlasFrames` (Z1)                                                                                                                                                           |
+| `@fz/ui/storage`             | `StoredAt`, moved from `@fz/game-ui/levels`, which `StoredSignalOptions` and `KeepSavedOptions` now extend (Z1)                                                                                                                      |
+| `@fz/game-ui/levels`         | no longer hands on `StoredAt` (Z1)                                                                                                                                                                                                   |
+
+Part 1's row for `@fz/game-ui/levels` above lists `StoredAt`, which now
+lives in `@fz/ui/storage`. Each lift is adopted where it had a copy, in its
+commit: Asteroid Breaker's sprite keeps its bytes, every game keeps its
+stored entries under the same keys and versions, and Rickashay's report
+now lists its three sets as the other scripts do, `"a", "b" or "c"`. The
+skills followed: `fuzzley-ui`'s rows for each; `phaser-core` on
+`BakedAtlas`, a sprite's own `encoding` and `endedByGap()`, and a play
+room's canvas in a focusable element (U3); `web-game-accessibility` on a
+canvas board's grid of ARIA's own roles (U3); and `player-text`'s word
+list, which gains Fuzz Flux's words (U2).
+
+**For you,** beside §11's list:
+
+- **Level 30, and the wind (C17).** A turn of the wind almost never moves
+  a fuzzball, on every level whose wind turns, not 30 alone. In the
+  careful player's games, Weather vane (30) moves one on 0 of 81 turns,
+  Kite weather (32) on 1 of 54, Gale (33) on 0 of 165, Eye of the storm
+  (35) on 0 of 114 and The big bunch (36) on 0 of 216; the sketch's
+  engine gives the same. Its casual player moves one on 67 of 1,782 turns
+  on Kite weather and 0 of 16,252 on the other four, by Y3's measurement.
+  At rest the board is full, fuzzballs fallen past every gap and rolled in
+  under nearly every brick and cage, so a turn finds nothing with room to
+  fall. No check failed, so nothing was redrawn (C13), and F1 started
+  without your word on it.
+- **The Cleared card's wait.** With no tap to hurry the encore, the
+  Cleared card shows 18 to 27 s after the last goal is met (19.4 s with
+  12 moves to spare, 18.9 s at Fast); a tap cut one to 4.7 s. The stars
+  light 17.4 to 18.6 s after a clear with 11 moves to spare. Measured in
+  Q3's look and by U2. The design gives no target.
+- **The sketch's two quirks** (R2, above): whether either is a fault worth
+  a redraw of every set.
+- **design.md's lines the game now disagrees with,** the design being
+  your text, each in its bullet above: line 456, the clips' times; 554,
+  the sounds' gaps; 606, a phone's bar, yours to settle at the gate; and
+  641, the square's 40 px. And line 668's "white" frizzball is white on a
+  dark palette only (A1).
+- **The frame's budget.** §9's 4 ms at six times CPU throttle is not met:
+  the busiest move's median is 8.3 to 8.6 ms, and the board at rest 4.08
+  to 4.24 (the table). What is left of a frame is mostly Phaser's own,
+  about 2.1 ms with nothing drawn, and what it draws. The levers left,
+  each for your word, by F2's measurement at the tip:
+  - the frame the move's keys land in, 225 to 242 ms at ×6, where the
+    shell's tick runs `play()`, `timelineOf()` and the encore together:
+    spread over frames or moved off the main thread, a rework of the
+    shell's move flow with care for determinism, the look unchanged;
+  - the first image batch's shader link, a 12 to 14 ms stall once,
+    perhaps cut by an unseen draw as the scene starts;
+  - the empty layers hidden, at most 0.18 ms at rest;
+  - the rim drawn as images, about 0.16 ms, which needs a solid frame in
+    K2's atlas;
+  - fewer tufts, which changes the look.
+- **A cage's bars** keep the eyes' ink, as A1 drew them, where the
+  storyboard draws thin light steel: the design's steel is 1.02 to 1.59:1
+  against the kinds, too faint to read, by F1's measurement (X2, F1).
+- **iOS VoiceOver, on a device** (U3). The grid was read in Chrome's
+  accessibility tree, 6 rows and 36 cells and no canvas; VoiceOver's touch
+  exploration over it needs an iPhone.
+
+**Left:**
+
+- K2's `gameFrom()`, which builds a spec's game from a picture, counts the
+  goals left and the lanes again, as the rules do (R1).
+- `@fz/phaser/color` could name `FUZZBALL_INKS`' inks, which the game
+  takes for each kind by its place (A1).
+- `drawsWithin()`, which five games' art specs each write, and
+  `breaking()`, which four do, belong in `@fz/phaser/testing/pure` (A2).
+- The sound lab still plays a bunch's chord by its own rule, `CHORD` in
+  `tools/sound-lab/scenes.ts`, rather than by V2's cues, as N2 left it for
+  once V2 landed (N2).
+- Brick Breaker's spec "fades in over its fade's time" failed once under
+  load, and passed alone and on every rerun (Z1).
+- Part 1's other items for Z1 stand: the Sass mixin for a tile's
+  words, the dialog's required `figure` and `best`, Brick Breaker's
+  `streakRingScale()` writing out `lerp()`, and `easeOutCubic()`'s `**`.
+  Z1 found none a lift, and none touches Fuzz Flux.
+- `asteroid-breaker-testing` and `brick-breaker-testing`, like Fuzz
+  Flux's before F2, may say the tools' specs run in Node, where the first
+  line of a spec can put it in jsdom (F2's review).
+- The catalog's blurb is 16 words (K1): over a card's 8 to 14 in the
+  `player-text` skill's `descriptions.md`, so D1 didn't list it there, and
+  under the catalog's 20. `categorize.mjs` keeps Rickashay's old spelling
+  beside the new (D1).
+
 ---
 
 ## 1. Summary
@@ -191,10 +653,13 @@ another session, with no conflict. The work log (§7) stays on its branch.
     they play and look exactly as before. Brick Breaker's own Levels dialog
     then moves onto the shared one (question 2). Part 1 merged into `main`
     on its own, at your word (question 5), on 2026-11-27.
-  - **Part 2, the game (§5.2):** about 144 commits in thirty-one packages,
-    on the branch `fuzz-flux`, in `games/fuzz-flux`. It writes only what is
-    Fuzz Flux's: the rules, the art, the feel, the sounds, the board for
-    keys and screen readers, the levels and their proof, and the words.
+  - **Part 2, the game (§5.2), done:** about 144 commits in thirty-one
+    packages; 174 as built in thirty-four, and 3 of the orchestrator's, on
+    the branch `fuzz-flux`, in
+    `games/fuzz-flux`. It writes only what is Fuzz Flux's: the rules, the
+    art, the feel, the sounds, the board for keys and screen readers, the
+    levels and their proof, and the words. Part 2 merged into `main` on
+    2026-11-28.
 - **The rules are a port of the sketch, held to it game by game.** The
   sketch's engine is every rule in the design, played 28,000 moves without
   a fault, and the 288 deals were proven on it. A script beside it writes
@@ -924,6 +1389,8 @@ commit counts are a guide: a package keeps to three to nine.
 §3.3 has them: LA, LL, LB and Q1, all done on 2026-11-27.
 
 ### 5.2 Part 2
+
+**Done on 2026-11-28.** "Part 2, as built" says what was built otherwise.
 
 #### K: the start
 
