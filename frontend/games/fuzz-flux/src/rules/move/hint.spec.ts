@@ -3,14 +3,11 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import {
-  DESIGN_HOLDS,
-  DESIGN_PARTS,
-  DESIGN_WIND,
-} from "../../testing/made_up_rules";
+import { HOLDS_ONLY } from "../../testing/partial_rules";
 import type { Game } from "../board/board";
 import { turnFrame } from "../board/orientation";
 import type { KindId } from "../catalog/kinds";
+import { ELEMENT_RULES, WIND_RULE } from "../elements/element_rules";
 import { carefulMove, worthOf } from "./hint";
 import { legalMoves } from "./swap";
 
@@ -26,9 +23,9 @@ const THREE_BLUES: GameOptions = {
   goals: [{ what: "gather", kind: "blue", count: 3 }],
 };
 
-/** Returns the careful player's move on a game, on the made-up elements and wind. */
+/** Returns the careful player's move on a game, on the game's own elements and wind. */
 function carefulOn(game: Game): ReturnType<typeof carefulMove> {
-  return carefulMove(game, DESIGN_PARTS, DESIGN_WIND);
+  return carefulMove(game, ELEMENT_RULES, WIND_RULE);
 }
 
 describe("worthOf", () => {
@@ -110,7 +107,7 @@ describe("carefulMove", () => {
     const game = gameFrom(["bbrb", "grbg", "agra"], THREE_BLUES);
 
     expect([
-      legalMoves(game.board, DESIGN_HOLDS).slice(0, 2),
+      legalMoves(game.board, HOLDS_ONLY).slice(0, 2),
       carefulOn(game),
     ]).toEqual([
       [

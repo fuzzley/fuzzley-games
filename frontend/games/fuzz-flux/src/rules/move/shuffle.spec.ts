@@ -3,7 +3,7 @@ import {
   gameFrom,
   pictureOf,
 } from "../../testing/board_picture";
-import { DESIGN_HOLDS } from "../../testing/made_up_rules";
+import { HOLDS_ONLY } from "../../testing/partial_rules";
 import type { Game } from "../board/board";
 import { findBunches } from "../bunches/find";
 import type { KindId } from "../catalog/kinds";
@@ -23,10 +23,10 @@ function gameOf(picture: BoardPicture, seed = 15): Game {
 
 describe("shuffle", () => {
   it("leaves a board with no move one with a move and no bunch standing", () => {
-    const { game } = shuffle(gameOf(STUCK), DESIGN_HOLDS);
+    const { game } = shuffle(gameOf(STUCK), HOLDS_ONLY);
 
     expect([
-      legalMoves(game.board, DESIGN_HOLDS).length > 0,
+      legalMoves(game.board, HOLDS_ONLY).length > 0,
       findBunches(game.board, null),
     ]).toEqual([true, []]);
   });
@@ -35,13 +35,13 @@ describe("shuffle", () => {
     // From this seed the first order tried leaves a bunch, and a move.
     const game = gameOf(STUCK, 4);
 
-    const { game: shuffled } = shuffle(game, DESIGN_HOLDS);
+    const { game: shuffled } = shuffle(game, HOLDS_ONLY);
 
     expect(findBunches(shuffled.board, null)).toEqual([]);
   });
 
   it("writes each plain fuzzball's trade, in the board's order, where it was and where it went", () => {
-    const { game, moves } = shuffle(gameOf(STUCK), DESIGN_HOLDS);
+    const { game, moves } = shuffle(gameOf(STUCK), HOLDS_ONLY);
 
     expect([pictureOf(game.board).pieces, moves]).toEqual([
       ["rag", "aag", "arr"],
@@ -65,7 +65,7 @@ describe("shuffle", () => {
       marks: ["..|", "...", "..."],
     });
 
-    const { game: shuffled, moves } = shuffle(game, DESIGN_HOLDS);
+    const { game: shuffled, moves } = shuffle(game, HOLDS_ONLY);
 
     expect([
       moves.map(({ from }) => from),
@@ -82,7 +82,7 @@ describe("shuffle", () => {
     const game = gameOf(STUCK);
 
     const trades = (from: Game): readonly number[] =>
-      shuffle(from, DESIGN_HOLDS).moves.map(({ to }) => to);
+      shuffle(from, HOLDS_ONLY).moves.map(({ to }) => to);
 
     expect(trades(game)).toEqual(trades(game));
     expect(trades({ ...game, movesPlayed: 1 })).not.toEqual(trades(game));
@@ -92,7 +92,7 @@ describe("shuffle", () => {
     // Four kinds in a row of four make no bunch and no move, in any order.
     const game = gameOf({ pieces: ["barg"] });
 
-    const { game: shuffled, moves } = shuffle(game, DESIGN_HOLDS);
+    const { game: shuffled, moves } = shuffle(game, HOLDS_ONLY);
 
     expect([pictureOf(shuffled.board).pieces, moves]).toEqual([
       ["abgr"],
@@ -109,7 +109,7 @@ describe("shuffle", () => {
     const game = gameOf(STUCK);
     const before = structuredClone(game);
 
-    shuffle(game, DESIGN_HOLDS);
+    shuffle(game, HOLDS_ONLY);
 
     expect(game).toEqual(before);
   });

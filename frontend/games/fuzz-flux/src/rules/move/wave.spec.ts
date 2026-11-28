@@ -4,10 +4,10 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS } from "../../testing/made_up_rules";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
 import { findBunches } from "../bunches/find";
 import { ELEMENT_IDS } from "../catalog/elements";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import { MOST_WAVES } from "../tuning";
 import { type Swapped, playSwap } from "./swapped";
 import { type Rested, playToRest } from "./wave";
@@ -19,7 +19,7 @@ function swappedOn(
   to: number,
   options: GameOptions = {},
 ): Swapped {
-  const swapped = playSwap(gameFrom(picture, options), from, to, DESIGN_PARTS);
+  const swapped = playSwap(gameFrom(picture, options), from, to, ELEMENT_RULES);
   if (swapped === null) {
     throw new Error("The swap is refused.");
   }
@@ -35,14 +35,14 @@ function restedAfter(name: keyof typeof MOVE_FIXTURES): Rested {
     record.swap.to,
     options,
   );
-  return playToRest(game, bunches, setOff, DESIGN_PARTS);
+  return playToRest(game, bunches, setOff, ELEMENT_RULES);
 }
 
 describe("playToRest", () => {
   it("plays no wave where no bunch stands and nothing is set off", () => {
     const game = gameFrom(["bgb", "rbr", "avp"]);
 
-    const rested = playToRest(game, [], [], DESIGN_PARTS);
+    const rested = playToRest(game, [], [], ELEMENT_RULES);
 
     expect(rested).toEqual({
       game,
@@ -70,7 +70,7 @@ describe("playToRest", () => {
       4,
     );
 
-    const { waves } = playToRest(game, [], setOff, DESIGN_PARTS);
+    const { waves } = playToRest(game, [], setOff, ELEMENT_RULES);
 
     expect(
       waves.map(({ blasts }) =>
@@ -102,7 +102,7 @@ describe("playToRest", () => {
       game,
       findBunches(game.board, null),
       [],
-      DESIGN_PARTS,
+      ELEMENT_RULES,
     );
 
     expect([

@@ -1,8 +1,8 @@
 import type { Game } from "../rules/board/board";
+import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import { play } from "../rules/move/play";
 import type { MoveRecord } from "../rules/move/record";
 import { type BoardPicture, gameFrom } from "./board_picture";
-import { DESIGN_PARTS, DESIGN_WIND } from "./made_up_rules";
 import { type Move, type PlayedOut, playOut } from "./play_out";
 
 /** A board on which swapping 1 and 4 bunches the blues across the top. */
@@ -11,14 +11,14 @@ const BLUES_ACROSS: BoardPicture = { pieces: ["bgb", "rbr", "avp"] };
 /** The swap that bunches `BLUES_ACROSS`'s blues. */
 const BUNCHING_BLUES: Move = { from: 1, to: 4 };
 
-/** Returns a game played out on the made-up elements and wind by a player that makes the same move every time, or none. */
+/** Returns a game played out on the game's own elements and wind by a player that makes the same move every time, or none. */
 function playedOut(game: Game, move: Move | null): PlayedOut {
-  return playOut(game, () => move, DESIGN_PARTS, DESIGN_WIND);
+  return playOut(game, () => move, ELEMENT_RULES, WIND_RULE);
 }
 
-/** Returns what a move does on a game, on the made-up elements and wind. */
+/** Returns what a move does on a game, on the game's own elements and wind. */
 function recordOf(game: Game, { from, to }: Move): MoveRecord {
-  return play(game, from, to, DESIGN_PARTS, DESIGN_WIND).record;
+  return play(game, from, to, ELEMENT_RULES, WIND_RULE).record;
 }
 
 describe("playOut", () => {

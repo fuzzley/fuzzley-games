@@ -5,12 +5,13 @@ import {
   gameFrom,
   pictureOf,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS, NO_PART } from "../../testing/made_up_rules";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
+import { NO_PART } from "../../testing/partial_rules";
 import type { Game } from "../board/board";
 import { Striking, type Struck, type StruckBoard } from "../blasts/striking";
 import type { ElementId } from "../catalog/elements";
 import type { Change, ElementRule } from "../elements/element_rule";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import type { Swap } from "../move/record";
 import { findBunches } from "./find";
 import { type GatheredBunch, gatherBunch } from "./gather";
@@ -124,7 +125,7 @@ describe("gatherBunch", () => {
       const { game, swap } = swappedIn(name);
       const [wave] = MOVE_FIXTURES[name].record.waves;
 
-      const { gathered: bunches, hits } = gatherOn(game, DESIGN_PARTS, swap);
+      const { gathered: bunches, hits } = gatherOn(game, ELEMENT_RULES, swap);
 
       expect({
         bunches: bunches.map(({ bunch }) => bunch),
@@ -142,7 +143,7 @@ describe("gatherBunch", () => {
       const { game, swap } = swappedIn(name);
       const [wave] = MOVE_FIXTURES[name].record.waves;
 
-      const struck = gatherOn(game, DESIGN_PARTS, swap);
+      const struck = gatherOn(game, ELEMENT_RULES, swap);
 
       expect(struck.game.goalsLeft).toEqual(wave.goalsLeft);
     },
@@ -204,7 +205,7 @@ describe("gatherBunch", () => {
     const { hits } = gathered(
       { pieces: ["bbbb"], dust: ["0100"] },
       { kinds: ["blue", "red"] },
-      DESIGN_PARTS,
+      ELEMENT_RULES,
     );
 
     expect(hits.slice(1, 3)).toEqual([
@@ -303,7 +304,7 @@ describe("gatherBunch", () => {
       const { game, hits } = gathered(
         ["BBBB", "rgrg"],
         { goals: [{ what: "cage" }] },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect({
@@ -328,7 +329,7 @@ describe("gatherBunch", () => {
       const { hits } = gathered(
         ["2122", "1bbb", "2121"],
         { kinds: ["blue", "red"] },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(hits.filter((hit) => "step" in hit && hit.step === 1)).toEqual([
@@ -346,7 +347,7 @@ describe("gatherBunch", () => {
       const { hits } = gathered(
         ["brg", "b2g", "bbb"],
         { kinds: ["blue", "red", "green"] },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(hits.filter((hit) => "step" in hit && hit.step === 1)).toEqual([
@@ -409,7 +410,7 @@ describe("gatherBunch", () => {
           kinds: ["blue", "red"],
           goals: [{ what: "brick" }],
         },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect({ goalsLeft: game.goalsLeft, counted }).toEqual({
@@ -486,7 +487,7 @@ describe("gatherBunch", () => {
     });
     const before = structuredClone(game);
 
-    gatherOn(game, DESIGN_PARTS);
+    gatherOn(game, ELEMENT_RULES);
 
     expect(game).toEqual(before);
   });

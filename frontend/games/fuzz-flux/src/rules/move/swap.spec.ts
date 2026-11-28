@@ -1,5 +1,5 @@
 import { boardFrom, gameFrom } from "../../testing/board_picture";
-import { DESIGN_HOLDS, NO_PART } from "../../testing/made_up_rules";
+import { HOLDS_ONLY, NO_PART } from "../../testing/partial_rules";
 import { turnFrame } from "../board/orientation";
 import type { SquareState } from "../elements/element_rule";
 import {
@@ -37,12 +37,7 @@ describe("canSwap", () => {
   it("picks up no piece an element's rule holds", () => {
     const picture = { pieces: ["B1zb"], marks: ["...*"] };
 
-    expect(pickable(picture, DESIGN_HOLDS)).toEqual([
-      false,
-      false,
-      false,
-      false,
-    ]);
+    expect(pickable(picture, HOLDS_ONLY)).toEqual([false, false, false, false]);
   });
 
   it("picks up a brick or a sleepyhead where no rule holds it", () => {
@@ -134,7 +129,7 @@ describe("legalMoves", () => {
     (_, marks, moves) => {
       const picture = { pieces: ["bbrb", "grgr"], marks };
 
-      expect(legalMoves(boardFrom(picture), DESIGN_HOLDS)).toEqual(moves);
+      expect(legalMoves(boardFrom(picture), HOLDS_ONLY)).toEqual(moves);
     },
   );
 
@@ -160,7 +155,7 @@ describe("hasLegalMove", () => {
   it("finds no move in a swap of a piece an element's rule holds", () => {
     const picture = { pieces: ["bbrb", "grgr"], marks: ["..**", "...."] };
 
-    expect(hasLegalMove(boardFrom(picture), DESIGN_HOLDS)).toBe(false);
+    expect(hasLegalMove(boardFrom(picture), HOLDS_ONLY)).toBe(false);
   });
 });
 
@@ -183,7 +178,7 @@ describe("bunchMatesOf", () => {
       marks: ["....", "*..."],
     });
 
-    expect(bunchMatesOf(game, 4, DESIGN_HOLDS)).toEqual([]);
+    expect(bunchMatesOf(game, 4, HOLDS_ONLY)).toEqual([]);
   });
 
   it("finds none by a swap with a neighbor that can't be picked up", () => {
@@ -192,7 +187,7 @@ describe("bunchMatesOf", () => {
       marks: ["*...", "...."],
     });
 
-    expect(bunchMatesOf(game, 4, DESIGN_HOLDS)).toEqual([]);
+    expect(bunchMatesOf(game, 4, HOLDS_ONLY)).toEqual([]);
   });
 
   it("finds each once, where two swaps would bunch it", () => {
@@ -225,7 +220,7 @@ describe("plainFuzzballs", () => {
     // a burred fuzzball stand among the plain.
     const board = boardFrom({ pieces: ["bB1rfzgb"], marks: ["...|...*"] });
 
-    expect(plainFuzzballs(board, DESIGN_HOLDS)).toEqual([
+    expect(plainFuzzballs(board, HOLDS_ONLY)).toEqual([
       { square: 0, piece: board.pieces[0] },
       { square: 6, piece: board.pieces[6] },
     ]);

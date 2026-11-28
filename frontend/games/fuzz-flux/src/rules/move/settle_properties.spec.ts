@@ -1,6 +1,6 @@
 import { createRandom } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
-import { DESIGN_HOLDS } from "../../testing/made_up_rules";
+import { HOLDS_ONLY } from "../../testing/partial_rules";
 import type { Board, Game, QuarterTurns } from "../board/board";
 import { squareOf } from "../board/cells";
 import { findBunches } from "../bunches/find";
@@ -110,7 +110,7 @@ function idsOn({ pieces }: Board): number[] {
 function isHeld(board: Board, square: number): boolean {
   const piece = itemAt(board.pieces, square);
   const state = { piece, dust: itemAt(board.dust, square) };
-  return ELEMENT_IDS.some((id) => DESIGN_HOLDS[id].holdsFall?.(state) === true);
+  return ELEMENT_IDS.some((id) => HOLDS_ONLY[id].holdsFall?.(state) === true);
 }
 
 /**
@@ -229,12 +229,12 @@ function miscounted(before: Game, { game: after, falls }: Settled): boolean {
  * has a bunch standing after the most waves a move plays.
  */
 function isRestless(game: Game): boolean {
-  let resting = settle(game, DESIGN_HOLDS).game;
+  let resting = settle(game, HOLDS_ONLY).game;
   for (let wave = 0; wave < MOST_WAVES; wave++) {
     if (findBunches(resting.board, null).length === 0) {
       return false;
     }
-    resting = settle(gathered(resting), DESIGN_HOLDS).game;
+    resting = settle(gathered(resting), HOLDS_ONLY).game;
   }
   return findBunches(resting.board, null).length > 0;
 }
@@ -244,7 +244,7 @@ describe("settle(), over random boards", () => {
     "leaves no piece doubled, lost or in a gap, batch %i",
     (seed) => {
       const problems = gamesOf(seed).flatMap((game) =>
-        wholenessOf(game.board, settle(game, DESIGN_HOLDS).game.board),
+        wholenessOf(game.board, settle(game, HOLDS_ONLY).game.board),
       );
 
       expect(problems).toEqual([]);
@@ -255,10 +255,10 @@ describe("settle(), over random boards", () => {
     "leaves no square empty that something could fill, and nothing to fall, batch %i",
     (seed) => {
       const unrested = gamesOf(seed).flatMap((game) => {
-        const rested = settle(game, DESIGN_HOLDS).game;
+        const rested = settle(game, HOLDS_ONLY).game;
         return [
           ...fillableEmpty(rested.board),
-          ...settle(rested, DESIGN_HOLDS).falls,
+          ...settle(rested, HOLDS_ONLY).falls,
         ];
       });
 
@@ -268,7 +268,7 @@ describe("settle(), over random boards", () => {
 
   it.each(SEEDS)("moves no piece a rule holds, batch %i", (seed) => {
     const moved = gamesOf(seed).flatMap((game) =>
-      heldMoved(game.board, settle(game, DESIGN_HOLDS).game.board),
+      heldMoved(game.board, settle(game, HOLDS_ONLY).game.board),
     );
 
     expect(moved).toEqual([]);
@@ -278,7 +278,7 @@ describe("settle(), over random boards", () => {
     "lands each falling piece lower at every step, a roll a column aside, batch %i",
     (seed) => {
       const strays = gamesOf(seed).flatMap((game) =>
-        strayFalls(settle(game, DESIGN_HOLDS).falls, game.board.width),
+        strayFalls(settle(game, HOLDS_ONLY).falls, game.board.width),
       );
 
       expect(strays).toEqual([]);
@@ -289,7 +289,7 @@ describe("settle(), over random boards", () => {
     "lets in a fuzzball for each count a lane of the frame adds, each the next id, down its lane's column, batch %i",
     (seed) => {
       const miscounts = gamesOf(seed).filter((game) =>
-        miscounted(game, settle(game, DESIGN_HOLDS)),
+        miscounted(game, settle(game, HOLDS_ONLY)),
       );
 
       expect(miscounts).toEqual([]);

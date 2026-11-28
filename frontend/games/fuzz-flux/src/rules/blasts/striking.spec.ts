@@ -1,5 +1,6 @@
 import { gameFrom } from "../../testing/board_picture";
-import { DESIGN_PARTS, NO_PART } from "../../testing/made_up_rules";
+import { NO_PART } from "../../testing/partial_rules";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import { Striking, type Struck } from "./striking";
 
 /** Returns where a hit on a square by the wave's first blast, at its second step, came from. */
@@ -43,7 +44,7 @@ describe("Striking.giveFur", () => {
   it("gives a fuzzball a special's fur, brushing off its burr with no hit, and leaves its id and dust", () => {
     const striking = new Striking(
       gameFrom({ pieces: ["gr"], marks: ["*."], dust: ["10"] }),
-      DESIGN_PARTS,
+      ELEMENT_RULES,
     );
 
     const took = striking.giveFur(0, "puffer");
@@ -70,7 +71,7 @@ describe("Striking.giveFur", () => {
   });
 
   it("gives no fur to a fuzzball an element's rule keeps from taking it, as a cage does", () => {
-    const striking = new Striking(gameFrom(["Gr"]), DESIGN_PARTS);
+    const striking = new Striking(gameFrom(["Gr"]), ELEMENT_RULES);
 
     const took = striking.giveFur(0, "wisp");
 

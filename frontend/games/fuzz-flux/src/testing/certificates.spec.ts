@@ -1,4 +1,5 @@
 import { isRecord } from "@fz/core/json";
+import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import { levelSetOf } from "../rules/levels/level";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import windyDays from "../rules/levels/windy-days.json";
@@ -11,7 +12,6 @@ import {
   sketchLineOf,
 } from "./certificates";
 import { designJson } from "./design_files";
-import { DESIGN_PARTS, DESIGN_WIND } from "./made_up_rules";
 
 /** Level 1, Three's company, played as the 30th level of a game, so a sentence that named it by its id would show. */
 const THIRTIETH: LevelEntry = { ...LEVELS[0]!, number: 30 };
@@ -47,7 +47,7 @@ const WEATHER_VANE: LevelEntry = {
   data: WINDY_DAYS.levels[2]!,
 };
 
-/** The proof's line on Weather vane's deal 6, in the screen's frame, played by the specs' made-up elements and wind, which turn the board after its third move. */
+/** The proof's line on Weather vane's deal 6, in the screen's frame, played by the game's own elements and wind, which turn the board after its third move. */
 const WITH_THE_VANE = [
   [30, 31],
   [46, 47],
@@ -205,8 +205,8 @@ describe("sketchLineOf", () => {
   it("turns each move of a line to the board's frame as the board stands before it, once the wind has turned it, as the sketch's certificate keeps it", () => {
     const kept: Replay = {
       certificates: { "windy-days": { "30": { "6": WITH_THE_VANE } } },
-      rules: DESIGN_PARTS,
-      wind: DESIGN_WIND,
+      rules: ELEMENT_RULES,
+      wind: WIND_RULE,
     };
 
     expect({

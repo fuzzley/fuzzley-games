@@ -4,16 +4,13 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import {
-  DESIGN_PARTS,
-  DESIGN_WIND,
-  NO_PART,
-} from "../../testing/made_up_rules";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
+import { NO_PART } from "../../testing/partial_rules";
 import type { Game } from "../board/board";
 import { turnFrame } from "../board/orientation";
 import type { ElementId } from "../catalog/elements";
 import type { ElementRule, WindRule } from "../elements/element_rule";
+import { ELEMENT_RULES, WIND_RULE } from "../elements/element_rules";
 import { type Played, play } from "./play";
 
 /** The name of a move played by hand. */
@@ -46,20 +43,20 @@ const HELD_OPEN_LEVEL: GameOptions = {
 };
 
 /** Returns a move played by hand played again by `play()`, on its game and its swap. */
-function replayed(name: FixtureName, wind: WindRule = DESIGN_WIND): Played {
+function replayed(name: FixtureName, wind: WindRule = WIND_RULE): Played {
   const { picture, options, record } = MOVE_FIXTURES[name];
   return play(
     gameFrom(picture, options),
     record.swap.from,
     record.swap.to,
-    DESIGN_PARTS,
+    ELEMENT_RULES,
     wind,
   );
 }
 
 /** Returns the blues bunched across the top of `BLUES_ACROSS` on a game of the options given. */
-function bunchedAcross(options: GameOptions, wind = DESIGN_WIND): Played {
-  return play(gameFrom(BLUES_ACROSS, options), 1, 4, DESIGN_PARTS, wind);
+function bunchedAcross(options: GameOptions, wind = WIND_RULE): Played {
+  return play(gameFrom(BLUES_ACROSS, options), 1, 4, ELEMENT_RULES, wind);
 }
 
 describe("play", () => {
@@ -70,7 +67,7 @@ describe("play", () => {
   ])("refuses a swap that %s, costing nothing", (_, from, to) => {
     const game = gameFrom(BLUES_ACROSS, PLAYING);
 
-    const played = play(game, from, to, DESIGN_PARTS, DESIGN_WIND);
+    const played = play(game, from, to, ELEMENT_RULES, WIND_RULE);
 
     expect(played).toEqual({
       game,
@@ -91,7 +88,7 @@ describe("play", () => {
     (outcome) => {
       const game: Game = { ...gameFrom(BLUES_ACROSS, PLAYING), outcome };
 
-      const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+      const { record } = play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
       expect([record.swap.refused, record.waves, record.outcome]).toEqual([
         true,
@@ -104,7 +101,7 @@ describe("play", () => {
   it.each([-1, 9])("throws for square %s, off the board", (square) => {
     const game = gameFrom(BLUES_ACROSS, PLAYING);
 
-    expect(() => play(game, square, 4, DESIGN_PARTS, DESIGN_WIND)).toThrow(
+    expect(() => play(game, square, 4, ELEMENT_RULES, WIND_RULE)).toThrow(
       new RangeError(`Square ${String(square)} is off the board.`),
     );
   });
@@ -161,13 +158,7 @@ describe("play", () => {
       PLAYING,
     );
 
-    const { game: played, record } = play(
-      game,
-      1,
-      4,
-      DESIGN_PARTS,
-      DESIGN_WIND,
-    );
+    const { game: played, record } = play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
     expect([
       record.waves[0]?.hits.filter(({ what }) => what === "unburred").length,
@@ -184,8 +175,8 @@ describe("play", () => {
       ),
       1,
       4,
-      DESIGN_PARTS,
-      DESIGN_WIND,
+      ELEMENT_RULES,
+      WIND_RULE,
     );
 
     expect([record.burrSpread, record.outcome]).toEqual([null, "cleared"]);
@@ -197,7 +188,7 @@ describe("play", () => {
       1,
     );
 
-    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+    const { record } = play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
     expect(record.burrSpread).toEqual({ from: 6, to: 7, piece: 8 });
   });
@@ -209,7 +200,7 @@ describe("play", () => {
     };
     const game = gameFrom(["bgb", "rbr", "av1"], PLAYING);
 
-    expect(() => play(game, 1, 4, rules, DESIGN_WIND)).toThrow(
+    expect(() => play(game, 1, 4, rules, WIND_RULE)).toThrow(
       "A burr spreads to square 8, which holds no fuzzball.",
     );
   });
@@ -218,7 +209,7 @@ describe("play", () => {
     const { picture, options } = MOVE_FIXTURES.shuffle;
     const game = gameFrom(picture, { ...options, movesLeft: 1 });
 
-    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+    const { record } = play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
     expect([record.shuffle, record.outcome]).toEqual([null, "over"]);
   });
@@ -228,7 +219,7 @@ describe("play", () => {
     const { picture, options } = MOVE_FIXTURES.shuffle;
     const game = turnFrame(gameFrom(picture, { ...options, seed: 9 }), 1);
 
-    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+    const { record } = play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
     expect(record.shuffle).toEqual({
       moves: [
@@ -285,7 +276,7 @@ describe("play", () => {
   it("clears the level where the wind's turn meets the last goal", () => {
     const game = gameFrom(HELD_OPEN, HELD_OPEN_LEVEL);
 
-    const { record } = play(game, 7, 10, DESIGN_PARTS, DESIGN_WIND);
+    const { record } = play(game, 7, 10, ELEMENT_RULES, WIND_RULE);
 
     expect([
       record.waves.flatMap(({ bunches }) => bunches.map(({ kind }) => kind)),
@@ -300,7 +291,7 @@ describe("play", () => {
     // Dust lies on the square the brick held open, which a made-up rule
     // sweeps from under whatever comes to rest on it.
     const rules: Readonly<Record<ElementId, ElementRule>> = {
-      ...DESIGN_PARTS,
+      ...ELEMENT_RULES,
       dust: {
         settled: ({ piece, dust }) =>
           piece !== null && dust > 0
@@ -313,7 +304,7 @@ describe("play", () => {
       HELD_OPEN_LEVEL,
     );
 
-    const { record } = play(game, 7, 10, rules, DESIGN_WIND);
+    const { record } = play(game, 7, 10, rules, WIND_RULE);
 
     expect([
       record.gust?.waves[0]?.hits.map(({ what, square }) => [what, square]),
@@ -325,7 +316,7 @@ describe("play", () => {
     // The frame turned, the screen still shows the board as drawn.
     const game = turnFrame(gameFrom(BLUES_ACROSS, PLAYING), 1);
 
-    const { record } = play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+    const { record } = play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
     expect([
       record.swap,
@@ -342,7 +333,7 @@ describe("play", () => {
     const game = gameFrom(BLUES_ACROSS, { ...PLAYING, wind: EVERY_MOVE });
     const before = structuredClone(game);
 
-    play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND);
+    play(game, 1, 4, ELEMENT_RULES, WIND_RULE);
 
     expect(game).toEqual(before);
   });

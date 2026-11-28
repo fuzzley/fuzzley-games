@@ -1,8 +1,8 @@
 import type { Game } from "../rules/board/board";
 import { turnFrame } from "../rules/board/orientation";
 import type { KindId } from "../rules/catalog/kinds";
+import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import { type BoardPicture, type GameOptions, gameFrom } from "./board_picture";
-import { DESIGN_PARTS, DESIGN_WIND } from "./made_up_rules";
 import type { Move } from "./play_out";
 import { proofOf } from "./proof";
 
@@ -44,9 +44,9 @@ function fifteenBlues(movesLeft: number): Game {
   );
 }
 
-/** Returns the proof's line on a game, on the made-up elements and wind. */
+/** Returns the proof's line on a game, on the game's own elements and wind. */
 function proofOn(game: Game): readonly Move[] | null {
-  return proofOf(game, DESIGN_PARTS, DESIGN_WIND);
+  return proofOf(game, ELEMENT_RULES, WIND_RULE);
 }
 
 describe("proofOf", () => {

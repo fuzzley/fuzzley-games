@@ -3,11 +3,12 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS, NO_PART } from "../../testing/made_up_rules";
 import { MOVE_FIXTURES } from "../../testing/move_fixtures";
+import { NO_PART } from "../../testing/partial_rules";
 import type { SetOff } from "../blasts/striking";
 import type { ElementId } from "../catalog/elements";
 import type { ElementRule } from "../elements/element_rule";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import type { Blast, MoveRecord } from "./record";
 import { type Swapped, playSwap } from "./swapped";
 
@@ -28,7 +29,7 @@ function swapOn(
   from: number,
   to: number,
   options: GameOptions = {},
-  rules: Readonly<Record<ElementId, ElementRule>> = DESIGN_PARTS,
+  rules: Readonly<Record<ElementId, ElementRule>> = ELEMENT_RULES,
 ): Swapped | null {
   return playSwap(gameFrom(picture, options), from, to, rules);
 }
@@ -84,7 +85,7 @@ describe("playSwap", () => {
         game,
         record.swap.from,
         record.swap.to,
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(openingOf(swapped)).toEqual(openingIn(record));
@@ -256,7 +257,7 @@ describe("playSwap", () => {
       const game = gameFrom(picture, GATHERING);
       const before = structuredClone(game);
 
-      playSwap(game, from, to, DESIGN_PARTS);
+      playSwap(game, from, to, ELEMENT_RULES);
 
       expect(game).toEqual(before);
     },

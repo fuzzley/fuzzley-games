@@ -1,10 +1,10 @@
 import type { Game } from "../rules/board/board";
 import type { KindId } from "../rules/catalog/kinds";
+import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import { carefulMove } from "../rules/move/hint";
 import { type Played, play } from "../rules/move/play";
 import { type BoardPicture, gameFrom } from "./board_picture";
 import { playCarefully } from "./careful";
-import { DESIGN_PARTS, DESIGN_WIND } from "./made_up_rules";
 import type { Move, PlayedOut } from "./play_out";
 
 /** A board whose first move, swapping 1 and 5, bunches the greens across the top, and whose last, swapping 10 and 11, the blues along the bottom. */
@@ -16,19 +16,19 @@ const BLUES_ALONG: Move = { from: 10, to: 11 };
 /** The kinds the boards of the careful player's games play with. */
 const KINDS: readonly KindId[] = ["blue", "red", "amber", "green"];
 
-/** Returns a game played to its end by the careful player, on the made-up elements and wind. */
+/** Returns a game played to its end by the careful player, on the game's own elements and wind. */
 function playedOn(game: Game): PlayedOut {
-  return playCarefully(game, DESIGN_PARTS, DESIGN_WIND);
+  return playCarefully(game, ELEMENT_RULES, WIND_RULE);
 }
 
-/** Returns the careful player's move on a game, on the made-up elements and wind. */
+/** Returns the careful player's move on a game, on the game's own elements and wind. */
 function carefulOn(game: Game): Move | null {
-  return carefulMove(game, DESIGN_PARTS, DESIGN_WIND);
+  return carefulMove(game, ELEMENT_RULES, WIND_RULE);
 }
 
-/** Returns a move played on a game, on the made-up elements and wind. */
+/** Returns a move played on a game, on the game's own elements and wind. */
 function playedMove(game: Game, { from, to }: Move): Played {
-  return play(game, from, to, DESIGN_PARTS, DESIGN_WIND);
+  return play(game, from, to, ELEMENT_RULES, WIND_RULE);
 }
 
 describe("playCarefully", () => {

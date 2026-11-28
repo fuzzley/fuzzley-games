@@ -4,10 +4,10 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS } from "../../testing/made_up_rules";
 import { ENCORE_FIXTURE } from "../../testing/move_fixtures";
 import type { Game } from "../board/board";
 import { turnFrame } from "../board/orientation";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import { encore } from "./encore";
 import type { Blast, EncoreRecord } from "./record";
 
@@ -34,9 +34,9 @@ function madeSpecial(
   });
 }
 
-/** Returns the encore played on a game, on the made-up elements. */
+/** Returns the encore played on a game, on the game's own elements. */
 function encored(game: Game): ReturnType<typeof encore> {
-  return encore(game, DESIGN_PARTS);
+  return encore(game, ELEMENT_RULES);
 }
 
 describe("encore", () => {

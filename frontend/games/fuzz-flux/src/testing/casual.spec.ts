@@ -1,12 +1,12 @@
 import { itemAt } from "@fz/core/records";
 import type { Game } from "../rules/board/board";
 import { turnFrame } from "../rules/board/orientation";
+import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import { play } from "../rules/move/play";
 import { legalMoves } from "../rules/move/swap";
 import { type BoardPicture, type GameOptions, gameFrom } from "./board_picture";
 import { casualMove, lookOf, playCasually } from "./casual";
 import type { Dice } from "./dice";
-import { DESIGN_PARTS, DESIGN_WIND } from "./made_up_rules";
 import type { Move } from "./play_out";
 
 /** A board on which swapping 1 and 4 bunches the blues across the top, and no other move bunches anything. */
@@ -41,9 +41,9 @@ function lookOn(
   return lookOf(gameFrom(picture, options), move);
 }
 
-/** Returns the casual player's move on a game, on the made-up elements, rolling the dice given. */
+/** Returns the casual player's move on a game, on the game's own elements, rolling the dice given. */
 function casualOn(game: Game, rolls: readonly number[]): Move | null {
-  return casualMove(game, loadedDice(rolls), DESIGN_PARTS);
+  return casualMove(game, loadedDice(rolls), ELEMENT_RULES);
 }
 
 describe("lookOf", () => {
@@ -134,7 +134,7 @@ describe("casualMove", () => {
     const game = gameFrom(FOUR_GREENS);
 
     expect([
-      legalMoves(game.board, DESIGN_PARTS),
+      legalMoves(game.board, ELEMENT_RULES),
       casualOn(game, [65, 0]),
     ]).toEqual([
       [
@@ -196,15 +196,15 @@ describe("playCasually", () => {
     const played = playCasually(
       game,
       loadedDice([0, 0]),
-      DESIGN_PARTS,
-      DESIGN_WIND,
+      ELEMENT_RULES,
+      WIND_RULE,
     );
 
     expect(played).toEqual({
       cleared: true,
       used: 1,
       line: [BUNCHING_BLUES],
-      records: [play(game, 1, 4, DESIGN_PARTS, DESIGN_WIND).record],
+      records: [play(game, 1, 4, ELEMENT_RULES, WIND_RULE).record],
     });
   });
 });

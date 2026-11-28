@@ -1,9 +1,6 @@
 import { gameFrom, pictureOf } from "../../testing/board_picture";
 import { DESIGN_SETS, designSet } from "../../testing/design_files";
-import {
-  DESIGN_HOLDS,
-  DESIGN_HOLDS_AND_GOALS,
-} from "../../testing/made_up_rules";
+import { HOLDS_AND_GOALS, HOLDS_ONLY } from "../../testing/partial_rules";
 import { findBunches } from "../bunches/find";
 import { type Level, levelSetOf } from "../levels/level";
 import { legalMoves } from "../move/swap";
@@ -36,7 +33,7 @@ function madeUp(changes: Partial<Level>): Level {
 describe("deal", () => {
   // Each deal below is the sketch's deal() of the same level and seed.
   it("deals Warm-up's first level on its first deal as the sketch does", () => {
-    const game = deal(levelOf("1"), 1, DESIGN_HOLDS);
+    const game = deal(levelOf("1"), 1, HOLDS_ONLY);
 
     expect(pictureOf(game.board).pieces).toEqual([
       "grabba",
@@ -49,7 +46,7 @@ describe("deal", () => {
   });
 
   it("keeps each brick the level's picture lays, and its dust", () => {
-    const game = deal(levelOf("12"), 1, DESIGN_HOLDS_AND_GOALS);
+    const game = deal(levelOf("12"), 1, HOLDS_AND_GOALS);
 
     expect(pictureOf(game.board)).toEqual({
       pieces: [
@@ -67,7 +64,7 @@ describe("deal", () => {
   });
 
   it("keeps each brick's layers as the level's picture lays them", () => {
-    const game = deal(levelOf("11"), 2, DESIGN_HOLDS_AND_GOALS);
+    const game = deal(levelOf("11"), 2, HOLDS_AND_GOALS);
 
     expect(pictureOf(game.board).pieces.slice(2, 5)).toEqual([
       "ag232ga",
@@ -77,7 +74,7 @@ describe("deal", () => {
   });
 
   it("leaves each gap the level's picture draws", () => {
-    const game = deal(levelOf("7"), 1, DESIGN_HOLDS);
+    const game = deal(levelOf("7"), 1, HOLDS_ONLY);
 
     expect(pictureOf(game.board).pieces).toEqual([
       "_rabba_",
@@ -91,7 +88,7 @@ describe("deal", () => {
   });
 
   it("burrs each fuzzball of any kind the level's picture burrs", () => {
-    const game = deal(levelOf("22"), 1, DESIGN_HOLDS);
+    const game = deal(levelOf("22"), 1, HOLDS_ONLY);
 
     expect(pictureOf(game.board).marks).toEqual([
       ".......",
@@ -105,7 +102,7 @@ describe("deal", () => {
   });
 
   it("keeps each caged fuzzball the level's picture lays, and cages each it leaves to any kind", () => {
-    const game = deal(levelOf("13"), 2, DESIGN_HOLDS_AND_GOALS);
+    const game = deal(levelOf("13"), 2, HOLDS_AND_GOALS);
 
     expect(pictureOf(game.board).pieces.slice(1, 6)).toEqual([
       "vBvBaRr",
@@ -118,7 +115,7 @@ describe("deal", () => {
 
   // The sketch's deal 36 of level 12 takes its second try.
   it("deals again, by the next salt, where a try leaves a bunch standing or too few moves", () => {
-    const game = deal(levelOf("12"), 36, DESIGN_HOLDS_AND_GOALS);
+    const game = deal(levelOf("12"), 36, HOLDS_AND_GOALS);
 
     expect(pictureOf(game.board).pieces).toEqual([
       "rrgaabgg",
@@ -133,7 +130,7 @@ describe("deal", () => {
   });
 
   it("places a level's specials, each a piece numbered after every square's", () => {
-    const game = deal(levelOf("6"), 2, DESIGN_HOLDS);
+    const game = deal(levelOf("6"), 2, HOLDS_ONLY);
     const { pieces, marks } = pictureOf(game.board);
 
     expect({
@@ -161,7 +158,7 @@ describe("deal", () => {
       specials: [{ at: { x: 0, y: 1 }, what: "wisp", kind: "blue" }],
     });
 
-    const { board, nextPieceId } = deal(level, 1, DESIGN_HOLDS);
+    const { board, nextPieceId } = deal(level, 1, HOLDS_ONLY);
 
     expect({
       ids: board.pieces.slice(0, 8).map((piece) => piece?.id ?? null),
@@ -171,14 +168,14 @@ describe("deal", () => {
 
   it("counts a gather's goal as the level sets it, and an element's by its rule on the board dealt", () => {
     const counts = ["1", "8", "13"].map(
-      (id) => deal(levelOf(id), 1, DESIGN_HOLDS_AND_GOALS).goalsLeft,
+      (id) => deal(levelOf(id), 1, HOLDS_AND_GOALS).goalsLeft,
     );
 
     expect(counts).toEqual([[10, 10], [21], [7]]);
   });
 
   it("refuses a goal of an element whose rule counts none", () => {
-    expect(() => deal(levelOf("8"), 1, DESIGN_HOLDS)).toThrow(
+    expect(() => deal(levelOf("8"), 1, HOLDS_ONLY)).toThrow(
       "A level's goal counts every dust, whose element's rule counts no goal of it.",
     );
   });
@@ -189,7 +186,7 @@ describe("deal", () => {
     const { turns, movesPlayed, movesLeft, lanes, wind, outcome } = deal(
       level,
       1,
-      DESIGN_HOLDS,
+      HOLDS_ONLY,
     );
 
     expect({ turns, movesPlayed, movesLeft, lanes, wind, outcome }).toEqual({
@@ -205,15 +202,15 @@ describe("deal", () => {
   it("turns the frame of the board it deals for a level's wind", () => {
     const level = levelOf("28");
 
-    const game = deal(level, 2, DESIGN_HOLDS);
+    const game = deal(level, 2, HOLDS_ONLY);
 
     expect(game).toEqual(
-      turnFrame(deal({ ...level, wind: null }, 2, DESIGN_HOLDS), 1),
+      turnFrame(deal({ ...level, wind: null }, 2, HOLDS_ONLY), 1),
     );
   });
 
   it("sets a turning wind going, its first turn a whole turn's wait away", () => {
-    const game = deal(levelOf("30"), 6, DESIGN_HOLDS);
+    const game = deal(levelOf("30"), 6, HOLDS_ONLY);
 
     expect({ turns: game.turns, wind: game.wind }).toEqual({
       turns: 0,
@@ -224,11 +221,11 @@ describe("deal", () => {
   it.each(DEALS)(
     "deals level %s from seed %i with no bunch standing and the moves a deal opens with",
     (id, seed) => {
-      const { board } = deal(levelOf(id), seed, DESIGN_HOLDS_AND_GOALS);
+      const { board } = deal(levelOf(id), seed, HOLDS_AND_GOALS);
 
       expect({
         bunches: findBunches(board, null).length,
-        enough: legalMoves(board, DESIGN_HOLDS).length >= OPENING_MOVES,
+        enough: legalMoves(board, HOLDS_ONLY).length >= OPENING_MOVES,
       }).toEqual({ bunches: 0, enough: true });
     },
   );
@@ -236,7 +233,7 @@ describe("deal", () => {
   it("gives up on a level whose picture stands a bunch", () => {
     const level = madeUp({ id: "40", board: ["bbb...", "......"] });
 
-    expect(() => deal(level, 1, DESIGN_HOLDS)).toThrow(
+    expect(() => deal(level, 1, HOLDS_ONLY)).toThrow(
       "Level 40 would not deal from seed 1.",
     );
   });
@@ -244,7 +241,7 @@ describe("deal", () => {
   it("gives up on a level whose board leaves too few moves", () => {
     const level = madeUp({ id: "41", board: ["..", ".."] });
 
-    expect(() => deal(level, 1, DESIGN_HOLDS)).toThrow(
+    expect(() => deal(level, 1, HOLDS_ONLY)).toThrow(
       "Level 41 would not deal from seed 1.",
     );
   });

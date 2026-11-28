@@ -4,14 +4,15 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS, NO_PART } from "../../testing/made_up_rules";
 import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
+import { NO_PART } from "../../testing/partial_rules";
 import type { Game } from "../board/board";
 import { findBunches } from "../bunches/find";
 import type { ElementId } from "../catalog/elements";
 import type { KindId } from "../catalog/kinds";
 import { type BlastId, MADE_IDS } from "../catalog/specials";
 import type { ElementRule } from "../elements/element_rule";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import type { Blast, Strike } from "../move/record";
 import { type StruckWave, strikeWave } from "./chain";
 import type { SetOff } from "./striking";
@@ -106,7 +107,7 @@ describe("strikeWave", () => {
       const { game, setOff } = swappedIn(fixture);
       const [wave] = fixture.record.waves;
 
-      const { blasts, hits } = strikeWave(game, [], setOff, DESIGN_PARTS);
+      const { blasts, hits } = strikeWave(game, [], setOff, ELEMENT_RULES);
 
       expect({ blasts, hits }).toEqual({
         blasts: wave.blasts,
@@ -172,7 +173,7 @@ describe("strikeWave", () => {
       { pieces: ["  g", "rbr"], marks: ["..o", "..."], dust: ["020", "000"] },
       [setOffAt("dasher-across", 0)],
       { goals: [{ what: "dust" }] },
-      DESIGN_PARTS,
+      ELEMENT_RULES,
     );
 
     expect(hits.filter(({ what }) => what === "dusted")).toEqual([
@@ -227,7 +228,7 @@ describe("strikeWave", () => {
           kinds: ["red", "green", "blue"],
           goals: [{ what: "cage" }, { what: "gather", kind: "red", count: 5 }],
         },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(blasts.map(({ strikes }) => strikes)).toEqual([
@@ -412,7 +413,7 @@ describe("strikeWave", () => {
         [" gGr", "gbgg"],
         [setOffAt("frizzball-and-dasher", 0, "green")],
         { kinds: ["green", "blue", "red"] },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect({
@@ -503,7 +504,7 @@ describe("strikeWave", () => {
     });
     const before = structuredClone(game);
 
-    strikeWave(game, [], [setOffAt("dasher-across", 0)], DESIGN_PARTS);
+    strikeWave(game, [], [setOffAt("dasher-across", 0)], ELEMENT_RULES);
 
     expect(game).toEqual(before);
   });

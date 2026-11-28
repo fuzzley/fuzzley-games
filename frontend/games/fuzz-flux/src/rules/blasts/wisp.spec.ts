@@ -3,9 +3,10 @@ import {
   type GameOptions,
   gameFrom,
 } from "../../testing/board_picture";
-import { DESIGN_PARTS, NO_PART } from "../../testing/made_up_rules";
+import { NO_PART } from "../../testing/partial_rules";
 import type { ElementId } from "../catalog/elements";
 import type { ElementRule } from "../elements/element_rule";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import { wispTarget } from "./wisp";
 
 /** A board 3 squares a side with no bunch, a wisp's square in its middle. */
@@ -73,7 +74,7 @@ describe("wispTarget", () => {
         {
           goals: [{ what: "cage" }, { what: "gather", kind: "red", count: 5 }],
         },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(target).toBe(0);
@@ -87,7 +88,7 @@ describe("wispTarget", () => {
           goals: [{ what: "cage" }, { what: "gather", kind: "red", count: 5 }],
           goalsLeft: [0, 5],
         },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(target).toBe(1);
@@ -101,7 +102,7 @@ describe("wispTarget", () => {
           kinds: ["blue", "amber", "red", "green"],
           goals: [{ what: "dust" }],
         },
-        DESIGN_PARTS,
+        ELEMENT_RULES,
       );
 
       expect(target).toBe(1);

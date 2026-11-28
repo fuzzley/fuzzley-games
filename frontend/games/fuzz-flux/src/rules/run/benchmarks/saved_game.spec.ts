@@ -3,8 +3,8 @@ import { createRandom } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
 import { SIM_TIMEOUT_MS, quantile, sortedTimes } from "@fz/core/testing";
 import { DESIGN_SETS, designSet } from "../../../testing/design_files";
-import { DESIGN_PARTS, DESIGN_WIND } from "../../../testing/made_up_rules";
 import { randomGame } from "../../../testing/random_games";
+import { ELEMENT_RULES, WIND_RULE } from "../../elements/element_rules";
 import { type Level, levelSetOf } from "../../levels/level";
 import { type SavedGame, readSavedGame } from "../saved_game";
 
@@ -17,8 +17,8 @@ const MOST_MS = 50;
 /** How many times each saved game is read and timed, after one that warms the code up. */
 const ROUNDS = 3;
 
-/** The rules the levels are played by: the specs' made-up elements and wind, which play every golden game as the sketch does. */
-const RULES = { elements: DESIGN_PARTS, wind: DESIGN_WIND };
+/** The rules the levels are played by: the game's own elements and wind, which play every golden game as the sketch does. */
+const RULES = { elements: ELEMENT_RULES, wind: WIND_RULE };
 
 /** Returns a level with moves enough for a long game, and a goal no game of them meets. */
 function lengthened(level: Level): Level {

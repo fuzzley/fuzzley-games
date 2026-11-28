@@ -5,16 +5,13 @@ import {
   gameFrom,
   pictureOf,
 } from "../../testing/board_picture";
-import {
-  DESIGN_HOLDS,
-  DESIGN_PARTS,
-  NO_PART,
-} from "../../testing/made_up_rules";
 import { MOVE_FIXTURES, type MoveFixture } from "../../testing/move_fixtures";
+import { HOLDS_ONLY, NO_PART } from "../../testing/partial_rules";
 import type { Game } from "../board/board";
 import { onScreen, turnFrame } from "../board/orientation";
 import { ELEMENT_IDS, type ElementId } from "../catalog/elements";
 import type { ElementRule } from "../elements/element_rule";
+import { ELEMENT_RULES } from "../elements/element_rules";
 import { refillKind } from "./refill";
 import { type Settled, settle } from "./settle";
 
@@ -54,7 +51,7 @@ function gatheredBy({ picture, options, record }: MoveFixture): Game {
 function settled(
   picture: BoardPicture | readonly string[],
   options: GameOptions & { readonly movesPlayed?: number } = {},
-  rules = DESIGN_HOLDS,
+  rules = HOLDS_ONLY,
 ): Settled & { readonly pieces: readonly string[] } {
   const { movesPlayed = 0, ...gameOptions } = options;
   const result = settle(
@@ -70,7 +67,7 @@ describe("settle", () => {
     (name) => {
       const fixture = MOVE_FIXTURES[name];
 
-      const { falls } = settle(gatheredBy(fixture), DESIGN_HOLDS);
+      const { falls } = settle(gatheredBy(fixture), HOLDS_ONLY);
 
       expect(falls).toEqual(fixture.record.waves[0].falls);
     },
@@ -118,7 +115,7 @@ describe("settle", () => {
   it("fills each square nothing falls into from its lane, the lowest first", () => {
     const game = gameFrom(["  ", "r "], { seed: 5 });
 
-    const { falls } = settle(game, DESIGN_HOLDS);
+    const { falls } = settle(game, HOLDS_ONLY);
 
     expect(falls).toEqual([
       {
@@ -234,7 +231,7 @@ describe("settle", () => {
     const game = turnFrame(gameFrom(["_2_", "a a", "arg"], { seed: 2 }), 1);
     const screen = (square: number): number => onScreen(game, square);
 
-    const { falls } = settle(game, DESIGN_HOLDS);
+    const { falls } = settle(game, HOLDS_ONLY);
 
     expect(
       falls.map(({ from, path, kind, lane }) => ({
@@ -253,7 +250,7 @@ describe("settle", () => {
   it("moves nothing on a board at rest", () => {
     const game = gameFrom(["bg", "rv"]);
 
-    expect(settle(game, DESIGN_HOLDS)).toEqual({
+    expect(settle(game, HOLDS_ONLY)).toEqual({
       game,
       falls: [],
       hits: [],
@@ -265,7 +262,7 @@ describe("settle", () => {
     const game = gameFrom(["a1g", "r  "]);
     const before = structuredClone(game);
 
-    settle(game, DESIGN_HOLDS);
+    settle(game, HOLDS_ONLY);
 
     expect(game).toEqual(before);
   });
@@ -273,7 +270,7 @@ describe("settle", () => {
   it("puts a sleepyhead on a bed to bed once the board is at rest, counting it, and lets the board fall again", () => {
     const game = gameFrom(["bz", "r "], { goals: [{ what: "sleepyhead" }] });
 
-    const { game: rested, falls, hits, counted } = settle(game, DESIGN_PARTS);
+    const { game: rested, falls, hits, counted } = settle(game, ELEMENT_RULES);
 
     expect([
       hits,
@@ -295,7 +292,7 @@ describe("settle", () => {
   it("leaves a sleepyhead on its bed where no element takes part in the board at rest", () => {
     const game = gameFrom(["bz", "r "], { goals: [{ what: "sleepyhead" }] });
 
-    const { game: rested, hits } = settle(game, DESIGN_HOLDS);
+    const { game: rested, hits } = settle(game, HOLDS_ONLY);
 
     expect([rested.board.pieces[3]?.what, hits, rested.goalsLeft]).toEqual([
       "sleepyhead",
@@ -335,7 +332,7 @@ describe("settle", () => {
     // At rest, the blue fuzzball is made anew where it lands; then the
     // sleepyhead under it is put to bed and the new one falls on.
     const rules: Readonly<Record<ElementId, ElementRule>> = {
-      ...DESIGN_PARTS,
+      ...ELEMENT_RULES,
       dust: {
         settled: ({ piece, dust }) =>
           piece?.what === "fuzzball" && piece.id === 1
