@@ -11,7 +11,7 @@ function standsAt(keys: Keys, ms: number): Sampled {
     pieces: [],
     sprites: [
       {
-        drawn: { what: "frame", frame: "ring" },
+        drawn: { what: "frame", frame: "button" },
         fromMs: 0,
         untilMs: 1000,
         look: lookAt({ x: 0, y: 0 }),

@@ -2,7 +2,14 @@ import { keysOf } from "@fz/core/records";
 import { FUZZBALL_FACES } from "@fz/style/fuzzball";
 import { BRICK_LAYERS } from "../../rules/catalog/elements";
 import { KIND_IDS } from "../../rules/catalog/kinds";
-import { FRAMES, FRAME_NAMES, FURS, LIFTS, TIMES } from "./frame_names";
+import {
+  FRAMES,
+  FRAME_NAMES,
+  FURS,
+  LIFTS,
+  RING_RUNGS,
+  TIMES,
+} from "./frame_names";
 
 /**
  * Each of `FRAMES`' names, by the pattern its frames' names keep, with how
@@ -28,7 +35,7 @@ const FAMILIES = {
   burr: [/^burr$/, 1],
   burrTuft: [/^burr-tuft$/, 1],
   tuft: [/^tuft-/, KIND_IDS.length],
-  ring: [/^ring$/, 1],
+  ring: [/^ring-\d+$/, RING_RUNGS.length],
   streak: [/^streak$/, 1],
   bolt: [/^bolt$/, 1],
   hand: [/^hand$/, 1],

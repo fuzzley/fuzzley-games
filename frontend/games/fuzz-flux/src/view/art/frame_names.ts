@@ -40,6 +40,14 @@ export const TIMES = [
 /** The count a wave's mark shows. */
 export type Times = (typeof TIMES)[number];
 
+/** Every rung of the ladder of the ring's frames, from the thickest line for its radius to the thinnest. */
+export const RING_RUNGS = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+] as const satisfies readonly number[];
+
+/** A rung of the ladder of the ring's frames. */
+export type RingRung = (typeof RING_RUNGS)[number];
+
 /** The names of the atlas's frames: a builder for each family of frames, and the name of each frame that stands alone. */
 export const FRAMES = {
   /** A fuzzball's body, its kind's silhouette in its ink, in a fur that stands at rest or on end. */
@@ -77,8 +85,8 @@ export const FRAMES = {
   burrTuft: "burr-tuft",
   /** A tuft of a kind's fur. */
   tuft: (kind: KindId) => `tuft-${kind}` as const,
-  /** The thin ring that spreads from a bunch and a blast. */
-  ring: "ring",
+  /** The thin ring that spreads from a bunch and a blast, its line as wide for its radius as a rung of its ladder says. */
+  ring: (rung: RingRung) => `ring-${rung}` as const,
   /** A dasher's streak. */
   streak: "streak",
   /** A frizzball's bolt of static. */
@@ -121,7 +129,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   FRAMES.burr,
   FRAMES.burrTuft,
   ...KIND_IDS.map((kind) => FRAMES.tuft(kind)),
-  FRAMES.ring,
+  ...RING_RUNGS.map((rung) => FRAMES.ring(rung)),
   FRAMES.streak,
   FRAMES.bolt,
   FRAMES.hand,

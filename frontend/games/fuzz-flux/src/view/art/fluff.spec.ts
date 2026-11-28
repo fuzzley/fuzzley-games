@@ -7,8 +7,9 @@ import {
   SMALLEST_SCALE,
   billionths,
 } from "../../testing/art_frames";
-import { BOLT_LENGTH, RING_RADIUS, STREAK_HEAD, fluffFrames } from "./fluff";
-import { FRAMES } from "./frame_names";
+import { BOLT_LENGTH, STREAK_HEAD, fluffFrames } from "./fluff";
+import { FRAMES, RING_RUNGS } from "./frame_names";
+import { rungRadius, rungRatio } from "./ring_ladder";
 
 /** The kit's frames in the specs' palette, at their scale, a device pixel to each of the design's units. */
 const KIT = fluffFrames(ART_PALETTE, ART_SCALE);
@@ -37,10 +38,10 @@ function colorsOf(frame: ArtFrame): ReadonlySet<number> {
 }
 
 describe("fluffFrames", () => {
-  it("draws a tuft of each kind, the ring, the streak, the bolt and the hand", () => {
+  it("draws a tuft of each kind, the ring at each rung of its ladder, the streak, the bolt and the hand", () => {
     expect(KIT.map(({ name }) => name)).toEqual([
       ...KIND_IDS.map((kind) => FRAMES.tuft(kind)),
-      FRAMES.ring,
+      ...RING_RUNGS.map((rung) => FRAMES.ring(rung)),
       FRAMES.streak,
       FRAMES.bolt,
       FRAMES.hand,
@@ -62,25 +63,21 @@ describe("fluffFrames", () => {
     },
   );
 
-  it("draws the ring in white, for a tint, a square in radius and its line 6 of the design's units wide", () => {
-    expect(frameNamed(KIT, FRAMES.ring).commands).toEqual([
-      expect.objectContaining({
-        kind: "ring",
-        radius: RING_RADIUS * ART_SCALE.unit,
-        width: 6,
-        color: 0xffffff,
-      }),
-    ]);
-  });
+  it.each(RING_RUNGS)(
+    "draws the ring at rung %i in white, for a tint, as far across as the rung's frame draws it, its line as wide for its radius as the rung says",
+    (rung) => {
+      const radius = rungRadius(rung, ART_SCALE) * ART_SCALE.unit;
 
-  it("draws the ring's line a CSS pixel wide at least at its frame's radius, at a square too small for its own", () => {
-    const [line] = frameNamed(
-      fluffFrames(ART_PALETTE, { unit: 20, pixelRatio: 2 }),
-      FRAMES.ring,
-    ).commands;
-
-    expect(line).toMatchObject({ width: 2 });
-  });
+      expect(frameNamed(KIT, FRAMES.ring(rung)).commands).toEqual([
+        expect.objectContaining({
+          kind: "ring",
+          radius: expect.closeTo(radius, 9) as number,
+          width: expect.closeTo(rungRatio(rung) * radius, 9) as number,
+          color: 0xffffff,
+        }),
+      ]);
+    },
+  );
 
   it("draws the streak in white, its round head ahead of its frame's middle as far as STREAK_HEAD says, its tail trailing 3.4 squares and fading, its frame as wide as it in whole pixels", () => {
     const streak = frameNamed(KIT, FRAMES.streak);

@@ -1,9 +1,9 @@
 // The kit every move's effects are drawn from, as the design's fifth rule
 // of motion has it: fluff, a tuft of each kind's fur, which a gathered
-// fuzzball leaves; a thin ring; a dasher's streak; and a frizzball's bolt
-// of static. And the hint's hand, which shows a level's first move. The
-// ring and the streak are white, for the scene to tint in the ink an
-// effect names.
+// fuzzball leaves; a thin ring, at each rung of its ladder; a dasher's
+// streak; and a frizzball's bolt of static. And the hint's hand, which
+// shows a level's first move. The rings and the streak are white, for the
+// scene to tint in the ink an effect names.
 
 import { createRandom } from "@fz/core/random";
 import {
@@ -22,8 +22,9 @@ import {
 import { KIND_IDS } from "../../rules/catalog/kinds";
 import type { BoardPalette } from "../colors/palette";
 import { SQUARE, atLeastAPixel, inPixels } from "./design_square";
-import { FRAMES } from "./frame_names";
+import { FRAMES, RING_RUNGS, type RingRung } from "./frame_names";
 import { rimOf } from "./rim";
+import { rungRadius, rungRatio } from "./ring_ladder";
 
 /** The color of the frames the scene tints. */
 const WHITE = 0xffffff;
@@ -53,24 +54,13 @@ export function tuftOf(ink: number): readonly DrawCommand[] {
   );
 }
 
-/**
- * The ring's radius, in squares, which the scene scales it from as it
- * spreads, from a quarter of a square out to as far as the effect says.
- *
- * Its line scales with it, where the design's keeps its width as it
- * spreads: thinner than its frame's while the ring is under a square
- * across, and thicker past it, as a blast's ring spreads to 3 squares
- * and more.
- */
-export const RING_RADIUS = 1;
-
-/**
- * How wide the ring's line is at its frame's radius, in the design's
- * units, a CSS pixel at least: between the design's at a ring's start and
- * at its end, so a bunch's ring, which spreads to most of a square, is
- * about as thin as the design draws it.
- */
-const RING_LINE = 6;
+/** Returns the ring at a rung of its ladder, in white, about its middle, as far across as the rung's frame draws it at a scale. */
+function ringOf(rung: RingRung, scale: ArtScale): readonly DrawCommand[] {
+  const radius = rungRadius(rung, scale) * SQUARE;
+  return [
+    ring(ORIGIN, radius, { color: WHITE, width: rungRatio(rung) * radius }),
+  ];
+}
 
 /**
  * Says how a dasher's streak is drawn, in the design's units: its round
@@ -182,8 +172,8 @@ function handOf(
 
 /**
  * Returns the kit's frames and the hand's, in a palette at a scale: a tuft
- * in each kind's ink, the ring and the streak in white, the bolt in the
- * sparks' color, and the hand.
+ * in each kind's ink, the ring at each rung of its ladder and the streak
+ * in white, the bolt in the sparks' color, and the hand.
  */
 export function fluffFrames(
   palette: BoardPalette,
@@ -193,17 +183,8 @@ export function fluffFrames(
     ...KIND_IDS.map((kind) =>
       centered(FRAMES.tuft(kind), inPixels(tuftOf(palette.kinds[kind]), scale)),
     ),
-    centered(
-      FRAMES.ring,
-      inPixels(
-        [
-          ring(ORIGIN, RING_RADIUS * SQUARE, {
-            color: WHITE,
-            width: atLeastAPixel(RING_LINE, scale),
-          }),
-        ],
-        scale,
-      ),
+    ...RING_RUNGS.map((rung) =>
+      centered(FRAMES.ring(rung), inPixels(ringOf(rung, scale), scale)),
     ),
     centered(FRAMES.streak, inPixels(streakOf(), scale)),
     centered(FRAMES.bolt, inPixels(boltOf(palette, scale), scale)),
