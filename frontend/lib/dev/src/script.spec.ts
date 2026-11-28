@@ -7,11 +7,13 @@ import {
   type Stop,
   importThroughVite,
   isStop,
+  levelsOfSet,
   misread,
   onCi,
   readArgs,
   readCount,
   recordingPrinter,
+  setIdsOf,
   stopWith,
   wrapped,
 } from "./script.ts";
@@ -24,6 +26,13 @@ const OPTIONS = {
   count: { type: "string" },
   speed: { type: "string", default: "normal" },
 } as const;
+
+/** Made-up levels, in the order played: two in a set and one in another, as a game's scripts list them. */
+const LEVELS = [
+  { number: 1, set: { id: "first" } },
+  { number: 2, set: { id: "first" } },
+  { number: 3, set: { id: "second" } },
+] as const;
 
 /** Returns what a command line gives the script of the specs. */
 function read(
@@ -127,6 +136,36 @@ describe("readCount", () => {
       );
     },
   );
+});
+
+describe("setIdsOf", () => {
+  it("names each set the levels are in once, in the order played", () => {
+    expect(setIdsOf(LEVELS)).toEqual(["first", "second"]);
+  });
+});
+
+describe("levelsOfSet", () => {
+  it("gives the levels of the set named, in the order played", () => {
+    expect(levelsOfSet(LEVELS, "first", USAGE)).toEqual(LEVELS.slice(0, 2));
+  });
+
+  it("gives every level where no set is named", () => {
+    expect(levelsOfSet(LEVELS, undefined, USAGE)).toEqual(LEVELS);
+  });
+
+  it("stops for a set no level is in, naming the sets there are", () => {
+    expect(levelsOfSet(LEVELS, "third", USAGE)).toEqual(
+      misread(`--set takes "first" or "second", not "third".`, USAGE),
+    );
+  });
+
+  it("names three sets or more as a sentence lists them", () => {
+    const levels = [...LEVELS, { number: 4, set: { id: "third" } }];
+
+    expect(levelsOfSet(levels, "fourth", USAGE)).toEqual(
+      misread(`--set takes "first", "second" or "third", not "fourth".`, USAGE),
+    );
+  });
 });
 
 describe("isStop", () => {

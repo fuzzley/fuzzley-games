@@ -26,8 +26,10 @@ import {
   type Stop,
   importThroughVite,
   isStop,
+  levelsOfSet,
   misread,
   readArgs,
+  setIdsOf,
   stopWith,
 } from "./script.ts";
 
@@ -159,9 +161,6 @@ const POOL_MARK = "fz-certify";
 /** Lists words as a sentence does, the last after "and". */
 const AND_LIST = new Intl.ListFormat("en-GB", { type: "conjunction" });
 
-/** Lists words as a message does, the last after "or". */
-const OR_LIST = new Intl.ListFormat("en-GB", { type: "disjunction" });
-
 /** How wide Prettier lays a file out. */
 const PRINT_WIDTH = 80;
 
@@ -206,13 +205,8 @@ export function jobsOf(
   api: CertifyApi,
   request: CertifyRequest,
 ): CertifyJob[] | Stop {
-  const sets = setIdsOf(api.levels);
-  if (request.set !== undefined && !sets.includes(request.set)) {
-    return misread(
-      `--set takes ${OR_LIST.format(sets.map(quoted))}, not ${quoted(request.set)}.`,
-      USAGE,
-    );
-  }
+  const inSet = levelsOfSet(api.levels, request.set, USAGE);
+  if (isStop(inSet)) return inSet;
   const { level } = request;
   const chosen = api.levels.find(
     (entry) => entry.data.id === level || String(entry.number) === level,
@@ -238,12 +232,8 @@ export function jobsOf(
       ? api.depths
       : readDepths(request.depths, api.depths, USAGE);
   if (isStop(depths)) return depths;
-  return api.levels
-    .filter(
-      (entry) =>
-        (chosen === undefined || entry === chosen) &&
-        (request.set === undefined || entry.set.id === request.set),
-    )
+  return inSet
+    .filter((entry) => chosen === undefined || entry === chosen)
     .flatMap((entry) =>
       depths.map((depth) => ({ level: entry.number, depth })),
     );
@@ -269,11 +259,6 @@ export function readDepths(
     }
   }
   return depths.filter((depth) => rows.includes(depth));
-}
-
-/** Returns the ids of the sets the levels are in, in the order played. */
-export function setIdsOf(levels: readonly CertifyLevel[]): string[] {
-  return [...new Set(levels.map((entry) => entry.set.id))];
 }
 
 /** Returns a word in double quotes, as a message quotes what was given. */

@@ -27,8 +27,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { certificatesText, workspaceFiles } from "@fz/dev/certify";
 import { waitForTurn, waitedWords, waitingWords } from "@fz/dev/queue";
-import { CONSOLE, importThroughVite, isStop, stopWith } from "@fz/dev/script";
-import { levelsOfSet, readSetOption } from "./set_option.mjs";
+import {
+  CONSOLE,
+  importThroughVite,
+  isStop,
+  levelsOfSet,
+  stopWith,
+} from "@fz/dev/script";
+import { readSetOption } from "./set_option.mjs";
 
 /** @import { CertifyFiles } from "@fz/dev/certify" */
 /** @import { Printer } from "@fz/dev/script" */
@@ -206,7 +212,7 @@ export async function run(
   const request = readSetOption(args, USAGE);
   if (isStop(request)) return stopWith(request, printer);
   const api = await load();
-  const levels = levelsOfSet(api.levels, request, USAGE);
+  const levels = levelsOfSet(api.levels, request.set, USAGE);
   if (isStop(levels)) return stopWith(levels, printer);
   const nameWidth = Math.max(...levels.map(({ data }) => data.name.length));
   const joined = now();

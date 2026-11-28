@@ -154,6 +154,39 @@ export function readCount(
   return count;
 }
 
+/** Describes a level so far as a script picks it by its set: the set's id. */
+interface InSet {
+  readonly set: { readonly id: string };
+}
+
+/** Lists words as a message does, the last after "or". */
+const OR_LIST = new Intl.ListFormat("en-GB", { type: "disjunction" });
+
+/** Returns the ids of the sets the levels are in, in the order played. */
+export function setIdsOf(levels: readonly InSet[]): string[] {
+  return [...new Set(levels.map((level) => level.set.id))];
+}
+
+/**
+ * Returns the levels of the set `--set` names, in the order played, or
+ * every level where it names none; or, for a set none of them is in, the
+ * stop that says so, naming the sets there are.
+ */
+export function levelsOfSet<Level extends InSet>(
+  levels: readonly Level[],
+  set: string | undefined,
+  usage: string,
+): readonly Level[] | Stop {
+  const sets = setIdsOf(levels);
+  if (set !== undefined && !sets.includes(set)) {
+    return misread(
+      `--set takes ${OR_LIST.format(sets.map((id) => `"${id}"`))}, not "${set}".`,
+      usage,
+    );
+  }
+  return levels.filter((level) => set === undefined || level.set.id === set);
+}
+
 /**
  * Returns whether what a script read, of its command line or of a value on
  * it, is a stop rather than what it asked for.

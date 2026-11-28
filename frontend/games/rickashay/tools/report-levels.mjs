@@ -41,7 +41,7 @@ import {
   CONSOLE,
   importThroughVite,
   isStop,
-  misread,
+  levelsOfSet,
   readArgs,
   stopWith,
 } from "@fz/dev/script";
@@ -295,16 +295,7 @@ function levelsOf(api, request) {
   if (unfloored !== undefined) {
     throw new Error(`The set "${unfloored.set.id}" has no floor.`);
   }
-  const sets = [...new Set(api.levels.map((level) => level.set.id))];
-  if (request.set !== undefined && !sets.includes(request.set)) {
-    return misread(
-      `--set takes ${sets.map((set) => `"${set}"`).join(" or ")}, not "${request.set}".`,
-      USAGE,
-    );
-  }
-  return api.levels.filter(
-    (level) => request.set === undefined || level.set.id === request.set,
-  );
+  return levelsOfSet(api.levels, request.set, USAGE);
 }
 
 /**
