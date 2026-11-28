@@ -18,7 +18,8 @@ named in full under `docs/fuzz-flux/`, whose scripts run from anywhere.
 `vitest.config.ts` sets a spec's project by its folder:
 
 - **`pure`, in Node:** `src/rules/`, `src/view/`, `src/testing/` and
-  `tools/`, but for `sim`'s folders.
+  `tools/`, but for `sim`'s folders. A spec there that sets jsdom in its
+  first line (`// @vitest-environment jsdom`) runs in jsdom.
 - **`sim`, in Node, never with coverage:** the golden games and the random
   moves in `src/rules/golden/`, the certificates replayed in
   `src/rules/levels/every_level/`, the floors in
@@ -33,8 +34,8 @@ Then:
   `yarn vitest run --project <project> <path>`. `yarn test:coverage` runs
   `dom` and `pure` with coverage, then `sim` without.
 - **A line only `sim` reaches counts as untested.** `vitest.config.ts`
-  holds the rules and the view to their floor, the scene and the shell to
-  theirs, and the helpers held as the rules are to the rules'.
+  holds the rules, the view, the scene and the shell each to a floor of
+  its own, and the helpers held as the rules are to the rules'.
 - **A helper that the certificates or the floors are found with, or that a
   script loads, is held as the rules are.** It goes on `HELD_AS_RULES` in
   `eslint.config.js`, which holds it to the rules' fence and their exact
