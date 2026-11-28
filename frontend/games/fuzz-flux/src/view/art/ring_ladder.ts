@@ -5,11 +5,13 @@
 // a step thinner than the rung's above, from a ring's as it starts to a
 // ring's that spreads as far as the ladder reaches as it ends.
 
+import { clamp } from "@fz/core/math";
+import { itemAt } from "@fz/core/records";
 import type { ArtScale } from "@fz/phaser/shapes";
 import { ringLine, ringRadius } from "../effects/flourishes";
 import { RING_RUNGS, type RingRung } from "./frame_names";
 
-/** How far a ring may spread, in squares, and be drawn from the ladder's frames. */
+/** How far a ring may spread, in squares, and be drawn from the ladder's frames; one that spreads further is stroked. */
 const LADDER_REACH = 1;
 
 /** How wide a ring's line is for its radius at the ladder's top rung: as a ring starts, as wide as it ever is. */
@@ -46,4 +48,16 @@ export function rungRadius(rung: RingRung, scale: ArtScale): number {
     (ringLine(0) * Math.sqrt(STEP)) / rungRatio(rung),
   );
   return widest * Math.min(1, MOST_LADDER_SQUARE / scale.unit);
+}
+
+/** Returns whether a ring that spreads as far, in squares, is drawn from the ladder's frames: out from where every ring starts, and no further than the ladder reaches. */
+export function onLadder(radius: number): boolean {
+  return ringRadius(0, radius) <= radius && radius <= LADDER_REACH;
+}
+
+/** Returns the rung whose line is nearest as wide for its radius as a ring's on the ladder, a share through its spreading. */
+export function ringRung(done: number, radius: number): RingRung {
+  const ratio = ringLine(done) / ringRadius(done, radius);
+  const below = Math.round(Math.log(TOP_RATIO / ratio) / Math.log(STEP));
+  return itemAt(RING_RUNGS, clamp(below, 0, RING_RUNGS.length - 1));
 }

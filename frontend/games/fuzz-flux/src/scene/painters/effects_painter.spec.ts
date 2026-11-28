@@ -11,7 +11,9 @@ import {
   startBoard,
 } from "../../testing/scene_shell";
 import { STREAK_HEAD } from "../../view/art/fluff";
+import { FRAMES } from "../../view/art/frame_names";
 import { bakedScale } from "../../view/art/frames";
+import { ringRung, rungRadius } from "../../view/art/ring_ladder";
 import {
   boltAlpha,
   flashAlpha,
@@ -24,15 +26,17 @@ import {
   LONGEST_GUST_LINE,
   gustLineAt,
 } from "../../view/effects/gust_line";
+import { POOLS } from "../../view/timeline/limits";
 import type { Effect } from "../../view/timeline/timeline";
 import { DISC } from "../disc";
 
-/** Runs the scene on a board playing the effects given from the tap, and plays them a time in. */
+/** Runs the scene on a board playing the effects given from the tap, and plays them a time in, on a canvas 400 pixels square unless given another. */
 async function boardPlaying(
   effects: readonly Effect[],
   ms = 16,
+  canvas = { width: 400, height: 400 },
 ): Promise<Board> {
-  const board = await startBoard(MOVE_FIXTURES.bunch);
+  const board = await startBoard(MOVE_FIXTURES.bunch, undefined, canvas);
   playTo(board, drawnPlay({ effects }), ms);
   return board;
 }
@@ -53,8 +57,8 @@ function shownIn(
   return pool.map(({ image }) => image).filter(({ visible }) => visible);
 }
 
-/** A blue ring spreading from the middle square to 2 squares across over 160 ms. */
-const RING: Effect = {
+/** A blue ring spreading from the middle square to 2 squares across over 160 ms, past the ladder's reach. */
+const WIDE_RING: Effect = {
   what: "ring",
   atMs: 0,
   ms: 160,
@@ -62,6 +66,16 @@ const RING: Effect = {
   radius: 2,
   ink: "blue",
 };
+
+/** A red ring spreading from the top left square to 0.75 squares across over 160 ms, on the ladder. */
+const RING = {
+  what: "ring",
+  atMs: 0,
+  ms: 160,
+  at: { x: 0, y: 0 },
+  radius: 0.75,
+  ink: "red",
+} as const satisfies Effect;
 
 /** A green dasher's streak running from the middle square across to the right, a square each 10 ms. */
 const STREAK: Effect = {
@@ -119,8 +133,71 @@ const GUST_LINE_AT_EDGE = {
 } as const satisfies Effect;
 
 describe("EffectsPainter's rings", () => {
-  it("strokes a ring from its place, in its ink, as far spread, as thin and as faded as it is a share through its time", async () => {
-    const board = await boardPlaying([RING]);
+  it.each([400, 1600])(
+    "shows a ring on the ladder from its rung's frame, at its place, in its ink, as far spread and as faded as it is a share through its time, on a canvas %i pixels square",
+    async (side) => {
+      const board = await boardPlaying([RING], 48, {
+        width: side,
+        height: side,
+      });
+      const { square } = layoutOf(board);
+      const baked = bakedScale({ unit: square, pixelRatio: 1 });
+      const done = 48 / 160;
+      const rung = ringRung(done, RING.radius);
+      const [image] = shownIn(board.scene.effects.rings.all);
+
+      expect({
+        frame: image?.frame.name,
+        at: [image?.x, image?.y],
+        tint: image?.tint,
+        radius: (image?.scaleX ?? 0) * rungRadius(rung, baked) * baked.unit,
+        alpha: image?.alpha,
+      }).toEqual({
+        frame: FRAMES.ring(rung),
+        at: canvasOf(board, 0, 0),
+        tint: ART_PALETTE.kinds.red,
+        radius: expect.closeTo(
+          ringRadius(done, RING.radius) * square,
+          9,
+        ) as number,
+        alpha: expect.closeTo(ringAlpha(done), 9) as number,
+      });
+    },
+  );
+
+  it("strokes a ring past the ladder's reach that takes the turn of one still on it, showing that one's frame no more", async () => {
+    const board = await boardPlaying([
+      ...Array.from({ length: POOLS.ring }, () => RING),
+      { ...WIDE_RING, atMs: 8 },
+    ]);
+
+    expect({
+      shown: shownIn(board.scene.effects.rings.all).length,
+      arcs: commandsOf(board.scene.effects.ringLines).filter(
+        ({ kind }) => kind === "arc",
+      ).length,
+    }).toEqual({ shown: POOLS.ring - 1, arcs: 1 });
+  });
+
+  it("shows every ring on the ladder spreading at once, and strokes none", async () => {
+    const board = await boardPlaying([RING, { ...RING, at: { x: 2, y: 2 } }]);
+
+    expect({
+      shown: shownIn(board.scene.effects.rings.all).length,
+      arcs: commandsOf(board.scene.effects.ringLines).filter(
+        ({ kind }) => kind === "arc",
+      ),
+    }).toEqual({ shown: 2, arcs: [] });
+  });
+
+  it("lets a ring on the ladder go once it has spread", async () => {
+    const board = await boardPlaying([RING], 176);
+
+    expect(shownIn(board.scene.effects.rings.all)).toEqual([]);
+  });
+
+  it("strokes a ring past the ladder's reach from its place, in its ink, as far spread, as thin and as faded as it is a share through its time", async () => {
+    const board = await boardPlaying([WIDE_RING]);
     const { square } = layoutOf(board);
     const done = 16 / 160;
 
@@ -128,24 +205,33 @@ describe("EffectsPainter's rings", () => {
       ({ kind }) => kind === "lineStyle" || kind === "arc",
     );
 
-    expect(strokes).toEqual([
-      {
-        kind: "lineStyle",
-        width: expect.closeTo(ringLine(done) * square, 9) as number,
-        color: ART_PALETTE.kinds.blue,
-        alpha: expect.closeTo(ringAlpha(done), 9) as number,
-      },
-      expect.objectContaining({
-        kind: "arc",
-        x: canvasOf(board, 1, 1)[0],
-        y: canvasOf(board, 1, 1)[1],
-        radius: expect.closeTo(ringRadius(done, 2) * square, 9) as number,
-      }),
-    ]);
+    expect({
+      shown: shownIn(board.scene.effects.rings.all),
+      strokes,
+    }).toEqual({
+      shown: [],
+      strokes: [
+        {
+          kind: "lineStyle",
+          width: expect.closeTo(ringLine(done) * square, 9) as number,
+          color: ART_PALETTE.kinds.blue,
+          alpha: expect.closeTo(ringAlpha(done), 9) as number,
+        },
+        expect.objectContaining({
+          kind: "arc",
+          x: canvasOf(board, 1, 1)[0],
+          y: canvasOf(board, 1, 1)[1],
+          radius: expect.closeTo(ringRadius(done, 2) * square, 9) as number,
+        }),
+      ],
+    });
   });
 
-  it("strokes every ring spreading at once", async () => {
-    const board = await boardPlaying([RING, { ...RING, at: { x: 0, y: 2 } }]);
+  it("strokes every ring past the ladder's reach spreading at once", async () => {
+    const board = await boardPlaying([
+      WIDE_RING,
+      { ...WIDE_RING, at: { x: 0, y: 2 } },
+    ]);
 
     const arcs = commandsOf(board.scene.effects.ringLines).filter(
       ({ kind }) => kind === "arc",
@@ -154,8 +240,8 @@ describe("EffectsPainter's rings", () => {
     expect(arcs).toHaveLength(2);
   });
 
-  it("clears a ring once it has spread", async () => {
-    const board = await boardPlaying([RING], 176);
+  it("clears a ring past the ladder's reach once it has spread", async () => {
+    const board = await boardPlaying([WIDE_RING], 176);
 
     expect(commandsOf(board.scene.effects.ringLines)).toEqual([]);
   });

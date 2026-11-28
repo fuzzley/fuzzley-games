@@ -2,7 +2,8 @@ import { itemAt } from "@fz/core/records";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { BOLT_LENGTH, STREAK_HEAD } from "../../view/art/fluff";
-import { FRAMES } from "../../view/art/frame_names";
+import { FRAMES, RING_RUNGS } from "../../view/art/frame_names";
+import { onLadder, ringRung, rungRadius } from "../../view/art/ring_ladder";
 import {
   type Streak,
   type StreakRun,
@@ -34,8 +35,13 @@ import {
   tintIn,
 } from "./painter";
 
+/** The names of the ladder's frames of the ring, by their rungs. */
+const RUNG_FRAMES = RING_RUNGS.map((rung) => FRAMES.ring(rung));
+
 /** Describes a ring spreading, from its moment on the scene's clock, from its place in squares. */
 interface Ring extends Playing {
+  /** The ring's frame, shown until it has spread, for a ring on the ladder. */
+  readonly image: GameObjects.Image;
   /** How long it takes to spread, in milliseconds of the scene's clock. */
   ms: number;
   /** How far across it spreads to, in squares. */
@@ -81,23 +87,44 @@ interface GustLineShown extends Playing {
   line: GustLine | null;
 }
 
+/** Shows a ring on the ladder in its rung's frame for a share through its spreading, scaled to as far as it has spread, in its ink and as faded as it is. */
+function showRung(
+  { image, x, y, radius, ink }: Readonly<Ring>,
+  done: number,
+  context: Readonly<PaintContext>,
+): void {
+  const { metrics, baked, palette } = context;
+  const rung = ringRung(done, radius);
+  const frame = itemAt(RUNG_FRAMES, rung);
+  if (image.frame.name !== frame) image.setFrame(frame);
+  tintIn(image, inkOf(ink, palette));
+  image
+    .setPosition(acrossOf(metrics, x), downOf(metrics, y))
+    .setScale(
+      (shownScale(context) * ringRadius(done, radius)) /
+        rungRadius(rung, baked),
+    )
+    .setAlpha(ringAlpha(done));
+}
+
 /**
  * Draws the effects a move spawns, each from its moment, playing out by
  * itself, from pools as large as the timeline's limits let show at once,
  * each played in turn, so an effect still showing as the next play starts
- * plays on: each ring a stroke of one `Graphics`, spreading and thinning
- * in its ink; each dasher's streak tinted in its ink and shown only from
- * where it set out to a little past the board's edge; each frizzball's
- * bolt of static, stretched from it to what it strikes and flickering;
- * each flash, an image of the soft disc in the effects' white; and each
- * line of wind, set along the way the wind blows, as long and as faded as
- * it is a share through its crossing, and cut off a little past the
- * board's edge.
+ * plays on: each ring spreading and thinning in its ink, from the frame
+ * of its ladder's rung for the moment, or a stroke of one `Graphics` for
+ * a ring that spreads past the ladder's reach; each dasher's streak
+ * tinted in its ink and shown only from where it set out to a little past
+ * the board's edge; each frizzball's bolt of static, stretched from it to
+ * what it strikes and flickering; each flash, an image of the soft disc
+ * in the effects' white; and each line of wind, set along the way the
+ * wind blows, as long and as faded as it is a share through its crossing,
+ * and cut off a little past the board's edge.
  */
 export class EffectsPainter implements Painter {
   /** The rings spreading, and those spread. */
   readonly rings: Turns<Ring>;
-  /** The rings' strokes, drawn again each frame a ring shows. */
+  /** The strokes of the rings that spread past the ladder's reach, drawn again each frame one shows. */
   readonly ringLines: GameObjects.Graphics;
   /** The dashers' streaks running, and those run. */
   readonly streaks: Turns<StreakShown>;
@@ -150,6 +177,7 @@ export class EffectsPainter implements Painter {
     };
     this.rings = new Turns(POOLS.ring, () => ({
       ...unplayed,
+      image: image(layers.rings, ATLAS, itemAt(RUNG_FRAMES, 0)),
       ms: 1,
       radius: 0,
       ink: "white",
@@ -184,7 +212,7 @@ export class EffectsPainter implements Painter {
   /** Starts each effect whose moment comes in the frame, and draws every effect showing as it stands. */
   draw(context: Readonly<PaintContext>): void {
     this.start(context);
-    this.strokeRings(context);
+    this.drawRings(context);
     this.drawStreaks(context);
     this.drawBolts(context);
     this.drawFlashes(context);
@@ -204,6 +232,7 @@ export class EffectsPainter implements Painter {
           ring.ms = effect.ms;
           ring.radius = effect.radius;
           ring.ink = effect.ink;
+          ring.image.setVisible(onLadder(effect.radius));
           break;
         }
         case "streak": {
@@ -241,36 +270,48 @@ export class EffectsPainter implements Painter {
     }
   }
 
-  /** Strokes every ring spreading at the frame's moment, clearing those of the frame before. */
-  private strokeRings({
-    clock,
-    metrics,
-    palette,
-  }: Readonly<PaintContext>): void {
+  /** Draws every ring spreading at the frame's moment, hiding each on the ladder that has spread, and clearing the strokes of the frame before. */
+  private drawRings(context: Readonly<PaintContext>): void {
     const all = this.rings.all;
     let stroked = false;
     for (let index = 0; index < all.length; index++) {
       const ring = itemAt(all, index);
-      const done = (clock.nowMs - ring.at) / ring.ms;
-      if (done < 0 || done >= 1) continue;
+      const done = (context.clock.nowMs - ring.at) / ring.ms;
+      if (done >= 1) {
+        if (ring.image.visible) ring.image.setVisible(false);
+        continue;
+      }
+      if (ring.image.visible) {
+        showRung(ring, done, context);
+        continue;
+      }
       if (!stroked) {
         this.ringLines.clear();
         stroked = true;
       }
-      this.ringLines
-        .lineStyle(
-          ringLine(done) * metrics.square,
-          inkOf(ring.ink, palette),
-          ringAlpha(done),
-        )
-        .strokeCircle(
-          acrossOf(metrics, ring.x),
-          downOf(metrics, ring.y),
-          ringRadius(done, ring.radius) * metrics.square,
-        );
+      this.strokeRing(ring, done, context);
     }
     if (!stroked && this.ringsStroked) this.ringLines.clear();
     this.ringsStroked = stroked;
+  }
+
+  /** Strokes a ring past the ladder's reach, as far spread, as thin and as faded as it is a share through its spreading. */
+  private strokeRing(
+    ring: Readonly<Ring>,
+    done: number,
+    { metrics, palette }: Readonly<PaintContext>,
+  ): void {
+    this.ringLines
+      .lineStyle(
+        ringLine(done) * metrics.square,
+        inkOf(ring.ink, palette),
+        ringAlpha(done),
+      )
+      .strokeCircle(
+        acrossOf(metrics, ring.x),
+        downOf(metrics, ring.y),
+        ringRadius(done, ring.radius) * metrics.square,
+      );
   }
 
   /**
