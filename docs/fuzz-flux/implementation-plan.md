@@ -184,14 +184,20 @@ another session, with no conflict. The work log (§7) stays on its branch.
 
 Built on 2026-11-27 and 28 to §5.2, by packages in worktrees of their own
 (§6), on `fuzz-flux`, cut from `main` at a7a9b395, and merged into `main` on
-2026-11-28 with its code at 1e3bf145. Every commit was reviewed as
-`commit-review-process` says, each finding taken or left with its reason in
-the commit's message. It came to 177 commits against §1's 144 or so. The
-packages landed in this order, with their commits: K1 3, K2 4, P1 3, A1 3,
-V1 5, R1 6, R0 3, N1 7, A2 7, R2 8, N2 3, V2 10, V3 5, R3 10, P2 4, S1 8, P3
-6, A3 3, U1 6, U3 3, U2 8, X4 4, X3 4, X1 4, T1 6, X2 4, Y2 2, Y1 2, X5 8,
-Y3 4, Z1 6, D1 3, F1 7 and F2 5; and 3 of the orchestrator's: the game's own
-part in CI, the screenshots, and this section.
+2026-11-28 with its code at 1e3bf145. The merge's first Verify run, on
+07499031, failed in the last test part, "the rest", and again when that job
+was run again, at a spec of `@fz/dev`'s `runUntil()` that counted the Vitest
+worker's timers, Vitest's own among them, now that the part runs without
+Fuzz Flux's suite. 671a816a checks `runUntil()` in a Node script of its own
+instead, and the Verify run of 671a816a passed and moved `live` to it. Every
+commit was reviewed as `commit-review-process` says, each finding taken or
+left with its reason in the commit's message. It came to 177 commits against
+§1's 144 or so. The packages landed in this order, with their commits: K1 3,
+K2 4, P1 3, A1 3, V1 5, R1 6, R0 3, N1 7, A2 7, R2 8, N2 3, V2 10, V3 5, R3
+10, P2 4, S1 8, P3 6, A3 3, U1 6, U3 3, U2 8, X4 4, X3 4, X1 4, T1 6, X2 4,
+Y2 2, Y1 2, X5 8, Y3 4, Z1 6, D1 3, F1 7 and F2 5; and 3 of the
+orchestrator's: the game's own part in CI, the screenshots, and this
+section.
 
 Three of them §5.2 doesn't have: N2, which made the sounds that climb the
 ladder at rungs of their own; A3, a look pass over the second furs and the
@@ -236,7 +242,8 @@ V2's 61 (1), X1's 40, X2's 78 (2), X3's 46, X4's 58, and X5's 56 and 7.
 
 **§9's budgets,** as measured on the devbox: each figure from the body of
 a commit of the package named, or, where marked "at the tip", measured by
-F1 at 3a4afa12 or F2 at ac7f10e0 and given in its report.
+F1 at 3a4afa12 or F2 at ac7f10e0 and given in its report; and, where so
+marked, on CI's runner in the Verify run of 671a816a.
 
 | What                                                                                            | Budget                                                                                         | As measured                                                                                                                                                                                                                                                                                                                                                                        |
 | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -245,8 +252,8 @@ F1 at 3a4afa12 or F2 at ac7f10e0 and given in its report.
 | `timelineOf()`, two frizzballs on a board 8 by 9                                                | ≤ 4 ms                                                                                         | median 2.2 ms, 99th percentile 4.2 to 5.9 ms as the runner's collector falls (V2); median 2.24 ms (F1, at the tip)                                                                                                                                                                                                                                                                 |
 | The proof, on one thread                                                                        | none in §9; the sketch proved all 36 levels in 10 s (C14)                                      | `certify:deals` for every set 23.6 s (F1, at the tip); P2's probe of 288 deals 22.6 s, against the sketch's 6.3 s                                                                                                                                                                                                                                                                  |
 | A reload of a game in play                                                                      | 33 moves in ≤ 50 ms                                                                            | at most 6.9 ms (U1)                                                                                                                                                                                                                                                                                                                                                                |
-| `sim` on one worker                                                                             | under 100 s on CI's runner                                                                     | **over, by F1's estimate:** 72 s on a quiet devbox with every set, about 105 s on CI's slower runner (F1, at the tip); 90.1 s on the devbox loaded by other runs (Y3); 31 s with Warm-up alone (Q2). The merge's CI run gives CI's figure                                                                                                                                          |
-| The game's suite in CI                                                                          | no more than Asteroid Breaker's 195 s                                                          | in a part of its own (below); 98 s on four cores with `CI=true` on the devbox (3ac1bcf1). The merge's CI run gives CI's figure                                                                                                                                                                                                                                                     |
+| `sim` on one worker                                                                             | under 100 s on CI's runner                                                                     | **over, by F1's estimate:** 72 s on a quiet devbox with every set, about 105 s on CI's slower runner (F1, at the tip); 90.1 s on the devbox loaded by other runs (Y3); 31 s with Warm-up alone (Q2). 34.4 s on CI's runner on its part's four cores, in the Verify run of 671a816a                                                                                                 |
+| The game's suite in CI                                                                          | no more than Asteroid Breaker's 195 s                                                          | in a part of its own (below): 122 s for the whole job, setup included, on CI's runner in the Verify run of 671a816a; 98 s on four cores with `CI=true` on the devbox (3ac1bcf1)                                                                                                                                                                                                    |
 | The report for all 36 levels                                                                    | under a minute (the sketch's: 10 s)                                                            | 40.6 s on 24 threads (Y3)                                                                                                                                                                                                                                                                                                                                                          |
 | `check:layout`                                                                                  | a square ≥ 40 CSS px on a phone 320 px wide; a button ≥ 44                                     | passes at every shape; every square 40 CSS px or more but a 9-row board's on a small phone on its side, 35.5 (below)                                                                                                                                                                                                                                                               |
 | Layout shift on load                                                                            | 0, by Lighthouse                                                                               | 0 at both sizes, cold and with a level in play, by a `PerformanceObserver`; Lighthouse itself not run (F1, at the tip)                                                                                                                                                                                                                                                             |
