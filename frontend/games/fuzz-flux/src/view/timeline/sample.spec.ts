@@ -116,6 +116,14 @@ describe("frameFor", () => {
 });
 
 describe("sampleAt", () => {
+  it("leaves the record of a track yet to show as it stood, but for showing nothing", () => {
+    const track = trackOf({ x: [keyAt(100, 4)] }, { fromMs: 300 });
+
+    expect(pieceAt(track, 200)).toEqual(
+      expect.objectContaining({ ...lookAt({ x: 0, y: 0 }), shown: false }),
+    );
+  });
+
   it("stands a sprite at its look before its keys start", () => {
     expect(pieceAt(trackOf({ x: [keyAt(100, 4)] }), 50)).toEqual(
       expect.objectContaining({ ...lookAt({ x: 0, y: 0 }), shown: true }),
@@ -209,6 +217,20 @@ describe("sampleAt", () => {
       0.1 + Math.sin(40 / FEEL.wobbleRadianMs) * 0.5 * FEEL.wobbleSquares,
       9,
     );
+  });
+
+  it("leaves the record of a loose sprite yet to show as it stood, but for showing nothing", () => {
+    const sprite: SpriteTrack = {
+      drawn: { what: "frame", frame: "cage-bar" },
+      fromMs: 300,
+      untilMs: 400,
+      look: lookAt({ x: 2, y: 3 }),
+      keys: { x: [keyAt(100, 4)] },
+    };
+
+    expect(sampled(timelineOf({ sprites: [sprite] }), 200).sprites).toEqual([
+      expect.objectContaining({ ...lookAt({ x: 0, y: 0 }), shown: false }),
+    ]);
   });
 
   it("draws a loose sprite as its track does, a copy in its face", () => {

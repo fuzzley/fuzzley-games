@@ -271,7 +271,11 @@ export interface Timeline {
  * each sprite and the sampling writes into, so a frame makes no records.
  */
 export interface Sampled extends Record<Channel, number> {
-  /** Whether it shows at the moment. */
+  /**
+   * Whether it shows at the moment. Nothing else of a record not shown is
+   * read: before its track shows it keeps whatever it last held, and once
+   * the track ends, the last of its look.
+   */
   shown: boolean;
   face: FuzzballFace;
   /** What a piece's sprite is drawn as at the moment, or null for a loose sprite, which draws what its track does. */

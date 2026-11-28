@@ -1,8 +1,9 @@
 // Where everything a move's timeline draws stands at a moment: each piece's
 // and each loose sprite's look, face and frame, the board's dimming and
 // shake, and each copy flying to its goal, each written into a record the
-// scene keeps, so a frame makes no records. A frame is a time, so the same
-// moment samples the same on every run and at any frame rate.
+// scene keeps, so a frame makes no records. A frame is a time, so where
+// everything shown stands at a moment samples the same on every run and at
+// any frame rate.
 
 import { clamp, lerp } from "@fz/core/math";
 import { type Shift, shakeOf } from "@fz/core/motion";
@@ -57,6 +58,7 @@ export function frameFor(timeline: Timeline): Frame {
  *
  * It takes the feel the timeline was built by, as `pacedFeel()` gives it
  * at the player's speed, since a head's shake sways at that feel's rate.
+ * A track yet to show is left as it stood, but for showing nothing.
  *
  * @throws {RangeError} for a frame with fewer records than the timeline
  *   has tracks.
@@ -78,8 +80,11 @@ export function sampleAt(
   for (let index = 0; index < timeline.pieces.length; index++) {
     const track = itemAt(timeline.pieces, index);
     const sampled = itemAt(into.pieces, index);
-    sampled.shown =
-      track.fromMs <= ms && (track.untilMs === null || ms < track.untilMs);
+    if (ms < track.fromMs) {
+      sampled.shown = false;
+      continue;
+    }
+    sampled.shown = track.untilMs === null || ms < track.untilMs;
     sampleLook(track.look, track.keys, feel, ms, sampled);
     sampled.face = latestAt(track.faces, ms)?.face ?? track.face;
     sampled.drawn = latestAt(track.becomes, ms)?.piece ?? track.drawn;
@@ -87,7 +92,11 @@ export function sampleAt(
   for (let index = 0; index < timeline.sprites.length; index++) {
     const track = itemAt(timeline.sprites, index);
     const sampled = itemAt(into.sprites, index);
-    sampled.shown = track.fromMs <= ms && ms < track.untilMs;
+    if (ms < track.fromMs) {
+      sampled.shown = false;
+      continue;
+    }
+    sampled.shown = ms < track.untilMs;
     sampleLook(track.look, track.keys, feel, ms, sampled);
     sampled.face = track.drawn.what === "copy" ? track.drawn.face : REST;
     sampled.drawn = null;
