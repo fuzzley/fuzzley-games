@@ -494,7 +494,7 @@ function ended({ run, last }: Ending): {
 }
 
 describe("the levels the check ends", () => {
-  it("clears Pillow fort, taken up, by its last move", () => {
+  it("clears Clean sweep, taken up, by its last move", () => {
     expect(ended(CLEARED)).toEqual({
       takenUp: true,
       outcome: "cleared",
@@ -511,7 +511,7 @@ describe("the levels the check ends", () => {
     });
   });
 
-  it("clears Pillow fort by its certificate on its deal", () => {
+  it("clears Clean sweep by its certificate on its deal", () => {
     const { run, last } = CLEARED;
     const { set, data } = levelAt(LEVELS, run.level);
 

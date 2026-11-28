@@ -7,6 +7,7 @@
 
 import { type NumberedLevel, levelsOf } from "@fz/core/levels";
 import bedtime from "./bedtime.json";
+import bricksAndBars from "./bricks-and-bars.json";
 import { type Level, type LevelSet, levelSetOf } from "./level";
 import warmUp from "./warm-up.json";
 
@@ -16,6 +17,7 @@ export type LevelEntry = NumberedLevel<LevelSet, Level>;
 /** Every set of levels a player chooses from, in the order they are played. */
 export const LEVEL_SETS: readonly LevelSet[] = [
   levelSetOf(warmUp),
+  levelSetOf(bricksAndBars),
   levelSetOf(bedtime),
 ];
 

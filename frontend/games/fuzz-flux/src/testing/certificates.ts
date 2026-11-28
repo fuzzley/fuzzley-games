@@ -11,6 +11,7 @@ import type { ElementId } from "../rules/catalog/elements";
 import type { ElementRule, WindRule } from "../rules/elements/element_rule";
 import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import bedtime from "../rules/levels/certificates/bedtime.json";
+import bricksAndBars from "../rules/levels/certificates/bricks-and-bars.json";
 import warmUp from "../rules/levels/certificates/warm-up.json";
 import type { LevelEntry } from "../rules/levels/levels";
 import { play } from "../rules/move/play";
@@ -23,6 +24,7 @@ import { play } from "../rules/move/play";
  */
 export const CERTIFICATES: Readonly<Record<string, unknown>> = {
   "warm-up": warmUp,
+  "bricks-and-bars": bricksAndBars,
   bedtime,
 };
 

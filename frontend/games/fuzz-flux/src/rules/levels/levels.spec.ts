@@ -21,13 +21,15 @@ const EVERY_LEVEL: readonly Level[] = DESIGN_SETS.flatMap(
 );
 
 describe("the levels", () => {
-  it("are Warm-up's and Bedtime's, while the other sets are built", () => {
-    expect(LEVEL_SETS.map(({ id }) => id)).toEqual(["warm-up", "bedtime"]);
+  it("are Warm-up's, Bricks and bars' and Bedtime's, while the other sets are built", () => {
+    expect(LEVEL_SETS.map(({ id }) => id)).toEqual([
+      "warm-up",
+      "bricks-and-bars",
+      "bedtime",
+    ]);
   });
 
-  // Bricks and bars, the design's 10 to 18, is played before Bedtime once
-  // it joins, and every level is then numbered by its id.
-  it("number the levels from 1 in the order played, Warm-up's by their ids, as the design's appendix does, and Bedtime's on from them", () => {
+  it("number Warm-up's levels 1 to 9, Bricks and bars' 10 to 18 and Bedtime's 19 to 27, each by its id, as the design's appendix does", () => {
     expect(
       LEVELS.map(({ number, data }) => [number, data.id, data.name]),
     ).toEqual([
@@ -40,15 +42,24 @@ describe("the levels", () => {
       [7, "7", "Mind the gap"],
       [8, "8", "Dust-up"],
       [9, "9", "Spring cleaning"],
-      [10, "19", "Lights out"],
-      [11, "20", "Bunk beds"],
-      [12, "21", "Sleepwalk"],
-      [13, "22", "Burr patch"],
-      [14, "23", "Sticky situation"],
-      [15, "24", "Nap in the thistles"],
-      [16, "25", "Dust bunnies"],
-      [17, "26", "Long way down"],
-      [18, "27", "Pillow fort"],
+      [10, "10", "Brick by brick"],
+      [11, "11", "Tough crowd"],
+      [12, "12", "Swept under"],
+      [13, "13", "Jailbreak"],
+      [14, "14", "Six of one"],
+      [15, "15", "The vault"],
+      [16, "16", "Checkerboard"],
+      [17, "17", "Tight corners"],
+      [18, "18", "Clean sweep"],
+      [19, "19", "Lights out"],
+      [20, "20", "Bunk beds"],
+      [21, "21", "Sleepwalk"],
+      [22, "22", "Burr patch"],
+      [23, "23", "Sticky situation"],
+      [24, "24", "Nap in the thistles"],
+      [25, "25", "Dust bunnies"],
+      [26, "26", "Long way down"],
+      [27, "27", "Pillow fort"],
     ]);
   });
 

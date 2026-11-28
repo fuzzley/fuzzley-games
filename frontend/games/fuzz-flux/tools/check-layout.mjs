@@ -26,9 +26,9 @@
  * It checks the page a new player opens, level 1 begun, and two levels in
  * play kept as the game keeps them, each taken up and ended by its last
  * move, made by the keys, then looked away from, as a player may, which
- * lands the move at once: Pillow fort, the largest board of the game's
- * levels, cleared, and Better together, the most goals, out of moves.
- * Over those its card must lie on the board.
+ * lands the move at once: Clean sweep, the first level on the game's
+ * largest board, cleared, and Better together, the most goals, out of
+ * moves. Over those its card must lie on the board.
  *
  * It prints what is wrong and fails, or says the layout holds.
  */
@@ -97,23 +97,26 @@ const BOARD_AS_LEVEL_BEGINS = { ...BOARD, card: "app-board-grid" };
  */
 
 /**
- * Pillow fort, the last of Bedtime, the largest board of the game's
- * levels, 8 squares across by 9 down, kept three moves into its
- * certificate on its deal 11, and cleared by the certificate's last.
+ * Clean sweep, level 18, the last of Bricks and bars and the first level
+ * on the game's largest board, 8 squares across by 9 down, kept five
+ * moves into its certificate on its deal 1, and cleared by the
+ * certificate's last.
  *
  * @type {Ending}
  */
 export const CLEARED = {
   run: {
     level: 18,
-    deal: 11,
+    deal: 1,
     moves: [
-      [46, 47],
-      [53, 61],
-      [51, 59],
+      [50, 51],
+      [57, 65],
+      [40, 41],
+      [66, 67],
+      [68, 69],
     ],
   },
-  last: [52, 53],
+  last: [44, 52],
   outcome: "cleared",
 };
 
@@ -491,7 +494,7 @@ async function checkEach(devtools, url) {
   ]);
   return [
     ...begun,
-    ...namedFor(endedCleared, "Pillow fort cleared"),
+    ...namedFor(endedCleared, "Clean sweep cleared"),
     ...namedFor(endedOver, "Better together out of moves"),
   ];
 }
