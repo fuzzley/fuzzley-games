@@ -73,6 +73,7 @@ export class Draft {
   readonly #dim: Key[] = [];
   readonly #goals: readonly GoalShown[];
   #hurriedFromMs = Infinity;
+  #windTurnsMs: number | null = null;
 
   /**
    * Starts a draft with a track for each piece on a board as it stands, at
@@ -162,6 +163,9 @@ export class Draft {
         case "hold":
           heldMs = Math.max(heldMs, part.atMs);
           break;
+        case "wind-turns":
+          this.#windTurnsMs = part.atMs;
+          break;
       }
     }
     return heldMs;
@@ -179,7 +183,8 @@ export class Draft {
    * Returns the timeline the draft's parts make, each list in the order it
    * starts, the flights and counts of what the goals count, and what the
    * move plays held to the design's limits: its flashes and glows, its
-   * loose bits, its flights and its sounds' gaps; and to a scene's pools.
+   * loose bits, its flights and its sounds' gaps; and to a scene's pools,
+   * with the moment the wind turns, where a part turns it.
    */
   finish(
     restMs: number,
@@ -241,6 +246,7 @@ export class Draft {
       dim: byStart(this.#dim),
       restMs,
       end,
+      ...(this.#windTurnsMs === null ? {} : { windTurnsMs: this.#windTurnsMs }),
     };
   }
 

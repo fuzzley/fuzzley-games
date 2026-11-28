@@ -262,6 +262,8 @@ export interface Timeline {
   readonly restMs: number;
   /** The level's end, after a move that cleared it or ran out of moves; else null. */
   readonly end: EndBeats | null;
+  /** When the wind shows turned, as a gust sets in, after a move that turns it; left out after one that turns none. */
+  readonly windTurnsMs?: number;
 }
 
 /**

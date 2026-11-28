@@ -2,8 +2,9 @@
 // into its tracks and lists: a key, a face, a face again or a new look for
 // a piece, a piece shown or gone, a loose sprite, an effect, a glow the flashes'
 // limit may drop, a fuzzball gathered or something else a goal counts, a
-// square's dust swept, a wave's mark, a sound, the board's dimming, and a
-// moment the board waits for before it goes on.
+// square's dust swept, a wave's mark, a sound, the board's dimming, a
+// moment the board waits for before it goes on, and the moment the wind
+// turns.
 
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import type { KindId } from "../../rules/catalog/kinds";
@@ -108,7 +109,9 @@ export type Part =
   /** A key of how far the board dims. */
   | { readonly what: "dim"; readonly key: Key }
   /** A moment the board waits for before it goes on, such as a hop far enough through that it may fall. */
-  | { readonly what: "hold"; readonly atMs: number };
+  | { readonly what: "hold"; readonly atMs: number }
+  /** The moment the wind turns, as the gust that turns it sets in. */
+  | { readonly what: "wind-turns"; readonly atMs: number };
 
 /** Describes a part that cues a sound, at its own pitch or on a rung of the ladder. */
 export type SoundPart = Extract<Part, { readonly what: "sound" }>;

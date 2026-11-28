@@ -167,6 +167,25 @@ describe("Draft", () => {
     );
   });
 
+  it("hands on when the wind turns, the last part to say it holding", () => {
+    expect(
+      timelineOf(
+        { what: "wind-turns", atMs: 1200 },
+        { what: "wind-turns", atMs: 900 },
+      ).windTurnsMs,
+    ).toBe(900);
+  });
+
+  it("holds the board for nothing as the wind turns", () => {
+    const draft = new Draft(BOARD, [], "full");
+
+    expect(draft.add([{ what: "wind-turns", atMs: 1200 }])).toBe(-Infinity);
+  });
+
+  it("says no moment the wind turns where no part turns it", () => {
+    expect(timelineOf()).not.toHaveProperty("windTurnsMs");
+  });
+
   it("holds flashes and glows together to the flashes' limit, a glow kept as its piece's keys", () => {
     const timeline = timelineOf(
       { what: "glow", piece: 1, atMs: 100, ms: 260, amount: 1 },
