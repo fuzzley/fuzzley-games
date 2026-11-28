@@ -1,9 +1,10 @@
 import { DESIGN_SETS, designSet } from "../../testing/design_files";
+import { layOut } from "../board/picture";
 import bedtime from "./bedtime.json";
 import bricksAndBars from "./bricks-and-bars.json";
 import { type Level, levelSetOf } from "./level";
 import { arrivalProblem, levelProblem } from "./level_rules";
-import { LEVELS, LEVEL_SETS } from "./levels";
+import { LEVELS, LEVEL_BRICK_LAYERS, LEVEL_SETS } from "./levels";
 import warmUp from "./warm-up.json";
 import windyDays from "./windy-days.json";
 
@@ -94,5 +95,17 @@ describe("every level of the four sets", () => {
 
   it("brings each new thing in alone, in the order the levels are played", () => {
     expect(arrivalProblem(EVERY_LEVEL)).toBeNull();
+  });
+
+  it("lays bricks of as many layers as How to play says, each count on some board", () => {
+    const layers = new Set(
+      EVERY_LEVEL.flatMap(({ board, dust }) =>
+        layOut(board, dust).placed.flatMap((square) =>
+          square.what === "brick" ? [square.layers] : [],
+        ),
+      ),
+    );
+
+    expect([...layers].sort((a, b) => a - b)).toEqual(LEVEL_BRICK_LAYERS);
   });
 });

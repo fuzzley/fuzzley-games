@@ -3,6 +3,7 @@ import type { Goal } from "../catalog/goals";
 import type { KindId } from "../catalog/kinds";
 import type { Fuzzball, Piece } from "../catalog/pieces";
 import type { BlastId, MadeId } from "../catalog/specials";
+import type { NewThing } from "../levels/level";
 import type { Blast, Bunch, Hit, MoveRecord, Wave } from "../move/record";
 import {
   type GoalSaid,
@@ -150,6 +151,16 @@ describe("newThingLine", () => {
     expect(newThingLine("dasher")).toBe(
       "Line up 4 to make a dasher. It clears the row or column its fur points along.",
     );
+  });
+
+  it.each<[NewThing, string]>([
+    [
+      "thick-brick",
+      "Thick bricks have up to 3 layers. Line up 3 next to one to knock a layer off.",
+    ],
+    ["cage", "Line up a caged fuzzball to free it."],
+  ])("says what a %s asks of you, as the levels lay it", (thing, line) => {
+    expect(newThingLine(thing)).toBe(line);
   });
 });
 describe("describeLevelBegun", () => {

@@ -131,9 +131,9 @@ describe("HelpComponent", () => {
       "Dasher and dasher | Clears the row and the column",
       "Dasher and puffer | Clears 3 rows and 3 columns",
       "Puffer and puffer | Clears every square within 4 steps",
-      "Wisp and wisp | Sends 3 wisps, each to a square of its own",
-      "Wisp and dasher or puffer | Carries the other to the wisp's square, where it goes off",
-      "Frizzball and a special | Turns every fuzzball of the special's kind into that special, and sets them all off",
+      "Wisp and wisp | Sends 3 wisps, each to a different square",
+      "Wisp and dasher or puffer | Floats the other to the square that most helps a goal, where it goes off",
+      "Frizzball and a special | Turns every fuzzball of the same kind into that special, and sets them all off",
       "Frizzball and frizzball | Clears the whole board",
     ]);
   });
@@ -176,8 +176,8 @@ describe("HelpComponent", () => {
 
     expect(entriesOf("On the board").map(([text]) => text)).toEqual([
       "Gap. Has no square. Fuzzballs fall past it.",
-      "Dust. Covers a square up to 2 layers deep. A layer comes off when a bunch or a special clears the square.",
-      "Brick. Has 1 to 4 layers. A bunch next to it or a special knocks a layer off.",
+      "Dust. Covers a square up to 2 layers deep. Clear the square to take a layer off.",
+      "Brick. Has 1 to 3 layers. A bunch next to it or a special knocks a layer off.",
       "Cage. Holds a fuzzball in place, so you can't swap it. Free it with a bunch or a special.",
       "Sleepyhead. Can't be swapped. Falls when you clear what's under it, and goes to bed at the bottom.",
       "Burr. Keeps you from swapping a fuzzball. Line up 3 next to a burr to brush it off, or burrs spread.",

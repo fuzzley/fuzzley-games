@@ -6,6 +6,7 @@
 // alone.
 
 import { type NumberedLevel, levelsOf } from "@fz/core/levels";
+import type { BrickLayers } from "../catalog/elements";
 import bedtime from "./bedtime.json";
 import bricksAndBars from "./bricks-and-bars.json";
 import { type Level, type LevelSet, levelSetOf } from "./level";
@@ -25,3 +26,12 @@ export const LEVEL_SETS: readonly LevelSet[] = [
 
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);
+
+/**
+ * The layers of the bricks on the levels' boards, fewest to most, which How
+ * to play's brick and the line about thick bricks say: fewer than the
+ * rules allow.
+ */
+export const LEVEL_BRICK_LAYERS = [
+  1, 2, 3,
+] as const satisfies readonly BrickLayers[];

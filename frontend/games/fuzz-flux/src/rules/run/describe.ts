@@ -12,7 +12,14 @@ import type { Goal, GoalId } from "../catalog/goals";
 import type { Fuzzball, Piece } from "../catalog/pieces";
 import type { BlastId, MadeId, SpecialId } from "../catalog/specials";
 import type { NewThing } from "../levels/level";
+import { LEVEL_BRICK_LAYERS } from "../levels/levels";
 import type { Blast, Bunch, Hit, MoveRecord, Wave } from "../move/record";
+
+/** The most layers a brick on a level's board has. */
+const MOST_BRICK_LAYERS = itemAt(
+  LEVEL_BRICK_LAYERS,
+  LEVEL_BRICK_LAYERS.length - 1,
+);
 
 /** The line about each thing a level can bring in new: what you do, then what it does. */
 const NEW_THING_LINES: Readonly<Record<NewThing, string>> = {
@@ -27,9 +34,8 @@ const NEW_THING_LINES: Readonly<Record<NewThing, string>> = {
   pair: "Swap 2 special fuzzballs with each other. They go off together.",
   dust: "Line up 3 on dusty squares to dust them off.",
   brick: "Line up 3 next to a brick to break it.",
-  "thick-brick":
-    "Thick bricks have 2 to 4 layers. Line up 3 next to one to knock a layer off.",
-  cage: "Line up a caged fuzzball with 2 of its kind to free it.",
+  "thick-brick": `Thick bricks have up to ${String(MOST_BRICK_LAYERS)} layers. Line up 3 next to one to knock a layer off.`,
+  cage: "Line up a caged fuzzball to free it.",
   sleepyhead:
     "Get each sleepyhead to the bottom row. Clear the fuzzballs under it.",
   burr: "You can't swap a fuzzball that has a burr. Line up 3 next to it to brush the burr off.",

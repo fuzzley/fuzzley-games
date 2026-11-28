@@ -78,15 +78,15 @@ export const PAIRS: readonly HelpRow[] = [
   },
   {
     what: "Wisp and wisp",
-    does: `Sends ${String(TWO_WISPS_FLIGHTS)} wisps, each to a square of its own`,
+    does: `Sends ${String(TWO_WISPS_FLIGHTS)} wisps, each to a different square`,
   },
   {
     what: "Wisp and dasher or puffer",
-    does: "Carries the other to the wisp's square, where it goes off",
+    does: "Floats the other to the square that most helps a goal, where it goes off",
   },
   {
     what: "Frizzball and a special",
-    does: "Turns every fuzzball of the special's kind into that special, and sets them all off",
+    does: "Turns every fuzzball of the same kind into that special, and sets them all off",
   },
   { what: "Frizzball and frizzball", does: "Clears the whole board" },
 ];
