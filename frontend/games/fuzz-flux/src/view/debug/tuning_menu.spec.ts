@@ -81,7 +81,12 @@ describe("TUNING_SLIDERS", () => {
     ["shakeTwoPuffersPx", 0.1],
     ["hintHops", 1],
     ["mostZaps", 1],
+    ["burrInBunchTufts", 1],
+    ["burrOffTufts", 1],
+    ["lowMovesLeft", 1],
     ["mostLooseBits", 10],
+    ["twoFrizzballsRing", 0.01],
+    ["staticStep", 0.01],
   ])("steps %s by %d", (id, step) => {
     expect(sliderOf(id).step).toBe(step);
   });

@@ -24,36 +24,30 @@ export interface TuningSlider {
   readonly step: number;
 }
 
-/** The feel's numbers that count whole things, whose sliders step a whole one at a time at the least. */
-const COUNTS: ReadonlySet<keyof FeelTuning> = new Set([
-  "bunchTufts",
-  "madeSpringRings",
-  "madeRings",
-  "madeTufts",
-  "pufferRings",
-  "pufferTufts",
-  "cushionTufts",
-  "lastLayerTufts",
-  "mostFlights",
-  "mostLooseBits",
-  "hintHops",
+/**
+ * The endings of the names of the feel's numbers that count whole things,
+ * whose sliders step a whole one at a time at the least, as "madeTufts"
+ * counts tufts. A count of a new kind of thing adds its plural here.
+ */
+const COUNT_ENDINGS = [
+  "Tufts",
+  "Rings",
+  "Bits",
+  "Lines",
+  "Hops",
+  "Flights",
+  "Rungs",
+  "Bubbles",
+  "Zaps",
+  "Steps",
+] as const;
+
+/** The feel's numbers that count whole things though their names don't end as a count's. */
+const COUNTED: ReadonlySet<keyof FeelTuning> = new Set([
   "lowMovesLeft",
-  "chordRungs",
   "chordSecondFrom",
   "chordThirdFrom",
-  "mostWaveTufts",
-  "runInTufts",
-  "twoPuffersTufts",
-  "wispTufts",
-  "frizzballTufts",
-  "pairTufts",
   "flightsInTurn",
-  "mostStruckBubbles",
-  "struckBubbleRungs",
-  "mostZaps",
-  "staticSteps",
-  "cageBits",
-  "gustLines",
 ]);
 
 /**
@@ -159,7 +153,12 @@ function mostOf(id: keyof FeelTuning, step: number): number {
 function stepOf(id: keyof FeelTuning): number {
   const step =
     10 ** Math.floor(Math.log10((MOST_TIMES * FEEL[id]) / LEAST_STEPS));
-  return COUNTS.has(id) ? Math.max(1, step) : step;
+  return countsWhole(id) ? Math.max(1, step) : step;
+}
+
+/** Returns whether a number of the feel counts whole things. */
+function countsWhole(id: keyof FeelTuning): boolean {
+  return COUNTED.has(id) || COUNT_ENDINGS.some((ending) => id.endsWith(ending));
 }
 
 /** Returns a number of the feel as the debug menu writes it, to its slider's step. */
