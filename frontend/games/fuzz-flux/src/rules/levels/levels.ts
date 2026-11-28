@@ -10,6 +10,7 @@ import bedtime from "./bedtime.json";
 import bricksAndBars from "./bricks-and-bars.json";
 import { type Level, type LevelSet, levelSetOf } from "./level";
 import warmUp from "./warm-up.json";
+import windyDays from "./windy-days.json";
 
 /** Describes a level of the game: its place in the game, from 1, its set, and the level. */
 export type LevelEntry = NumberedLevel<LevelSet, Level>;
@@ -19,6 +20,7 @@ export const LEVEL_SETS: readonly LevelSet[] = [
   levelSetOf(warmUp),
   levelSetOf(bricksAndBars),
   levelSetOf(bedtime),
+  levelSetOf(windyDays),
 ];
 
 /** Every level, in the order they are played. */

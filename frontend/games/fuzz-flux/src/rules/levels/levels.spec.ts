@@ -21,15 +21,16 @@ const EVERY_LEVEL: readonly Level[] = DESIGN_SETS.flatMap(
 );
 
 describe("the levels", () => {
-  it("are Warm-up's, Bricks and bars' and Bedtime's, while the other sets are built", () => {
+  it("are the design's four sets, in the order they are played", () => {
     expect(LEVEL_SETS.map(({ id }) => id)).toEqual([
       "warm-up",
       "bricks-and-bars",
       "bedtime",
+      "windy-days",
     ]);
   });
 
-  it("number Warm-up's levels 1 to 9, Bricks and bars' 10 to 18 and Bedtime's 19 to 27, each by its id, as the design's appendix does", () => {
+  it("number Warm-up's levels 1 to 9, Bricks and bars' 10 to 18, Bedtime's 19 to 27 and Windy days' 28 to 36, each by its id, as the design's appendix does", () => {
     expect(
       LEVELS.map(({ number, data }) => [number, data.id, data.name]),
     ).toEqual([
@@ -60,6 +61,15 @@ describe("the levels", () => {
       [25, "25", "Dust bunnies"],
       [26, "26", "Long way down"],
       [27, "27", "Pillow fort"],
+      [28, "28", "Crosswind"],
+      [29, "29", "Updraft"],
+      [30, "30", "Weather vane"],
+      [31, "31", "Leaf pile"],
+      [32, "32", "Kite weather"],
+      [33, "33", "Gale"],
+      [34, "34", "Burrs on the breeze"],
+      [35, "35", "Eye of the storm"],
+      [36, "36", "The big bunch"],
     ]);
   });
 
