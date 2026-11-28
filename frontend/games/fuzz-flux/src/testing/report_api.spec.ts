@@ -1,5 +1,5 @@
 import { levelSetOf } from "../rules/levels/level";
-import { LEVELS, type LevelEntry } from "../rules/levels/levels";
+import { LEVELS, LEVEL_SETS, type LevelEntry } from "../rules/levels/levels";
 import { DESIGN_SETS, designJson, designSet, designText } from "./design_files";
 import { MOVE_FIXTURES } from "./move_fixtures";
 import {
@@ -50,7 +50,9 @@ describe("CLEARS_ASKED", () => {
 
 describe("askOf", () => {
   it("asks of each level what its place in its set asks", () => {
-    expect(LEVELS.map(askOf)).toEqual(CLEARS_ASKED["warm-up"]);
+    expect(LEVELS.map(askOf)).toEqual(
+      LEVEL_SETS.flatMap(({ id }) => CLEARS_ASKED[id]),
+    );
   });
 
   it("throws for a level of a set that asks nothing of it", () => {

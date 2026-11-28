@@ -21,11 +21,13 @@ const EVERY_LEVEL: readonly Level[] = DESIGN_SETS.flatMap(
 );
 
 describe("the levels", () => {
-  it("are Warm-up's alone, while the other sets are built", () => {
-    expect(LEVEL_SETS.map(({ id }) => id)).toEqual(["warm-up"]);
+  it("are Warm-up's and Bedtime's, while the other sets are built", () => {
+    expect(LEVEL_SETS.map(({ id }) => id)).toEqual(["warm-up", "bedtime"]);
   });
 
-  it("number Warm-up's levels 1 to 9, each by its id, as the design's appendix does", () => {
+  // Bricks and bars, the design's 10 to 18, is played before Bedtime once
+  // it joins, and every level is then numbered by its id.
+  it("number the levels from 1 in the order played, Warm-up's by their ids, as the design's appendix does, and Bedtime's on from them", () => {
     expect(
       LEVELS.map(({ number, data }) => [number, data.id, data.name]),
     ).toEqual([
@@ -38,6 +40,15 @@ describe("the levels", () => {
       [7, "7", "Mind the gap"],
       [8, "8", "Dust-up"],
       [9, "9", "Spring cleaning"],
+      [10, "19", "Lights out"],
+      [11, "20", "Bunk beds"],
+      [12, "21", "Sleepwalk"],
+      [13, "22", "Burr patch"],
+      [14, "23", "Sticky situation"],
+      [15, "24", "Nap in the thistles"],
+      [16, "25", "Dust bunnies"],
+      [17, "26", "Long way down"],
+      [18, "27", "Pillow fort"],
     ]);
   });
 

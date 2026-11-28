@@ -10,6 +10,7 @@ import { fromScreen } from "../rules/board/orientation";
 import type { ElementId } from "../rules/catalog/elements";
 import type { ElementRule, WindRule } from "../rules/elements/element_rule";
 import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
+import bedtime from "../rules/levels/certificates/bedtime.json";
 import warmUp from "../rules/levels/certificates/warm-up.json";
 import type { LevelEntry } from "../rules/levels/levels";
 import { play } from "../rules/move/play";
@@ -22,6 +23,7 @@ import { play } from "../rules/move/play";
  */
 export const CERTIFICATES: Readonly<Record<string, unknown>> = {
   "warm-up": warmUp,
+  bedtime,
 };
 
 /** Says what a certificate is read from and replayed by: the certificates, as their files hold them, and the elements' rules and the wind's. */
