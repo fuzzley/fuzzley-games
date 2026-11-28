@@ -16,7 +16,8 @@
  * panels both shown wherever its room (`data-room`) spares 184 CSS px each
  * side of it, and nowhere else, on the canvas and in the window, off the
  * board, each other and the bar, at least 172 CSS px across and down. A
- * square must be at least 40 CSS px, as the design asks at every shape;
+ * square must be at least 40 CSS px wherever the board's room holds its
+ * rows and columns at that, and elsewhere the largest the room allows;
  * each cell of the grid must lie on its square; each button shown must be at least 44 CSS px
  * across and down; each figure of the bar must show whole, in a
  * row where the bar lies across the window; and each panel must show all
@@ -36,6 +37,7 @@ import {
   PHASER_CANVAS_READY,
   PHASER_CHECKED_AT,
   checkPhaserLayout,
+  readRect,
   runLayoutScript,
   whenAllSettle,
 } from "@fz/dev/layout";
@@ -147,12 +149,14 @@ export const OUT_OF_MOVES = {
 /**
  * Returns what is wrong with the page beside what `@fz/dev/layout` checks
  * of every game, given where the board lies: the level shown not the one
- * the check kept, or not standing as it should; a square under 40 CSS px;
- * a cell of the grid off its square; a button
+ * the check kept, or not standing as it should; a square under 40 CSS px,
+ * or under the largest the board's room allows where it can't hold the
+ * board at that; a cell of the grid off its square; a button
  * shown under 44 CSS px across or down; a figure of the bar cut off
  * by it, or out of the row the bar's figures stand in across the window;
  * and a panel that cuts off what it holds. It runs in the page, so it uses
- * nothing from this module.
+ * nothing from this module, and reads the board's room with `readRect()`,
+ * which is sent with it.
  *
  * @param {BoardBox} [box]
  * @returns {string[]}
@@ -204,15 +208,36 @@ export function inspectPage(box) {
     }
   }
 
-  if (box && box.unit < leastSquare - 0.01) {
-    problems.push(`A square is ${box.unit} CSS px, under ${leastSquare}.`);
+  const style = board && getComputedStyle(board);
+  const across = style ? parseFloat(style.getPropertyValue("--across")) : NaN;
+  const down = style ? parseFloat(style.getPropertyValue("--down")) : NaN;
+  const ratio = style
+    ? parseFloat(style.getPropertyValue("--pixel-ratio"))
+    : NaN;
+  const room = board && readRect(board.getAttribute("data-room"));
+
+  // The design's 40 CSS px is for a phone 320 px wide held upright: a room
+  // too small for the board at that, as a small phone on its side is for 9
+  // rows, asks the largest square it allows, as `boardMetrics()` fills it.
+  const filling =
+    room && [across, down, ratio].every(Number.isFinite)
+      ? Math.floor(
+          Math.min(
+            Math.round(room.width * ratio) / across,
+            Math.round(room.height * ratio) / down,
+          ),
+        ) / ratio
+      : Infinity;
+  if (box && box.unit < Math.min(leastSquare, filling) - 0.01) {
+    problems.push(
+      filling < leastSquare
+        ? `A square is ${box.unit} CSS px, under ${filling}, the largest its room allows a board ${across} by ${down} squares.`
+        : `A square is ${box.unit} CSS px, under ${leastSquare}.`,
+    );
   }
 
   // Each cell of the grid on its square, by its index on the board and the
   // board's width.
-  const across = board
-    ? parseFloat(getComputedStyle(board).getPropertyValue("--across"))
-    : NaN;
   if (box && Number.isFinite(across)) {
     for (const cell of document.querySelectorAll("app-board [role=gridcell]")) {
       const index = Number(cell.getAttribute("data-index"));

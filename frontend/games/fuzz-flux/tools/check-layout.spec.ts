@@ -20,18 +20,34 @@ import {
 /** A board's squares 40 CSS px, laid 20 CSS px in from the window's top left corner. */
 const BOX: BoardBox = { left: 20, top: 20, width: 80, height: 80, unit: 40 };
 
-/** Returns the cells of a board 2 squares across and 2 down, each on its square of a box, as Chrome measures them. */
-function cellsOn(box: BoardBox): DOMRect[] {
-  return [0, 1, 2, 3].map(
-    (index) =>
+/** Returns the cells of a board so many squares across and down, 2 by 2 unless given, each on its square of a box, as Chrome measures them. */
+function cellsOn(box: BoardBox, across = 2, down = 2): DOMRect[] {
+  return Array.from(
+    { length: across * down },
+    (_, index) =>
       new DOMRect(
-        box.left + (index % 2) * box.unit,
-        box.top + Math.floor(index / 2) * box.unit,
+        box.left + (index % across) * box.unit,
+        box.top + Math.floor(index / across) * box.unit,
         box.unit,
         box.unit,
       ),
   );
 }
+
+/** A board 8 squares across and 9 down, the largest, rendered at twice the pixels. */
+const TALL = { across: 8, down: 9, ratio: 2 };
+
+/** The room a small phone on its side, 568 by 320 CSS px, lays a board out in, beside the bar. */
+const SHORT_ROOM = "0 0 504 320";
+
+/** Where a board 8 squares by 9 lies, filling a small phone's room on its side: its squares 71 device pixels, the most 9 rows find in the room's 640. */
+const FILLING: BoardBox = {
+  left: 110,
+  top: 0,
+  width: 284,
+  height: 319.5,
+  unit: 35.5,
+};
 
 /** Describes a page as the inspection reads it, each rectangle as Chrome measures it. */
 interface Laid {
@@ -44,7 +60,15 @@ interface Laid {
   readonly bar: DOMRect;
   readonly status: DOMRect;
   readonly figures: readonly DOMRect[];
-  /** The board's cells, 2 across. */
+  /** The board's squares across and down, and the device pixels to a CSS pixel it renders at. */
+  readonly board: {
+    readonly across: number;
+    readonly down: number;
+    readonly ratio: number;
+  };
+  /** The room the board is laid out in, as the board writes it in `data-room`. */
+  readonly room: string;
+  /** The board's cells, as many across as the board. */
   readonly cells: readonly DOMRect[];
   readonly buttons: readonly DOMRect[];
   /** How each button is written. */
@@ -64,6 +88,8 @@ const LAID: Laid = {
   bar: new DOMRect(0, 784, 390, 60),
   status: new DOMRect(80, 790, 200, 48),
   figures: [new DOMRect(80, 800, 46, 24), new DOMRect(134, 796, 30, 32)],
+  board: { across: 2, down: 2, ratio: 1 },
+  room: "0 0 390 784",
   cells: cellsOn(BOX),
   buttons: [new DOMRect(290, 792, 44, 44)],
   button: "<button>Hint</button>",
@@ -82,6 +108,7 @@ function lay(
   laid: Laid,
   kept: { readonly level: number | null; readonly outcome: string | null },
 ): void {
+  const { across, down, ratio } = laid.board;
   const goals = '<div class="figure goal"></div>'.repeat(
     laid.figures.length - 1,
   );
@@ -91,7 +118,7 @@ function lay(
         <app-bar>${goals}<div class="figure moves"></div></app-bar>
       </div></header>
     </fz-game-bar>
-    <app-board data-level="${String(laid.level)}" data-outcome="${laid.outcome}" style="--across: 2">
+    <app-board data-level="${String(laid.level)}" data-outcome="${laid.outcome}" data-room="${laid.room}" style="--across: ${String(across)}; --down: ${String(down)}; --pixel-ratio: ${String(ratio)}">
       ${laid.cells.map((_, index) => `<div role="gridcell" data-index="${String(index)}"></div>`).join("")}
       <section class="panel"></section>
     </app-board>
@@ -170,12 +197,57 @@ describe("inspectPage", () => {
     ]);
   });
 
-  it("says a square under 40 CSS px", () => {
-    const box = { ...BOX, unit: 39 };
+  it("says a square under 40 CSS px where the board's room holds it at that, as a phone held upright holds 9 rows", () => {
+    const box = { left: 17, top: 191.5, width: 312, height: 351, unit: 39 };
 
-    expect(inspected({ cells: cellsOn(box) }, box)).toEqual([
-      "A square is 39 CSS px, under 40.",
+    expect(
+      inspected(
+        { board: TALL, room: "0 0 390 784", cells: cellsOn(box, 8, 9) },
+        box,
+      ),
+    ).toEqual(["A square is 39 CSS px, under 40."]);
+  });
+
+  it("finds nothing wrong with a square under 40 CSS px where the board fills a room too short to hold its rows at that, as a small phone on its side is", () => {
+    expect(
+      inspected(
+        { board: TALL, room: SHORT_ROOM, cells: cellsOn(FILLING, 8, 9) },
+        FILLING,
+      ),
+    ).toEqual([]);
+  });
+
+  it("says a square under the largest a room too short for the board at 40 CSS px allows", () => {
+    const box = { ...FILLING, unit: 35 };
+
+    expect(
+      inspected(
+        { board: TALL, room: SHORT_ROOM, cells: cellsOn(box, 8, 9) },
+        box,
+      ),
+    ).toEqual([
+      "A square is 35 CSS px, under 35.5, the largest its room allows a board 8 by 9 squares.",
     ]);
+  });
+
+  it("finds nothing wrong with a square under 40 CSS px where the board fills a room too narrow to hold its columns at that", () => {
+    const box = { left: 0, top: 223.25, width: 300, height: 337.5, unit: 37.5 };
+
+    expect(
+      inspected(
+        { board: TALL, room: "0 0 300 784", cells: cellsOn(box, 8, 9) },
+        box,
+      ),
+    ).toEqual([]);
+  });
+
+  it("says a square under 40 CSS px where the board says no room", () => {
+    expect(
+      inspected(
+        { board: TALL, room: "", cells: cellsOn(FILLING, 8, 9) },
+        FILLING,
+      ),
+    ).toEqual(["A square is 35.5 CSS px, under 40."]);
   });
 
   it("says a cell of the grid off its square", () => {
