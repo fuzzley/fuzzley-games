@@ -29,7 +29,7 @@ function casualMovesOn(seed: number): readonly number[] {
   return [4, 5, 5, UNCLEARED];
 }
 
-/** The careful player's game on each made-up deal: cleared in 3 moves, of 3 waves, 1 wave and 2, with 2 specials made and, on the first deal alone, 2 shuffles. */
+/** The careful player's game on each made-up deal: cleared in 3 moves, of 3 waves, 1 wave and 2, with 2 specials made and, on the first deal alone, 2 shuffles, its wind never turning. */
 function carefulOn({ seed }: ReportDeal): CarefulFigures {
   return {
     cleared: true,
@@ -37,6 +37,7 @@ function carefulOn({ seed }: ReportDeal): CarefulFigures {
     waves: [3, 1, 2],
     specials: 2,
     shuffles: seed === 1 ? 2 : 0,
+    gusts: [],
   };
 }
 
@@ -82,7 +83,7 @@ function apiOf(given: Partial<ReportApi> = {}): ReportApi {
 
 /** A made-up level's row of the table, as its games play it. */
 const PLAYED_ROW =
-  "| 1 | Opener | 5 | 75% | 75% | 100% | 5 | 3 | 6 | 9 | 8 | 75% | 75% to 75% | 50% to 100% | 1, 2 | 2.00 | 3 | 2.0 | 0.05 |";
+  "| 1 | Opener | 5 | 75% | 75% | 100% | 5 | 3 | 6 | 9 | 8 | 75% | 75% to 75% | 50% to 100% | 1, 2 | 2.00 | 3 | 2.0 | 0.05 | - |";
 
 /** Says what a spec's queue heard: how many runs joined it and left it, and how many levels were played by the time a run left it. */
 interface Queued {
@@ -253,6 +254,16 @@ describe("figuresOf", () => {
       shufflesAGame: 0.05,
     });
   });
+
+  it("counts the wind's turns after the careful player's moves, and those that moved a fuzzball", () => {
+    const api = apiOf({
+      careful: (deal) => ({ ...carefulOn(deal), gusts: [0, 3, 0, 1] }),
+    });
+
+    const { gusts, gustsThatMove } = figuresOf(api, MADE_UP[0]!);
+
+    expect({ gusts, gustsThatMove }).toEqual({ gusts: 160, gustsThatMove: 80 });
+  });
 });
 
 describe("playedLevel", () => {
@@ -275,12 +286,28 @@ describe("run", () => {
     });
   });
 
-  it("heads the table as the sketch's report does", async () => {
-    const sketch = designText("sketch/results-table.md").split("\n");
+  it("heads the table as the sketch's report does, and the wind's column after", async () => {
+    const [heads, rule] = designText("sketch/results-table.md").split("\n");
 
     const { out } = await ran([]);
 
-    expect(out.slice(0, 2)).toEqual(sketch.slice(0, 2));
+    expect(out.slice(0, 2)).toEqual([
+      `${heads!} Turns of the wind that move a fuzzball |`,
+      `${rule!} -------------------------------------- |`,
+    ]);
+  });
+
+  it("writes in the wind's column the share of its turns that moved a fuzzball, in whole times in 100, and how many times in how many", async () => {
+    const api = apiOf({
+      careful: (deal) => ({
+        ...carefulOn(deal),
+        gusts: deal.seed === 1 ? [0, 2] : [0],
+      }),
+    });
+
+    const { out } = await ran([], { api });
+
+    expect(out[2]).toBe(PLAYED_ROW.replace(/ - \|$/, " 2% (1 of 41) |"));
   });
 
   it("says under the table where a level's file keeps other moves, stars or deals than its games set, and exits with 1", async () => {
@@ -308,7 +335,7 @@ describe("run", () => {
 
     expect({ code, row: out[2], under: out.slice(3) }).toEqual({
       code: 1,
-      row: "| 3 | Closer | 5 | 75% | 75% | 100% | 5 | 3 | - | - | 0 | - | - | 50% to 100% | 1, 2 | 2.00 | 3 | 2.0 | 0.05 |",
+      row: "| 3 | Closer | 5 | 75% | 75% | 100% | 5 | 3 | - | - | 0 | - | - | 50% to 100% | 1, 2 | 2.00 | 3 | 2.0 | 0.05 | - |",
       under: [
         "",
         `Level 3, Closer: 0 of its 40 deals are proven in 5 moves, short of ${String(LEVEL_DEALS)}.`,
@@ -396,7 +423,7 @@ describe("the threads", () => {
     }).toEqual({ levels: api.levels.length, asked: api.asked(1) });
   });
 
-  it("plays each level on a thread of its own, which loads the game's API through Vite, its row the sketch's and its moves, stars and deals those its file keeps", async () => {
+  it("plays each level on a thread of its own, which loads the game's API through Vite, its row the sketch's, a dash in the wind's column, and its moves, stars and deals those its file keeps", async () => {
     const sketch = designText("sketch/results-table.md").split("\n");
 
     const played = await playOnThreads([2, 1], 2);
@@ -410,7 +437,10 @@ describe("the threads", () => {
     ).toEqual(
       [2, 1].map((number) => {
         const { moves, stars, deals } = REPORT_API.levels[number - 1]!.data;
-        return { row: sketch[number + 1], data: { moves, stars, deals } };
+        return {
+          row: `${sketch[number + 1]!} - |`,
+          data: { moves, stars, deals },
+        };
       }),
     );
   }, 60_000);

@@ -16,11 +16,15 @@
  * those moves by the proof's line; and its stars, the moves the careful
  * player's middle game leaves to spare for the third, and half of them for
  * the second. It prints the table `docs/fuzz-flux/sketch/results-table.md`
- * keeps, then a line for each level whose file in `src/rules/levels/`
- * keeps other moves, stars or deals, or that has fewer than 8 deals
- * proven. The files are the design's, so a level is redrawn in the
- * design's drafts, never by the report. It takes every core, so it waits
- * its turn in the queue `yarn verify:changed` keeps.
+ * keeps, with a column the sketch's has not: how often the wind's turns
+ * after the careful player's moves move a fuzzball, and how many times in
+ * how many, since on a full board a turn moves none
+ * (`docs/fuzz-flux/design.md`, "Risks"). Then it prints a line for each
+ * level whose file in `src/rules/levels/` keeps other moves, stars or
+ * deals, or that has fewer than 8 deals proven. The files are the
+ * design's, so a level is redrawn in the design's drafts, never by the
+ * report. It takes every core, so it waits its turn in the queue
+ * `yarn verify:changed` keeps.
  *
  * It exits with 1 where a level's file differs from what its games set,
  * and with 2, saying why, for a command line it can't read, before it
@@ -74,9 +78,10 @@ import { levelsOfSet, readSetOption } from "./set_option.mjs";
 /**
  * How the careful player's game on a deal went, and what its moves were
  * made of: how many waves each played, how many specials its bunches
- * made, and how many of its moves ended in a shuffle.
+ * made, how many of its moves ended in a shuffle, and how many pieces
+ * each turn of the wind after them moved.
  *
- * @typedef {GameFigures & { readonly waves: ReadonlyArray<number>, readonly specials: number, readonly shuffles: number }} CarefulFigures
+ * @typedef {GameFigures & { readonly waves: ReadonlyArray<number>, readonly specials: number, readonly shuffles: number, readonly gusts: ReadonlyArray<number> }} CarefulFigures
  */
 
 /**
@@ -127,6 +132,9 @@ import { levelsOfSet, readSetOption } from "./set_option.mjs";
  *   on average, the careful player playing a game a deal.
  * @property {number} shufflesAGame Its moves that ended in a shuffle in a
  *   game, on average.
+ * @property {number} gusts How many times the wind turned after its moves.
+ * @property {number} gustsThatMove How many of those turns moved a
+ *   fuzzball.
  */
 
 /**
@@ -181,13 +189,13 @@ const CAREFUL_SHARE = 0.75;
 
 /**
  * The table's headings and the rule under them, as the sketch's report
- * prints them.
+ * prints them, and the wind's column after.
  *
  * @type {readonly string[]}
  */
 const TABLE_HEAD = [
-  "| # | Level | Moves | Asked | Casual | Careful | Casual's middle | Careful's middle | Proof's middle | Proof's longest | Deals | Casual on its deals | Its deals range | All 40 deals range | Moves to spare for 2 and 3 stars | Waves a move | Most waves | Specials a game | Shuffles a game |",
-  "| - | ----- | ----- | ----- | ------ | ------- | --------------- | ---------------- | -------------- | --------------- | ----- | ------------------- | --------------- | ------------------ | -------------------------------- | ------------ | ---------- | --------------- | --------------- |",
+  "| # | Level | Moves | Asked | Casual | Careful | Casual's middle | Careful's middle | Proof's middle | Proof's longest | Deals | Casual on its deals | Its deals range | All 40 deals range | Moves to spare for 2 and 3 stars | Waves a move | Most waves | Specials a game | Shuffles a game | Turns of the wind that move a fuzzball |",
+  "| - | ----- | ----- | ----- | ------ | ------- | --------------- | ---------------- | -------------- | --------------- | ----- | ------------------- | --------------- | ------------------ | -------------------------------- | ------------ | ---------- | --------------- | --------------- | -------------------------------------- |",
 ];
 
 const USAGE = `Usage: yarn report:levels [options]
@@ -283,6 +291,8 @@ export function figuresOf(api, { number }) {
   const carefulGames = [];
   /** @type {number[]} */
   const waves = [];
+  /** @type {number[]} */
+  const gusts = [];
   let specials = 0;
   let shuffles = 0;
   for (let seed = 1; seed <= REPORT_DEALS; seed++) {
@@ -293,6 +303,7 @@ export function figuresOf(api, { number }) {
     waves.push(...careful.waves);
     specials += careful.specials;
     shuffles += careful.shuffles;
+    gusts.push(...careful.gusts);
   }
   const casual = ascending(byDeal.flat());
   const careful = ascending(carefulGames);
@@ -341,6 +352,8 @@ export function figuresOf(api, { number }) {
     mostWaves: Math.max(0, ...waves),
     specialsAGame: specials / REPORT_DEALS,
     shufflesAGame: shuffles / REPORT_DEALS,
+    gusts: gusts.length,
+    gustsThatMove: gusts.filter((moved) => moved > 0).length,
   };
 }
 
@@ -378,7 +391,23 @@ function countText(count) {
 }
 
 /**
- * Returns a level's row of the sketch's table.
+ * Returns a level's cell of the wind's column: the share of the wind's
+ * turns that moved a fuzzball, and how many in how many, since a share
+ * that rounds to 0% may still hold a turn that did; or a dash where the
+ * wind never turned.
+ *
+ * @param {LevelFigures} figures
+ * @returns {string}
+ */
+function gustsText({ gusts, gustsThatMove }) {
+  return gusts === 0
+    ? "-"
+    : `${percent(gustsThatMove / gusts)} (${String(gustsThatMove)} of ${String(gusts)})`;
+}
+
+/**
+ * Returns a level's row of the sketch's table, and its cell of the wind's
+ * column.
  *
  * @param {ReportLevel} level
  * @param {LevelFigures} figures
@@ -412,6 +441,7 @@ export function rowOf({ data }, figures) {
     String(figures.mostWaves),
     figures.specialsAGame.toFixed(1),
     figures.shufflesAGame.toFixed(2),
+    gustsText(figures),
   ];
   return `| ${cells.join(" | ")} |`;
 }

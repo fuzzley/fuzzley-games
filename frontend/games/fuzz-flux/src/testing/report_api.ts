@@ -1,16 +1,18 @@
 // What tools/report-levels.mjs plays, which it loads through Vite: a deal
 // of a level played to its end by the casual player and by the careful
-// one, with what the design's sketch's report counts of each game, and the
-// proof's line on it, all by the game's own rules, and how often each
-// level asks the casual player to clear it. The report sets each level's
-// moves, stars and deals by them, so this is held as the rules are
-// (eslint.config.js), to their fence and their exact arithmetic.
+// one, with what the design's sketch's report counts of each game and what
+// each turn of the wind moved, and the proof's line on it, all by the
+// game's own rules, and how often each level asks the casual player to
+// clear it. The report sets each level's moves, stars and deals by them,
+// so this is held as the rules are (eslint.config.js), to their fence and
+// their exact arithmetic.
 
 import { levelAt } from "@fz/core/levels";
 import type { Game } from "../rules/board/board";
 import { deal } from "../rules/board/deal";
 import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
+import type { Gust } from "../rules/move/record";
 import { playCarefully } from "./careful";
 import { playCasually } from "./casual";
 import { seededDice } from "./dice";
@@ -39,6 +41,8 @@ export interface CarefulFigures extends GameFigures {
   readonly specials: number;
   /** How many of its moves ended in a shuffle. */
   readonly shuffles: number;
+  /** How many pieces, fuzzballs and sleepyheads, fell, rolled or came in in the fall each turn of the wind after its moves starts with, in the order played. */
+  readonly gusts: readonly number[];
 }
 
 /** Holds what `tools/report-levels.mjs` plays: the levels and what each asks, and on a level's deal the casual player's games, the careful player's and the proof's line. */
@@ -97,7 +101,7 @@ function casualDiceOf(seed: number, game: number): number {
   return seed * 1000 + game + 17;
 }
 
-/** Returns what the report counts of the careful player's game: whether it cleared the level, the moves it used, and each move's waves, the specials made and the shuffles. */
+/** Returns what the report counts of the careful player's game: whether it cleared the level, the moves it used, each move's waves, the specials made, the shuffles, and what each turn of the wind moved. */
 export function carefulFiguresOf({
   cleared,
   used,
@@ -112,7 +116,17 @@ export function carefulFiguresOf({
     waves: records.map((record) => record.waves.length),
     specials: bunches.filter((bunch) => bunch.makes !== null).length,
     shuffles: records.filter((record) => record.shuffle !== null).length,
+    gusts: records.flatMap(({ gust }) =>
+      gust === null ? [] : [movedBy(gust)],
+    ),
   };
+}
+
+/** Returns how many pieces a turn of the wind moved: those that fell, rolled or came in in the fall it starts with, its gust's wave 0. */
+function movedBy({ waves }: Gust): number {
+  return waves
+    .filter(({ number }) => number === 0)
+    .flatMap(({ falls }) => falls).length;
 }
 
 /** What `tools/report-levels.mjs` plays: the game's levels, each deal dealt and played by the game's own rules. */

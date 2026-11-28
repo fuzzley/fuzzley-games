@@ -1,5 +1,6 @@
 import { levelSetOf } from "../rules/levels/level";
 import { LEVELS, LEVEL_SETS, type LevelEntry } from "../rules/levels/levels";
+import type { MoveRecord } from "../rules/move/record";
 import { DESIGN_SETS, designJson, designSet, designText } from "./design_files";
 import { MOVE_FIXTURES } from "./move_fixtures";
 import {
@@ -69,7 +70,7 @@ describe("askOf", () => {
 });
 
 describe("carefulFiguresOf", () => {
-  it("counts each move's waves, the specials its bunches made and the shuffles, leaving the wind's waves out", () => {
+  it("counts each move's waves, the specials its bunches made, the shuffles and what each turn of the wind moved, leaving the wind's waves out of the move's", () => {
     const { twoWaves, pufferMade, shuffle, windTurns } = MOVE_FIXTURES;
 
     const figures = carefulFiguresOf({
@@ -86,7 +87,31 @@ describe("carefulFiguresOf", () => {
       waves: [2, 1, 1, 1],
       specials: 1,
       shuffles: 1,
+      gusts: [2],
     });
+  });
+
+  it("counts the fuzzballs a turn of the wind moved in the fall it starts with, the waves the fall sets off left out", () => {
+    const { record } = MOVE_FIXTURES.windTurns;
+    const [fall] = record.gust.waves;
+    const still: MoveRecord = {
+      ...record,
+      gust: {
+        turns: 1,
+        waves: [
+          { ...fall, falls: [] },
+          { ...fall, number: 1 },
+        ],
+      },
+    };
+
+    const { gusts } = carefulFiguresOf({
+      cleared: false,
+      used: 2,
+      records: [record, still],
+    });
+
+    expect(gusts).toEqual([2, 0]);
   });
 });
 
@@ -132,6 +157,7 @@ describe("REPORT_API", () => {
       waves: [3, 1, 3],
       specials: 1,
       shuffles: 0,
+      gusts: [],
     });
   });
 
@@ -147,6 +173,7 @@ describe("REPORT_API", () => {
         waves: [2, 2, 2, 1, 1],
         specials: 2,
         shuffles: 0,
+        gusts: [],
       },
     ]);
   });
