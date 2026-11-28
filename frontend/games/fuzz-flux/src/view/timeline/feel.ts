@@ -562,6 +562,20 @@ export interface FeelTuning {
   readonly burrLandBackMs: number;
   /** How long the board waits for a burr's spread before it goes on. */
   readonly burrSpreadHoldMs: number;
+  /** How far apart, a square along the wind from the edge it blows from, the fuzzballs lean as a gust crosses the board. */
+  readonly gustSquareGapMs: number;
+  /** How long each takes to lean with it, its fur lifting. */
+  readonly gustLeanMs: number;
+  /** How long it takes to spring back. */
+  readonly gustLeanBackMs: number;
+  /** How far its fur lifts, as a share of on end. */
+  readonly gustLift: number;
+  /** How long its fur takes to settle again. */
+  readonly gustLiftBackMs: number;
+  /** How many lines of wind a gust sends across the board. */
+  readonly gustLines: number;
+  /** How long after a gust sets in its lines may set out, each at a moment drawn in that time. */
+  readonly gustLinesSpreadMs: number;
   /** How small a shuffled fuzzball shrinks before it moves. */
   readonly shuffleShrink: number;
   /** How long it takes to shrink. */
@@ -960,6 +974,13 @@ export const FEEL: FeelTuning = {
   burrLandSquashMs: 80,
   burrLandBackMs: 220,
   burrSpreadHoldMs: 320,
+  gustSquareGapMs: 26,
+  gustLeanMs: 110,
+  gustLeanBackMs: 320,
+  gustLift: 0.8,
+  gustLiftBackMs: 300,
+  gustLines: 16,
+  gustLinesSpreadMs: 300,
   shuffleShrink: 0.7,
   shuffleShrinkMs: 140,
   shuffleMoveAfterMs: 60,

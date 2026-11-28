@@ -521,6 +521,19 @@ const PORTED = {
     "tween(s, { sx: 1, sy: 1 }, «220», ease.spring, now + 80);",
   ],
   burrSpreadHoldMs: [320, "t += «320»;"],
+  gustSquareGapMs: [26, "Math.max(cols, rows)) * «26»;"],
+  gustLeanMs: [110, "py: windLean.y * 0.16 }, «110», ease.out,"],
+  gustLeanBackMs: [
+    320,
+    "tween(s, { px: 0, py: 0 }, «320», ease.spring, now + wait + 110);",
+  ],
+  gustLift: [0.8, "tween(s, { lift: «0.8» }, 110, ease.out, now + wait);"],
+  gustLiftBackMs: [
+    300,
+    "tween(s, { lift: 0 }, «300», ease.out, now + wait + 110);",
+  ],
+  gustLines: [16, "for (let n = 0; n < «16»; n++)"],
+  gustLinesSpreadMs: [300, "t0: now + Math.random() * «300»,"],
   shuffleShrink: [0.7, "tween(s, { sx: «0.7», sy: 0.7 }, 140, ease.out);"],
   shuffleShrinkMs: [140, "tween(s, { sx: 0.7, sy: 0.7 }, «140», ease.out);"],
   shuffleMoveAfterMs: [

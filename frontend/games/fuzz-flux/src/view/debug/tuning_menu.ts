@@ -53,6 +53,7 @@ const COUNTS: ReadonlySet<keyof FeelTuning> = new Set([
   "mostZaps",
   "staticSteps",
   "cageBits",
+  "gustLines",
 ]);
 
 /**
@@ -85,6 +86,7 @@ const SHARES: ReadonlySet<keyof FeelTuning> = new Set([
   "handOpacity",
   "chordSecondVolume",
   "chordThirdVolume",
+  "gustLift",
 ]);
 
 /** How many times the design's number a slider runs to. */
