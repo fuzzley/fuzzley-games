@@ -90,6 +90,41 @@ describe("BoardInput", () => {
     });
   });
 
+  it("swaps nothing while a press runs short of a swipe", async () => {
+    const board = await startBoard(BOARD_FIXTURE);
+    const at = middleOf(board, B);
+
+    board.run.pointer("down", at.x, at.y);
+    board.run.pointer("move", at.x + pastSwipe(board) / 2, at.y);
+
+    expect(board.shell.commands).toEqual([
+      { what: "pick-up", square: B, mates: B_MATES },
+    ]);
+  });
+
+  it("swaps once for a press that swiped before it ends", async () => {
+    const board = await startBoard(BOARD_FIXTURE);
+    const at = middleOf(board, A);
+    board.run.pointer("down", at.x, at.y);
+    board.run.pointer("move", at.x + pastSwipe(board), at.y);
+    const handed = board.shell.commands.length;
+
+    board.run.pointer("up", at.x + pastSwipe(board), at.y);
+
+    expect(board.shell.commands.slice(handed)).toEqual([]);
+  });
+
+  it("swaps nothing as the mouse moves while a finger presses", async () => {
+    const board = await startBoard(BOARD_FIXTURE);
+    const at = middleOf(board, A);
+    board.run.touch("start", at.x, at.y);
+    const handed = board.shell.commands.length;
+
+    board.run.pointer("move", at.x + pastSwipe(board), at.y);
+
+    expect(board.shell.commands.slice(handed)).toEqual([]);
+  });
+
   it("sets off the special held at a tap on it", async () => {
     const board = await holdingSpecial();
 

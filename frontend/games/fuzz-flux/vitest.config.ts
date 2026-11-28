@@ -2,10 +2,18 @@ import { angularTests } from "@fz/dev/vitest";
 import { defineConfig } from "vitest/config";
 import { HELD_AS_RULES } from "./eslint.config.js";
 
-/** The floor of the rules and the view, near 100%, since each is a spec's picture of a board. */
-const PURE_FLOOR = {
+/** The floor of the rules, near 100%, since each is a spec's picture of a board, a little under their figures. */
+const RULES_FLOOR = {
   statements: 100,
-  branches: 95,
+  branches: 99.5,
+  functions: 100,
+  lines: 100,
+};
+
+/** The floor of the view, near 100% as the rules', a little under its figures. */
+const VIEW_FLOOR = {
+  statements: 100,
+  branches: 97,
   functions: 100,
   lines: 100,
 };
@@ -20,24 +28,24 @@ export default defineConfig(
     // A floor over a folder with no file yet holds nothing, and holds its
     // first file the moment it is written.
     thresholds: {
-      "src/rules/**": PURE_FLOOR,
-      "src/view/**": PURE_FLOOR,
+      "src/rules/**": RULES_FLOOR,
+      "src/view/**": VIEW_FLOOR,
       // The specs' helpers held as the rules are, at the rules' floor, each
       // from the change that adds it to the list in eslint.config.js.
-      ...Object.fromEntries(HELD_AS_RULES.map((file) => [file, PURE_FLOOR])),
-      // The scene and the shell at Brick Fuzz Pop's and Rickashay's floors,
-      // so a part without specs fails the run.
+      ...Object.fromEntries(HELD_AS_RULES.map((file) => [file, RULES_FLOOR])),
+      // The scene and the shell a little under their figures, so a part
+      // without specs fails the run.
       "src/scene/**": {
-        statements: 98,
-        branches: 92,
+        statements: 99.5,
+        branches: 99,
         functions: 100,
-        lines: 99,
+        lines: 99.5,
       },
       "src/app/**": {
-        statements: 98,
-        branches: 97,
-        functions: 97,
-        lines: 98,
+        statements: 99,
+        branches: 97.5,
+        functions: 99,
+        lines: 99.5,
       },
     },
     projects: {
@@ -50,7 +58,7 @@ export default defineConfig(
       // player to its floors, and time what a move runs, in a folder named
       // benchmarks in any layer, without the coverage that would slow them
       // several times over: the other specs alone hold the rules and the
-      // view to their floor.
+      // view to their floors.
       sim: [
         "src/rules/golden",
         "src/rules/levels/every_level",

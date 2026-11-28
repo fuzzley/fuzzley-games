@@ -14,7 +14,7 @@ import {
 import { FRAMES } from "../../view/art/frame_names";
 import { type Fluff, type TuftFlight, tuftAt } from "../../view/effects/tufts";
 import { FEEL } from "../../view/timeline/feel";
-import { lookAt } from "../../view/timeline/looks";
+import { RAISED, lookAt } from "../../view/timeline/looks";
 import type {
   LooseDrawn,
   Look,
@@ -275,6 +275,21 @@ describe("LoosePainter's fluff", () => {
     playTo(board, drawnPlay({}), 16);
 
     expect(bitsShown(board)).toHaveLength(6);
+  });
+
+  it("draws a tuft under the pieces in a bit that last drew a loose frame raised over them", async () => {
+    const board = await boardOf(
+      looseTrackOf(
+        { what: "frame", frame: FRAMES.cageBar },
+        { raise: RAISED.top },
+      ),
+    );
+
+    playTo(board, drawnPlay({ effects: [FLUFF] }), 16);
+
+    expect(bitsShown(board).map(({ depth }) => depth)).toEqual(
+      Array<number>(6).fill(0),
+    );
   });
 
   it("draws a loose frame in its own colors in a bit that last drew a tuft", async () => {

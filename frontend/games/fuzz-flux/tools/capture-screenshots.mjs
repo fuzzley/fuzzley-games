@@ -200,7 +200,7 @@ export function swapArrow(from, to, across) {
  * @param {number} framesIn
  * @returns {Promise<HeldMove>}
  */
-async function makeMove(key, move, framesBefore, framesIn) {
+export async function makeMove(key, move, framesBefore, framesIn) {
   const board = document.querySelector("app-board");
   /** @type {SteadyClock} */
   const clock = Reflect.get(window, "steadyClock");

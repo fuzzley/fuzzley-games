@@ -61,6 +61,19 @@ describe("HandPainter", () => {
     expect(again.scene.hand.image.x).toBeCloseTo(once.scene.hand.image.x, 9);
   });
 
+  it("hides the hand while its timeline shows it not", async () => {
+    const board = await startBoard(MOVE_FIXTURES.bunch);
+    const sprite = itemAt(HAND.sprites, 0);
+    board.shell.handShown = {
+      ...HAND,
+      sprites: [{ ...sprite, fromMs: SLIDING_MS + 160 }],
+    };
+
+    board.run.advance(SLIDING_MS + 16);
+
+    expect(board.scene.hand.image.visible).toBe(false);
+  });
+
   it("hides the hand once the shell hands none", async () => {
     const board = await handedBoard(SLIDING_MS);
 

@@ -1,14 +1,29 @@
 import { SIM_TIMEOUT_MS } from "@fz/core/testing";
-import { DESIGN_SETS } from "../../../testing/design_files";
+import { DESIGN_SETS, designText } from "../../../testing/design_files";
 import { CLEARS_ASKED, REPORT_API, askOf } from "../../../testing/report_api";
 import { LEVELS, type LevelEntry } from "../levels";
 
 /**
- * How many points from what a level asks the casual player may clear it,
- * on its deals, in whole times in 100: the design's 4, found on the
- * sketch's table, which rounds them so.
+ * Returns how many points from what a level asks the design's table of
+ * findings lets the casual player clear it, or throws where it says none.
  */
-const LEEWAY = 4;
+function leewayOf(design: string): number {
+  const points =
+    /\| The casual player clears, on each level's \d+ deals +\| Within (?<points>\d+) points of what the level asks/u.exec(
+      design,
+    )?.groups?.["points"];
+  if (points === undefined) {
+    throw new Error("The design's findings give the casual player no leeway.");
+  }
+  return Number(points);
+}
+
+/**
+ * How many points from what a level asks the casual player may clear it,
+ * on its deals, in whole times in 100: the design's, as its table of
+ * findings says, found on the sketch's table, which rounds them so.
+ */
+const LEEWAY = leewayOf(designText("design.md"));
 
 /**
  * Returns how many whole times in 100 the casual player clears a level on
