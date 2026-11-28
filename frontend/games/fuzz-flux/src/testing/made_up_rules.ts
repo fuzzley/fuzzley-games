@@ -1,13 +1,12 @@
 // Elements' rules for specs, so a spec can play a moment of a move with an
 // element that takes part in it, or with none: none at all, the parts of
 // each element's own rule that hold pieces and count goals, or every
-// element's own rule whole; and the wind's, made up as the design's sketch
-// plays it.
+// element's own rule whole; and the wind's own.
 
 import { pick, recordOf } from "@fz/core/records";
 import { ELEMENT_IDS, type ElementId } from "../rules/catalog/elements";
 import type { ElementRule, WindRule } from "../rules/elements/element_rule";
-import { ELEMENT_RULES } from "../rules/elements/element_rules";
+import { ELEMENT_RULES, WIND_RULE } from "../rules/elements/element_rules";
 
 /** Every element's rule taking part in no moment of a move. */
 export const NO_PART: Readonly<Record<ElementId, ElementRule>> = recordOf(
@@ -52,14 +51,5 @@ export const DESIGN_HOLDS_AND_GOALS: Readonly<Record<ElementId, ElementRule>> =
 export const DESIGN_PARTS: Readonly<Record<ElementId, ElementRule>> =
   ELEMENT_RULES;
 
-/**
- * The wind's rule as the design's sketch plays it: after each move a
- * turning wind waits a move less, and once it has waited its moves it
- * turns the board's frame its quarters and begins its wait again.
- */
-export const DESIGN_WIND: WindRule = {
-  afterMove: (wind) =>
-    wind.wait > 1
-      ? { wind: { ...wind, wait: wind.wait - 1 }, quarters: 0 }
-      : { wind: { ...wind, wait: wind.every }, quarters: wind.quarters },
-};
+/** The wind's own rule, as the game plays it. */
+export const DESIGN_WIND: WindRule = WIND_RULE;

@@ -58,6 +58,20 @@ describe("PLAYABLE_LEVELS", () => {
     );
   });
 
+  it("lets in every level of Windy days, each of whose elements has its rule and whose wind turns by its own", () => {
+    expect(playableIn("windy-days")).toEqual([
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+    ]);
+  });
+
   it("keeps out each level that brings in an element whose rule is still to come", () => {
     const strays = PLAYABLE_LEVELS.filter(({ level }) =>
       isOneOf(level.brings, STAND_INS),

@@ -1,10 +1,11 @@
 // Each element's rule, by its id, each written in a file of its own, and
 // the wind's. Every element's package has set its rule here and taken its
 // id off `STAND_INS`, so a level is played, and its golden games run, by
-// the rules of every element it holds. The wind's package sets its rule
+// the rules of every element it holds. The wind's package has set its rule
 // here the same way.
 
 import type { ElementId } from "../catalog/elements";
+import { GUST_RULE } from "../wind/gust";
 import { BRICK_RULE } from "./brick";
 import { BURR_RULE } from "./burr";
 import { CAGE_RULE } from "./cage";
@@ -24,5 +25,5 @@ export const ELEMENT_RULES = {
   burr: BURR_RULE,
 } as const satisfies Readonly<Record<ElementId, ElementRule>>;
 
-/** The wind's rule, the stand-in until its package brings it in: a wind that turns waits for good. */
-export const WIND_RULE: WindRule = {};
+/** The wind's rule, as its package brings it in: a wind that turns waits its moves, then turns. */
+export const WIND_RULE: WindRule = GUST_RULE;

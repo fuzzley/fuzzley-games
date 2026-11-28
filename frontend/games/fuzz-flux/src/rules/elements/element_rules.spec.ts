@@ -1,5 +1,6 @@
 import { isOneOf, keysOf } from "@fz/core/records";
 import { ELEMENT_IDS } from "../catalog/elements";
+import { GUST_RULE } from "../wind/gust";
 import { ELEMENT_RULES, STAND_INS, WIND_RULE } from "./element_rules";
 
 /** Every element brought in, its rule its own. */
@@ -24,7 +25,7 @@ describe("STAND_INS", () => {
 });
 
 describe("WIND_RULE", () => {
-  it("takes the wind's part in no move, as the stand-in", () => {
-    expect(WIND_RULE.afterMove).toBeUndefined();
+  it("plays the wind by the gust's rule", () => {
+    expect(WIND_RULE).toBe(GUST_RULE);
   });
 });
