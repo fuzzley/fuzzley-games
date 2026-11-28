@@ -29,7 +29,7 @@ look here first. When you settle a new one, add it.
 | Score                              | points in this game                                                           | Points (as a heading)           |
 | Best                               | the highest score or fastest time                                             | High score, Record              |
 | Lives                              | how many misses are left                                                      |                                 |
-| Level                              | a stage in Brick Breaker, Brick Fuzz Pop and Rickaashay                       | Stage, Round                    |
+| Level                              | a stage in Brick Breaker, Brick Fuzz Pop, Rickaashay and Fuzz Flux            | Stage, Round                    |
 | Wave, Sector                       | a stage and a group of stages in Asteroid Breaker                             |                                 |
 | game                               | one play from start to end                                                    | run                             |
 | shot                               | one launch of the fuzzball                                                    | flight, round                   |

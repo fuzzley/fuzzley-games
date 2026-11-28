@@ -14,8 +14,9 @@ Snake (`frontend/games/snake/`) is the small game to read first. Its board
 (`frontend/games/snake/src/app/board/board.component.ts`, with its template)
 shows a scene, and its scene (`frontend/games/snake/src/scene/snake_scene.ts`)
 does most of what this skill asks of one. Brick Breaker, Asteroid Breaker,
-Brick Fuzz Pop and Rickashay are laid out as Snake is, and bake their art
-into one atlas at run time (`frontend/games/brick-breaker/src/scene/atlas.ts`).
+Brick Fuzz Pop, Rickashay and Fuzz Flux are laid out as Snake is, and bake
+their art into one atlas at run time
+(`frontend/games/brick-breaker/src/scene/atlas.ts`).
 The Solitaire Collection is laid out its own way, which its
 `add-solitaire-game` skill covers.
 
@@ -415,7 +416,14 @@ testing skill has its fixtures.
   Fuzz Pop's, aimed with keys, the mouse, the wheel and fingers
   (`frontend/games/brick-fuzz-pop/src/scene/wall_scene.spec.ts`);
   Rickashay's, aimed with keys, the wheel and the pointer
-  (`frontend/games/rickashay/src/scene/rickashay_scene.spec.ts`); and the
+  (`frontend/games/rickashay/src/scene/rickashay_scene.spec.ts`); Fuzz
+  Flux's, its scene run for a fake shell
+  (`frontend/games/fuzz-flux/src/scene/fuzz_flux_scene.spec.ts`, on
+  `frontend/games/fuzz-flux/src/testing/scene_shell.ts`), swapped with
+  presses, swipes and keys
+  (`frontend/games/fuzz-flux/src/scene/board_input.spec.ts`), and drawn by
+  painters each specced on its own
+  (`frontend/games/fuzz-flux/src/scene/painters/`); and the
   Solitaire Collection's, its atlases served and loaded
   (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`).
 

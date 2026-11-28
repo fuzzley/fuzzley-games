@@ -148,7 +148,7 @@ export function categorize(entry) {
   if (
     /\/describe\.ts$/.test(file) ||
     /^(describe|say|move)[A-Za-z]*(\[\])?\(\)/.test(context) ||
-    /^(Asteroid Breaker|Brick Breaker|Brick Fuzz Pop|Minefield|Rickashay|Sudoku), /.test(
+    /^(Asteroid Breaker|Brick Breaker|Brick Fuzz Pop|Fuzz Flux|Minefield|Rickaashay|Rickashay|Sudoku), /.test(
       text,
     ) ||
     (/board\.component\.html$/.test(file) && wordCount(text) > 30) ||
