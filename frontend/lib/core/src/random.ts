@@ -81,6 +81,20 @@ export function hashOf(a: number, b: number, c: number, d: number): number {
   return (h ^ (h >>> 14)) >>> 0;
 }
 
+/**
+ * Returns a share from 0 up to 1 for four whole numbers, the same every
+ * time: {@link hashOf}'s number for them over 2³², so it keeps its place
+ * whatever else a move drew, as that does.
+ */
+export function hashShareOf(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+): number {
+  return hashOf(a, b, c, d) / 2 ** 32;
+}
+
 /** Returns a seed for a new deal. */
 export function randomSeed(random: () => number = Math.random): number {
   return Math.floor(random() * 2 ** 32) | 0;

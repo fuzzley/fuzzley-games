@@ -6,7 +6,7 @@
 
 import { clamp, lerp } from "@fz/core/math";
 import { type Shift, shakeOf } from "@fz/core/motion";
-import { hashOf } from "@fz/core/random";
+import { hashShareOf } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import { curveAt } from "./curve";
@@ -131,12 +131,9 @@ export function sampleFlight(
 /** How a sprite looks standing still, which a flight's copy moves on from. */
 const STILL: Look = lookAt({ x: 0, y: 0 });
 
-/** How far a share of the whole a hash can reach, 2 to the 32nd, past its largest. */
-const HASHES = 2 ** 32;
-
 /** Returns how far a flight bows, in squares, to the right of its way for more than 0: its own, the same every time, within the feel's spread. */
 function bendOf(flight: Flight, feel: FeelTuning): number {
-  const share = hashOf(flight.drawn.id, flight.atMs, flight.goal, 0) / HASHES;
+  const share = hashShareOf(flight.drawn.id, flight.atMs, flight.goal, 0);
   return (share - 0.5) * feel.flightBendSpread;
 }
 

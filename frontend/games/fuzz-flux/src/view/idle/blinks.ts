@@ -1,16 +1,13 @@
 // A fuzzball's blinks between moves and through them: each blinks every
-// so often, at moments its id and the time choose through `hashOf()`, so a
-// frame is a time, the board blinks alike on every run, and no two
-// fuzzballs keep step.
+// so often, at moments its id and the time choose through
+// `hashShareOf()`, so a frame is a time, the board blinks alike on every
+// run, and no two fuzzballs keep step.
 
-import { hashOf } from "@fz/core/random";
+import { hashShareOf } from "@fz/core/random";
 import type { FeelTuning } from "../timeline/feel";
 import type { Sampled } from "../timeline/timeline";
 
-/** How far a hash can reach, 2 to the 32nd, past its largest. */
-const HASHES = 2 ** 32;
-
-/** What each draw a fuzzball's blinks take from `hashOf()` is for, as its third number. */
+/** What each draw a fuzzball's blinks take from `hashShareOf()` is for, as its third number. */
 const DRAWS = {
   /** Where its stretches of time start, apart from every other fuzzball's. */
   start: 0,
@@ -70,5 +67,5 @@ function stretchMsOf(feel: FeelTuning): number {
 
 /** Returns a share from 0 up to 1 for a fuzzball, a stretch of its time and what the draw is for, the same every time. */
 function shareOf(id: number, stretch: number, draw: number): number {
-  return hashOf(id, stretch, draw, 0) / HASHES;
+  return hashShareOf(id, stretch, draw, 0);
 }

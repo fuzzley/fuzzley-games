@@ -8,7 +8,7 @@
 // the bars are hard bits, not the fluff it cuts, and the stretch is no hop
 // of the whole board.
 
-import { hashOf } from "@fz/core/random";
+import { hashShareOf } from "@fz/core/random";
 import type { Fuzzball } from "../../../rules/catalog/pieces";
 import { isCaged } from "../../../rules/elements/cage";
 import { FRAMES } from "../../art/frame_names";
@@ -25,9 +25,6 @@ import type { WavePlay } from "../wave_play";
 interface Caged extends Standing {
   readonly piece: Fuzzball;
 }
-
-/** How far a hash can reach, 2 to the 32nd, past its largest. */
-const HASHES = 2 ** 32;
 
 /**
  * Returns the parts of a cage a blast opens, as its hit lands: the cage
@@ -122,7 +119,7 @@ function bitsOf(
     const from = { x: at.x + out * feel.cageBitGapSquares, y: at.y };
     const rise =
       feel.cageBitRise +
-      (hashOf(piece.id, bit, 0, 0) / HASHES) * feel.cageBitRiseSpread;
+      hashShareOf(piece.id, bit, 0, 0) * feel.cageBitRiseSpread;
     return {
       drawn: { what: "frame", frame: FRAMES.cageBar },
       fromMs: atMs,

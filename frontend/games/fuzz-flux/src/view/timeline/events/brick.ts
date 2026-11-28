@@ -8,7 +8,7 @@
 // cushion fades where it lies, the pile takes its new shape with no duck
 // and no spring, and the last cushion bursts with no swell.
 
-import { hashOf } from "@fz/core/random";
+import { hashShareOf } from "@fz/core/random";
 import { squareOf } from "../../../rules/board/cells";
 import type { BrickLayers } from "../../../rules/catalog/elements";
 import {
@@ -39,13 +39,10 @@ const KNOCK_SOUNDS = {
   3: "knock-3",
 } as const satisfies Readonly<Record<Exclude<BrickLayers, 4>, SoundName>>;
 
-/** What each of a hit's draws from `hashOf()` is for, as its third number. */
+/** What each of a hit's draws from `hashShareOf()` is for, as its third number. */
 const DRAWS = { aside: 1, spin: 2 } as const satisfies Readonly<
   Record<string, number>
 >;
-
-/** How far a hash can reach, 2 to the 32nd, past its largest. */
-const HASHES = 2 ** 32;
 
 /** Describes something thrown off a brick: from where and when, how fast aside and up, in squares a second, and for how long. */
 interface Throw {
@@ -328,5 +325,5 @@ function sideOf(piece: number): number {
 
 /** Returns a share from 0 up to 1 for a draw a hit on a brick makes, by the brick, its layers and what the draw is for, the same every time. */
 function drawOf(piece: number, layers: number, what: number): number {
-  return hashOf(piece, layers, what, 0) / HASHES;
+  return hashShareOf(piece, layers, what, 0);
 }

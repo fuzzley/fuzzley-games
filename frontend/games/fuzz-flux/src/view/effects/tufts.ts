@@ -5,7 +5,7 @@
 // its place in it, and where it is is worked out from the time since it
 // flew, so a frame is a time, the same on every run and at any frame rate.
 
-import { hashOf } from "@fz/core/random";
+import { hashOf, hashShareOf } from "@fz/core/random";
 import type { FeelTuning } from "../timeline/feel";
 import type { Effect } from "../timeline/timeline";
 
@@ -28,7 +28,7 @@ export interface TuftFlight {
   frizzy: boolean;
 }
 
-/** What each of a tuft's draws from `hashOf()` is for, as its second number. */
+/** What each of a tuft's draws from `hashShareOf()` is for, as its second number. */
 const DRAWS = {
   way: 1,
   speed: 2,
@@ -37,9 +37,6 @@ const DRAWS = {
   length: 5,
   life: 6,
 } as const satisfies Readonly<Record<string, number>>;
-
-/** How far a hash can reach, 2 to the 32nd, past its largest. */
-const HASHES = 2 ** 32;
 
 /** How many parts of a square a fluff's place is counted to, as its draws are seeded by it. */
 const PLACE_PARTS = 64;
@@ -131,5 +128,5 @@ export function tuftAt(
 
 /** Returns a share from 0 up to 1 for a tuft, by its seed and what the draw is for, the same every time. */
 function drawOf(seed: number, what: number): number {
-  return hashOf(seed, what, 0, 0) / HASHES;
+  return hashShareOf(seed, what, 0, 0);
 }

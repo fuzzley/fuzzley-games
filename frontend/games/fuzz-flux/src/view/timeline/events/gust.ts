@@ -1,12 +1,12 @@
 // A gust: the wind turning after a move. Lines of wind cross the board the
 // way it now blows, each setting out from a place and at a moment drawn by
-// `hashOf()`, so a gust plays alike every time; and each fuzzball leans
+// `hashShareOf()`, so a gust plays alike every time; and each fuzzball leans
 // with the gust as it reaches it, from the edge the wind blows from, its
 // fur lifting, then springs back. The board waits for the gust before the
 // waves its turn sets off. With Less motion the lines still cross, and
 // nothing leans. The wind shows turned as the gust sets in.
 
-import { hashOf } from "@fz/core/random";
+import { hashShareOf } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
 import { WINDS, type Wind } from "../../../rules/board/board";
 import type { Gust } from "../../../rules/move/record";
@@ -17,10 +17,7 @@ import { everyStanding } from "../standing";
 import type { Place } from "../timeline";
 import { WAYS } from "./fall";
 
-/** How far a hash can reach, 2 to the 32nd, past its largest. */
-const HASHES = 2 ** 32;
-
-/** What each of a line's draws from `hashOf()` is for, as its fourth number. */
+/** What each of a line's draws from `hashShareOf()` is for, as its fourth number. */
 const DRAWS = {
   across: 0,
   down: 1,
@@ -47,7 +44,7 @@ export function gustCrosses(gust: Gust, play: AfterPlay): readonly Part[] {
 function linesOf(gust: Gust, blows: Wind, play: AfterPlay): readonly Part[] {
   const { atMs, feel, grid } = play;
   const share = (line: number, draw: number): number =>
-    hashOf(gust.turns, Math.round(atMs), line, draw) / HASHES;
+    hashShareOf(gust.turns, Math.round(atMs), line, draw);
   return Array.from({ length: feel.gustLines }, (_, line) =>
     spawns({
       what: "gust-line",

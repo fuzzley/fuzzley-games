@@ -3,6 +3,7 @@ import {
   createRandom,
   drawAt,
   hashOf,
+  hashShareOf,
   mixSeed,
   randomSeed,
   shuffled,
@@ -138,6 +139,23 @@ describe("hashOf", () => {
     expect(
       hashed.every((h) => Number.isInteger(h) && h >= 0 && h < 2 ** 32),
     ).toBe(true);
+  });
+});
+
+describe("hashShareOf", () => {
+  it.each(HASH_PINS)(
+    "keeps the share of the sketch's number for %j, the number over 2³²",
+    ([a, b, c, d], hashed) => {
+      expect(hashShareOf(a, b, c, d)).toBe(hashed / 2 ** 32);
+    },
+  );
+
+  it("gives a share from 0 up to 1, never 1", () => {
+    const shares = Array.from({ length: 1000 }, (_, n) =>
+      hashShareOf(n * 7919, -n, n, 2 ** 31 + n),
+    );
+
+    expect(shares.every((share) => share >= 0 && share < 1)).toBe(true);
   });
 });
 
