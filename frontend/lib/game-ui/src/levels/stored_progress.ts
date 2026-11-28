@@ -4,13 +4,7 @@ import {
   clearedOf,
   isOpen as isLevelOpen,
 } from "@fz/core/levels";
-import { storedSignal } from "@fz/ui/storage";
-
-/** Says where a game keeps an entry: its key, which renaming loses every player's, and the shape it is kept in, a reader dropping any other. */
-export interface StoredAt {
-  readonly key: string;
-  readonly version: number;
-}
+import { type StoredAt, storedSignal } from "@fz/ui/storage";
 
 /**
  * Keeps the levels a game's player has cleared, which open the levels

@@ -6,8 +6,8 @@
 import { type Signal, type WritableSignal, computed } from "@angular/core";
 import type { IdentifiedLevel } from "@fz/core/levels";
 import type { RunStage } from "@fz/core/run";
-import type { StoredAt } from "@fz/game-ui/levels";
 import {
+  type StoredAt,
   type StoredFields,
   type Unversioned,
   keepSaved,

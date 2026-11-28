@@ -7,4 +7,4 @@ export {
   type OfferedLevel,
   type OfferedSet,
 } from "./levels.component";
-export { type StoredAt, StoredProgress } from "./stored_progress";
+export { StoredProgress } from "./stored_progress";

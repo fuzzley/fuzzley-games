@@ -10,13 +10,10 @@ import {
   type StoredFields,
   type Unversioned,
 } from "./local_storage.service";
+import type { StoredAt } from "./stored_at";
 
 /** Says where a game under way is kept, and how it is written and taken up. */
-export interface KeepSavedOptions {
-  /** The key the game is kept under. Renaming it loses every player's. */
-  readonly key: string;
-  /** The shape the game is kept in; an entry of any other is read as none. */
-  readonly version: number;
+export interface KeepSavedOptions extends StoredAt {
   /** Returns the fields to keep, or null to forget what was kept. */
   readonly save: () => Unversioned | null;
   /** Takes up what was kept, its fields as stored, unchecked. */

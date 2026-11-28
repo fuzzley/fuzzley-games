@@ -10,13 +10,10 @@ import {
   type StoredFields,
   type Unversioned,
 } from "./local_storage.service";
+import type { StoredAt } from "./stored_at";
 
 /** Says where a stored signal keeps its value, and how it reads it back. */
-export interface StoredSignalOptions<T> {
-  /** The key the value is kept under. Renaming it loses what every player kept. */
-  readonly key: string;
-  /** The shape the value is kept in; an entry of any other is read as none. */
-  readonly version: number;
+export interface StoredSignalOptions<T> extends StoredAt {
   /**
    * Returns the value from what was stored, or the value a player starts
    * with from null, where nothing of this version was, or it was corrupt.

@@ -5,6 +5,7 @@ export {
   type StoredFields,
   type Unversioned,
 } from "./local_storage.service";
+export { type StoredAt } from "./stored_at";
 export {
   type StoredSignalOptions,
   type StoredSignalWriting,
