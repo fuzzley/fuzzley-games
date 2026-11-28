@@ -49,6 +49,14 @@
   margin: 0;
   padding: 0;
   list-style: none;
+
+  // A grid of one, which stretches its tile to the cell, so the tiles of a
+  // row stand as tall as the tallest, and keeps it in the cell whatever
+  // its words.
+  > li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .level {
