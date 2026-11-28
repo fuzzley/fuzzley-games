@@ -73,6 +73,8 @@ export interface BoardPalette extends PieceInks {
    * light one, as the design's art draws it.
    */
   readonly nightcapTrim: number;
+  /** A line of wind a gust sends across the board: the muted text, as the sketch draws it. */
+  readonly gust: number;
 }
 
 /**
@@ -132,6 +134,7 @@ export function boardPalette(roles: BoardRoles, mode: ColorMode): BoardPalette {
     marks: text,
     flare: text,
     nightcapTrim: text,
+    gust: muted,
     ...pieceInks(mode),
   };
 }

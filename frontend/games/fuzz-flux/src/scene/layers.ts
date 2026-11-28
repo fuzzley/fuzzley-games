@@ -8,9 +8,10 @@
  * hides each such piece until it reaches the board; the pieces on the
  * board, which nothing clips, as a special swells and stretches past its
  * edge, with the board's dimming among them; the rings, the dashers'
- * streaks, the frizzballs' bolts and the flash; the waves' marks; the
- * loose bits a move throws about; the fuzzballs' copies flying to their
- * goals, as the sketch draws them; and the hint's hand, over them all.
+ * streaks, the frizzballs' bolts and the flash; a gust's lines of wind;
+ * the waves' marks; the loose bits a move throws about; the fuzzballs'
+ * copies flying to their goals, as the sketch draws them; and the hint's
+ * hand, over them all.
  */
 export const LAYERS = [
   "squares",
@@ -23,6 +24,7 @@ export const LAYERS = [
   "streaks",
   "bolts",
   "flash",
+  "gusts",
   "marks",
   "loose",
   "flights",

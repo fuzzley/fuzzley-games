@@ -15,6 +15,12 @@ import {
   ringRadius,
   streakAt,
 } from "../../view/effects/flourishes";
+import {
+  type GustLine,
+  type GustLineRun,
+  LONGEST_GUST_LINE,
+  gustLineAt,
+} from "../../view/effects/gust_line";
 import { POOLS } from "../../view/timeline/limits";
 import type { Ink } from "../../view/timeline/timeline";
 import { ATLAS } from "../atlas";
@@ -67,6 +73,14 @@ interface Flash extends Playing {
   radius: number;
 }
 
+/** Describes a line of wind crossing, from its moment on the scene's clock. */
+interface GustLineShown extends Playing {
+  /** The line's frame, shown until it has crossed. */
+  readonly image: GameObjects.Image;
+  /** The line as the timeline spawned it, or null before one first crosses. */
+  line: GustLine | null;
+}
+
 /**
  * Draws the effects a move spawns, each from its moment, playing out by
  * itself, from pools as large as the timeline's limits let show at once,
@@ -74,8 +88,10 @@ interface Flash extends Playing {
  * plays on: each ring a stroke of one `Graphics`, spreading and thinning
  * in its ink; each dasher's streak tinted in its ink and shown only from
  * where it set out to a little past the board's edge; each frizzball's
- * bolt of static, stretched from it to what it strikes and flickering; and
- * each flash, an image of the soft disc in the effects' white.
+ * bolt of static, stretched from it to what it strikes and flickering;
+ * each flash, an image of the soft disc in the effects' white; and each
+ * line of wind, set along the way the wind blows, as long and as faded as
+ * it is a share through its crossing.
  */
 export class EffectsPainter implements Painter {
   /** The rings spreading, and those spread. */
@@ -88,6 +104,8 @@ export class EffectsPainter implements Painter {
   readonly bolts: Turns<Bolt>;
   /** The flashes fading, and those gone. */
   readonly flashes: Turns<Flash>;
+  /** The lines of wind crossing, and those crossed. */
+  readonly gustLines: Turns<GustLineShown>;
   /** Whether the frame before stroked a ring, which this one clears. */
   private ringsStroked = false;
   /** Where the streak being drawn has run, written for each. */
@@ -98,6 +116,14 @@ export class EffectsPainter implements Painter {
     behind: 0,
     ahead: 0,
   };
+  /** Where the line of wind being drawn has crossed to, written for each. */
+  private readonly crossed: GustLineRun = {
+    x: 0,
+    y: 0,
+    angle: 0,
+    length: 0,
+    alpha: 0,
+  };
 
   /** Makes every effect's images, hidden, in their layers. */
   constructor(
@@ -107,6 +133,7 @@ export class EffectsPainter implements Painter {
       readonly streaks: GameObjects.Layer;
       readonly bolts: GameObjects.Layer;
       readonly flash: GameObjects.Layer;
+      readonly gusts: GameObjects.Layer;
     },
   ) {
     const unplayed = { at: Number.NEGATIVE_INFINITY, x: 0, y: 0 };
@@ -145,6 +172,11 @@ export class EffectsPainter implements Painter {
       ms: 1,
       radius: 0,
     }));
+    this.gustLines = new Turns(POOLS["gust-line"], () => ({
+      ...unplayed,
+      image: image(layers.gusts, ATLAS, FRAMES.gustLine),
+      line: null,
+    }));
   }
 
   /** Starts each effect whose moment comes in the frame, and draws every effect showing as it stands. */
@@ -154,9 +186,10 @@ export class EffectsPainter implements Painter {
     this.drawStreaks(context);
     this.drawBolts(context);
     this.drawFlashes(context);
+    this.drawGustLines(context);
   }
 
-  /** Starts each ring, streak, bolt and flash of the play's timeline whose moment comes in the frame. */
+  /** Starts each ring, streak, bolt, flash and line of wind of the play's timeline whose moment comes in the frame. */
   private start({ play, clock }: Readonly<PaintContext>): void {
     const { effects } = play.timeline;
     for (let index = 0; index < effects.length; index++) {
@@ -192,11 +225,15 @@ export class EffectsPainter implements Painter {
           flash.image.setVisible(true);
           break;
         }
-        // Fluff is the loose painter's, and a shake the camera's. A gust's
-        // lines have no painter yet: the wind's package draws them.
+        case "gust-line": {
+          const shown = this.gustLines.play(effect.at.x, effect.at.y, at);
+          shown.line = effect;
+          shown.image.setVisible(true);
+          break;
+        }
+        // Fluff is the loose painter's, and a shake the camera's.
         case "fluff":
         case "shake":
-        case "gust-line":
           break;
       }
     }
@@ -324,6 +361,29 @@ export class EffectsPainter implements Painter {
         .setPosition(acrossOf(metrics, x), downOf(metrics, y))
         .setScale((2 * radius * metrics.square) / DISC.size)
         .setAlpha(flashAlpha(done));
+    }
+  }
+
+  /** Draws every line of wind at the frame's moment, as far on, as long and as faded as it is through its crossing, and hides each that has crossed. */
+  private drawGustLines(context: Readonly<PaintContext>): void {
+    const { clock, metrics } = context;
+    const { crossed } = this;
+    const scale = shownScale(context);
+    const all = this.gustLines.all;
+    for (let index = 0; index < all.length; index++) {
+      const { image, line, at } = itemAt(all, index);
+      if (!image.visible || line === null) continue;
+      const done = (clock.nowMs - at) / line.ms;
+      if (done >= 1) {
+        image.setVisible(false);
+        continue;
+      }
+      gustLineAt(line, done, crossed);
+      image
+        .setPosition(acrossOf(metrics, crossed.x), downOf(metrics, crossed.y))
+        .setRotation(crossed.angle)
+        .setScale((scale * crossed.length) / LONGEST_GUST_LINE, scale)
+        .setAlpha(crossed.alpha);
     }
   }
 }

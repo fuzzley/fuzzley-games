@@ -9,7 +9,7 @@ import {
   ART_SCALE,
   SMALLEST_SCALE,
 } from "../../testing/art_frames";
-import { FRAMES, FRAME_NAMES } from "./frame_names";
+import { FRAME_NAMES } from "./frame_names";
 import { atlasFrames, bakedScale } from "./frames";
 
 /** The side of a page of the atlas's budget. */
@@ -56,12 +56,12 @@ describe("atlasFrames", () => {
     });
   });
 
-  it("leaves the frames an element's own package draws empty until it does", () => {
+  it("draws something in every frame", () => {
     const empty = atlasFrames(ART_PALETTE, ART_SCALE)
       .filter(({ commands }) => commands.length === 0)
       .map(({ name }) => name);
 
-    expect(empty).toEqual([FRAMES.gustLine]);
+    expect(empty).toEqual([]);
   });
 
   it(`fits the atlas at its largest, at a pixel ratio of 3, in the room of ${String(PAGES)} pages of ${String(PAGE)} × ${String(PAGE)}`, () => {

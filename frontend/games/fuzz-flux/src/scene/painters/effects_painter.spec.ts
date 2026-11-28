@@ -18,6 +18,7 @@ import {
   ringLine,
   ringRadius,
 } from "../../view/effects/flourishes";
+import { LONGEST_GUST_LINE, gustLineAt } from "../../view/effects/gust_line";
 import type { Effect } from "../../view/timeline/timeline";
 import { DISC } from "../disc";
 
@@ -84,6 +85,15 @@ const FLASH: Effect = {
   at: { x: 1, y: 1 },
   radius: 1.5,
 };
+
+/** A line of wind blowing down from the middle square, crossing in 520 ms. */
+const GUST_LINE = {
+  what: "gust-line",
+  atMs: 0,
+  ms: 520,
+  at: { x: 1, y: 1 },
+  blows: "down",
+} as const satisfies Effect;
 
 describe("EffectsPainter's rings", () => {
   it("strokes a ring from its place, in its ink, as far spread, as thin and as faded as it is a share through its time", async () => {
@@ -231,6 +241,38 @@ describe("EffectsPainter's flash", () => {
     const board = await boardPlaying([FLASH], 112);
 
     expect(shownIn(board.scene.effects.flashes.all)).toEqual([]);
+  });
+});
+
+describe("EffectsPainter's lines of wind", () => {
+  it("sets a line of wind along the way the wind blows, as far on, as long and as faded as it is a share through its crossing", async () => {
+    const board = await boardPlaying([GUST_LINE], 256);
+    const [image] = shownIn(board.scene.effects.gustLines.all);
+    const crossed = gustLineAt(GUST_LINE, 256 / 520, {
+      x: 0,
+      y: 0,
+      angle: 0,
+      length: 0,
+      alpha: 0,
+    });
+
+    expect({
+      at: [image?.x, image?.y],
+      rotation: image?.rotation,
+      scaleX: image?.scaleX,
+      alpha: image?.alpha,
+    }).toEqual({
+      at: canvasOf(board, crossed.x, crossed.y),
+      rotation: expect.closeTo(Math.PI / 2, 9) as number,
+      scaleX: expect.closeTo(crossed.length / LONGEST_GUST_LINE, 9) as number,
+      alpha: expect.closeTo(crossed.alpha, 9) as number,
+    });
+  });
+
+  it("lets a line of wind go once it has crossed", async () => {
+    const board = await boardPlaying([GUST_LINE], 528);
+
+    expect(shownIn(board.scene.effects.gustLines.all)).toEqual([]);
   });
 });
 

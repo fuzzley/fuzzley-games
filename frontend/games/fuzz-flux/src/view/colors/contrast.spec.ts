@@ -38,6 +38,9 @@ const EYES = colorNumber(FUZZBALL.ink);
 // streak's and a flash's light, keeps it against the grounds it spreads
 // over. A cage's bar flying off as it opens is its frame's steel, which
 // keeps it against the grounds it flies over, as the bars' ink would not.
+// So does a line of wind, in the muted text. It crosses them faded, which
+// is enough, since a player reads the wind by the bar's arrow and needn't
+// tell a line apart.
 //
 // A kind keeps less against its second fur, about 2:1 in a light palette
 // and as little as 1.25:1 in a dark one, as the design's art mixes the fur:
@@ -125,6 +128,7 @@ describe("the board's contrast", () => {
       ["hint's hand", palette.marks],
       ["wave's mark", palette.marks],
       ["effects' white", palette.flare],
+      ["line of wind", palette.gust],
     ];
     return [
       ...grounds.flatMap(([ground, color]) => against(ground, color, pieces)),

@@ -58,6 +58,10 @@ describe("boardPalette", () => {
     expect(boardPalette(ROLES, "light").marks).toBe(0x101010);
   });
 
+  it("draws a line of wind in the muted text", () => {
+    expect(boardPalette(ROLES, "dark").gust).toBe(0x707070);
+  });
+
   it.each(["light", "dark"] as const)(
     "trims the sleepyhead's nightcap in the text in a %s palette",
     (mode) => {
