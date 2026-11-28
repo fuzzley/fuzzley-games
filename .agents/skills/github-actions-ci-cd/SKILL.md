@@ -38,12 +38,13 @@ the Yarn it downloads and Yarn's package cache, each restored with
    7 (`@fz/dev`'s `tsc7`), which checks the whole of each cold faster than
    TypeScript 6 checked what changed, so nothing is cached.
 4. **`test`** — the tests with each workspace's coverage floors
-   (`test:coverage`), through `frontend/tools/run-tests.mjs`, in three
-   jobs of about the same length: Asteroid Breaker and Brick Breaker, then
-   Brick Fuzz Pop, the Solitaire Collection and Rickashay, each job's
-   suites one after the other with all four cores (`--only … --jobs 1`),
-   and every other workspace four at a time (`--except …`), where a
-   workspace added later lands.
+   (`test:coverage`), through `frontend/tools/run-tests.mjs`, in four
+   jobs, so that none runs much longer than Asteroid Breaker and Brick
+   Breaker's. Three run their suites one after the other with all four
+   cores (`--only … --jobs 1`): Asteroid Breaker and Brick Breaker; Brick
+   Fuzz Pop, the Solitaire Collection and Rickashay; and Fuzz Flux. The
+   fourth runs every other workspace four at a time (`--except …`), where
+   a workspace added later lands.
 5. **`build`** — `yarn build`, which builds the games in
    `frontend/games/` and copies the ones `frontend/site/games.json` lists
    into the site, then `yarn check:layout`, which opens each game's build

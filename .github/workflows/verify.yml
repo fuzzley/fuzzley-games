@@ -110,12 +110,13 @@ jobs:
         working-directory: frontend
         run: yarn typecheck
 
-  # The tests with coverage, failing below each workspace's floors, in three
-  # parts of about the same length: the five longest suites, two on one
-  # runner and three on another, each with all its cores, one after the
-  # other, and every other workspace, four at a time, so a workspace added
-  # later lands there. The last part leaves out exactly the five the first
-  # two name, or a suite would run twice or nowhere.
+  # The tests with coverage, failing below each workspace's floors, in four
+  # parts, so that none runs much longer than Asteroid Breaker and Brick
+  # Breaker's: the six longest suites, two on one runner, three on another
+  # and Fuzz Flux's alone on a third, each with all its cores, and every
+  # other workspace, four at a time, so a workspace added later lands there.
+  # The last part leaves out exactly the six the first three name, or a
+  # suite would run twice or nowhere.
   test:
     needs: changes
     if: needs.changes.outputs.code == 'true'
@@ -130,8 +131,10 @@ jobs:
             args: --only asteroid-breaker,brick-breaker --jobs 1
           - part: brick-fuzz-pop, solitaire, rickashay
             args: --only brick-fuzz-pop,solitaire,rickashay --jobs 1
+          - part: fuzz-flux
+            args: --only fuzz-flux --jobs 1
           - part: the rest
-            args: --except solitaire,brick-breaker,asteroid-breaker,brick-fuzz-pop,rickashay
+            args: --except solitaire,brick-breaker,asteroid-breaker,brick-fuzz-pop,rickashay,fuzz-flux
 
     steps:
       - name: Checkout fuzzley-games
