@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import {
   mkdir,
@@ -10,6 +10,8 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 import {
   MUTANT_LIMIT_MS,
   type Mutant,
@@ -932,15 +934,24 @@ describe("runUntil", () => {
     );
   });
 
-  it("leaves no timer behind once its command ends", async () => {
+  // Vitest's own timers share this worker, so only a process of its own
+  // shows that `runUntil()` left none.
+  it("leaves no timer behind once its command ends, so a script that ran it ends too", async () => {
     const { command, folder } = await nodeRunning("process.exit(0);");
-    const timers = (): number =>
-      process.getActiveResourcesInfo().filter((kind) => kind === "Timeout")
-        .length;
-    const before = timers();
+    const mutants = pathToFileURL(join(import.meta.dirname, "mutants.ts"));
+    const script = [
+      `import { runUntil } from ${JSON.stringify(mutants.href)};`,
+      `const end = await runUntil(${JSON.stringify(command)}, ${JSON.stringify(folder)}, 60_000, new AbortController().signal);`,
+      "process.stdout.write(end);",
+    ].join("\n");
 
-    await runUntil(command, folder, 60_000, new AbortController().signal);
+    // A timer left behind would hold the script for the minute, past this.
+    const { stdout } = await promisify(execFile)(
+      process.execPath,
+      ["--input-type=module", "--eval", script],
+      { timeout: 20_000 },
+    );
 
-    expect(timers()).toBe(before);
-  });
+    expect(stdout).toBe("passed");
+  }, 30_000);
 });
