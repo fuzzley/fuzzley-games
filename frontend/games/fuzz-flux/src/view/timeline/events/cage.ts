@@ -18,7 +18,8 @@ import type { HitOf } from "../hits";
 import { lookAt, restingFace } from "../looks";
 import { type Part, cue, facing, facingAgain, moves } from "../part";
 import { type Standing, standingOn } from "../standing";
-import type { Easing, Key, SpriteTrack } from "../timeline";
+import { thrownKeys } from "../thrown";
+import type { SpriteTrack } from "../timeline";
 import type { WavePlay } from "../wave_play";
 
 /** Describes a caged fuzzball where it stands. */
@@ -99,21 +100,17 @@ function opened(caged: Caged, atMs: number, feel: FeelTuning): readonly Part[] {
 
 /**
  * Returns the bits a cage bursts into at a moment, set out across its
- * square, each flying up and aside, faster the farther from the middle it
- * sets out, spinning outward as it rises and falls back as a hard bit
- * does, and fading toward the end of its flight as a loose bit does.
+ * square, each thrown up and aside, faster the farther from the middle it
+ * sets out, and spinning outward as it flies.
  */
 function bitsOf(
   { piece, at }: Caged,
   atMs: number,
   feel: FeelTuning,
 ): readonly SpriteTrack[] {
-  const seconds = feel.cageBitMs / 1000;
+  const ms = feel.cageBitMs;
+  const seconds = ms / 1000;
   const middle = (feel.cageBits - 1) / 2;
-  const fadeMs = feel.cageBitMs / feel.looseBitFade;
-  const flying = (to: number, easing: Easing): readonly Key[] => [
-    { atMs, ms: feel.cageBitMs, to, easing },
-  ];
   return Array.from({ length: feel.cageBits }, (_, bit) => {
     const out = bit - middle;
     const from = { x: at.x + out * feel.cageBitGapSquares, y: at.y };
@@ -123,22 +120,15 @@ function bitsOf(
     return {
       drawn: { what: "frame", frame: FRAMES.cageBar },
       fromMs: atMs,
-      untilMs: atMs + feel.cageBitMs,
+      untilMs: atMs + ms,
       look: lookAt(from),
       keys: {
-        x: flying(from.x + out * feel.cageBitAside * seconds, "linear"),
-        // A thrown bit flies on at its rise as it falls from rest, by the
-        // square: the first moves its place, the second leans it down.
-        y: flying(from.y - rise * seconds, "linear"),
-        leanY: flying((feel.thrownGravity * seconds ** 2) / 2, "in"),
-        rotation: flying(out * feel.cageBitSpin * seconds, "linear"),
-        fade: [
-          {
-            atMs: atMs + feel.cageBitMs - fadeMs,
-            ms: fadeMs,
-            to: 1,
-            easing: "linear",
-          },
+        ...thrownKeys(
+          { from, aside: out * feel.cageBitAside, rise, atMs, ms },
+          feel,
+        ),
+        rotation: [
+          { atMs, ms, to: out * feel.cageBitSpin * seconds, easing: "linear" },
         ],
       },
     };
