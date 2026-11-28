@@ -1,7 +1,8 @@
 // A burr coming off and a burr spreading. A bunch beside a burr or a blast
 // brushes it off to its sound, in a puff of its tufts, its fuzzball happy
 // for a while; a fuzzball of a bunch sheds its burr in a smaller puff a
-// moment before it hops off. After a move that brushed none off, a burr
+// moment before it goes, hopping off, running into the special the bunch
+// makes or staying to become it. After a move that brushed none off, a burr
 // hops across from a burred fuzzball at half its size, bending a little
 // aside, and the fuzzball it lands on wears it, looking cross, squashing
 // and springing back. With Less motion they play the same, the draft
@@ -65,15 +66,20 @@ export function brushedOff(
   ];
 }
 
-/** Returns the parts of a fuzzball of a bunch shedding its burr before it hops off at a moment, or none for one with no burr. */
-export function shedBeforeHop(
+/**
+ * Returns the parts of a fuzzball of a bunch shedding its burr a moment
+ * before `goesMs`, when it goes: as it hops off the board or runs into the
+ * special the bunch makes, or, for the one that stays to become that
+ * special, as the rest run into it. A piece with no burr sheds none.
+ */
+export function shedInBunch(
   standing: Standing,
-  hopMs: number,
+  goesMs: number,
   feel: FeelTuning,
 ): readonly Part[] {
   return comesOff(
     standing,
-    hopMs - feel.hopShedLeadMs,
+    goesMs - feel.hopShedLeadMs,
     feel.burrInBunchTufts,
     feel,
   );

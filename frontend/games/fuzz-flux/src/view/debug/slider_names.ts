@@ -268,7 +268,7 @@ export const SLIDER_NAMES: Readonly<Record<keyof FeelTuning, string>> = {
   bedSinkSquares: "To bed: sinks past the edge",
   bedScale: "To bed: shrinks to",
   bedGapMs: "To bed: apart",
-  hopShedLeadMs: "Hop off: sheds what it wears before",
+  hopShedLeadMs: "Bunch: sheds what it wears before it goes",
   burrInBunchTufts: "A burr brushed off: tufts in a bunch",
   burrOffTufts: "A burr brushed off: tufts by a bunch beside or a blast",
   burrOffHappyMs: "A burr brushed off: fuzzball happy for",

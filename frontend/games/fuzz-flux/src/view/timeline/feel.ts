@@ -540,7 +540,7 @@ export interface FeelTuning {
   readonly bedScale: number;
   /** How far apart the sleepyheads a wave puts to bed sink, the board waiting as long for each. */
   readonly bedGapMs: number;
-  /** How long before its hop a fuzzball of a bunch sheds what it wears, such as a cage opened or a burr brushed off. */
+  /** How long before it goes, hopping off, running into the special or staying to become it, a fuzzball of a bunch sheds what it wears, such as a cage opened or a burr brushed off. */
   readonly hopShedLeadMs: number;
   /** How many tufts of a burr fly as a fuzzball of a bunch sheds it. */
   readonly burrInBunchTufts: number;

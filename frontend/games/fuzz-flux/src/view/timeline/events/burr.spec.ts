@@ -1,4 +1,5 @@
 import { itemAt } from "@fz/core/records";
+import type { FuzzballFace } from "@fz/style/fuzzball";
 import {
   ELEMENT_RULES,
   WIND_RULE,
@@ -32,7 +33,7 @@ import { RAISED } from "../looks";
 import { type Part, cue, facing, facingAgain, spawns } from "../part";
 import { frameFor, sampleAt } from "../sample";
 import type { Timeline } from "../timeline";
-import { brushedOff, burrSpreads, shedBeforeHop } from "./burr";
+import { brushedOff, burrSpreads, shedInBunch } from "./burr";
 
 /** The bunch beside a burred fuzzball played by hand, which brushes off the burr of piece 4, on square 3 of its 3 by 3 board. */
 const BRUSHED = MOVE_FIXTURES.burrBrushedOff;
@@ -100,6 +101,46 @@ function burrRunsIn(): MoveFixture {
     6,
     7,
   );
+}
+
+/**
+ * Returns the move the rules play swapping square 8 with 11 on a board 3
+ * by 5: the swap gathers the greens, the blues above them fall onto the
+ * burred blue on square 12, and the 4 down make a dasher there, which the
+ * burred blue, piece 13, stays to become.
+ */
+function burrStays(): MoveFixture {
+  return playedOn(
+    {
+      pieces: ["bra", "bar", "ggr", "bag", "bra"],
+      marks: ["...", "...", "...", "...", "*.."],
+    },
+    { goals: [{ what: "gather", kind: "pink", count: 30 }] },
+    8,
+    11,
+  );
+}
+
+/** Returns when a piece of a timeline first looks a way, or throws where it never does. */
+function faceOf(timeline: Timeline, id: number, face: FuzzballFace): number {
+  const faced = timeline.pieces
+    .find((track) => track.id === id)
+    ?.faces.find((each) => each.face === face);
+  if (faced === undefined) {
+    throw new Error(`Piece ${String(id)} never looks ${face}.`);
+  }
+  return faced.atMs;
+}
+
+/** Returns when a timeline first draws a piece without its burr, or throws where it never does. */
+function shedMsOf(timeline: Timeline, id: number): number {
+  const shed = timeline.pieces
+    .find((track) => track.id === id)
+    ?.becomes.find(({ piece }) => piece.what === "fuzzball" && !piece.burred);
+  if (shed === undefined) {
+    throw new Error(`Piece ${String(id)} never sheds its burr.`);
+  }
+  return shed.atMs;
 }
 
 /** Returns the board a move played by hand leaves once its waves are done. */
@@ -214,12 +255,12 @@ describe("brushedOff", () => {
   });
 });
 
-describe("shedBeforeHop", () => {
+describe("shedInBunch", () => {
   it("sheds a burr a moment before its fuzzball hops off, in a smaller puff of its tufts", () => {
     const at = { x: 1, y: 2 };
 
     expect(
-      shedBeforeHop({ piece: { ...RED, burred: true }, at }, 500, FEEL),
+      shedInBunch({ piece: { ...RED, burred: true }, at }, 500, FEEL),
     ).toEqual([
       { what: "becomes", piece: 4, atMs: 500 - FEEL.hopShedLeadMs, drawn: RED },
       spawns({
@@ -234,9 +275,9 @@ describe("shedBeforeHop", () => {
   });
 
   it("sheds nothing from a fuzzball with no burr", () => {
-    expect(
-      shedBeforeHop({ piece: RED, at: { x: 0, y: 0 } }, 500, FEEL),
-    ).toEqual([]);
+    expect(shedInBunch({ piece: RED, at: { x: 0, y: 0 } }, 500, FEEL)).toEqual(
+      [],
+    );
   });
 
   it("sheds the burr of a fuzzball a bunch takes in before it hops off, so its copy flies bare", () => {
@@ -251,10 +292,36 @@ describe("shedBeforeHop", () => {
     });
   });
 
-  it("keeps the burr of a fuzzball that runs into the special its bunch makes", () => {
+  it("sheds the burr of a fuzzball that runs into the special its bunch makes a moment before it runs in", () => {
     const timeline = moveTimeline(burrRunsIn(), "full");
 
-    expect(burrTuftsIn(timeline)).toBe(0);
+    const runsInMs = faceOf(timeline, 1, "happy");
+    expect({
+      tufts: burrTuftsIn(timeline),
+      shedMs: shedMsOf(timeline, 1),
+    }).toEqual({
+      tufts: FEEL.burrInBunchTufts,
+      shedMs: runsInMs - FEEL.hopShedLeadMs,
+    });
+  });
+
+  it("sheds the burr of the one that stays to become the special a fall's bunch makes, before it becomes it", () => {
+    const timeline = moveTimeline(burrStays(), "full");
+
+    const runsInMs = faceOf(timeline, 1, "happy");
+    expect({
+      tufts: burrTuftsIn(timeline),
+      becomes: timeline.pieces.find(({ id }) => id === 13)?.becomes,
+    }).toMatchObject({
+      tufts: FEEL.burrInBunchTufts,
+      becomes: [
+        {
+          atMs: runsInMs - FEEL.hopShedLeadMs,
+          piece: { burred: false, special: null },
+        },
+        { piece: { burred: false, special: "dasher-down" } },
+      ],
+    });
   });
 
   it("sheds it with Less motion, where the bunch hops off, in a quarter of the tufts, rounded", () => {
