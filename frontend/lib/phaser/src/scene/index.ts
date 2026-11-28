@@ -1,5 +1,6 @@
 export { type AtlasFrame, bakeAtlas } from "./bake_atlas";
 export { type DrawTexture, bakeTexture } from "./bake_texture";
+export { type AtlasBaking, type AtlasFrames, BakedAtlas } from "./baked_atlas";
 export { type DrawCanvas, drawCanvasTexture } from "./canvas_texture";
 export { dynamicTexture } from "./dynamic_texture";
 export { type KeyListener, onKeyDown, onKeyUp } from "./keys";

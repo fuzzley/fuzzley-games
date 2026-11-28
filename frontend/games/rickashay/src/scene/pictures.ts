@@ -2,9 +2,8 @@
 // kind's whole brick, one frame of the atlas a kind, for the Ready card and
 // the panels, and a floor bounce's spring, unlit and lit.
 
-import type { WallFrames } from "@fz/brick-wall/scene/atlas";
 import { cellArea } from "@fz/brick-wall/view/art";
-import type { Pictured } from "@fz/phaser/scene";
+import type { AtlasFrames, Pictured } from "@fz/phaser/scene";
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
 import { KIND_IDS, type KindId } from "../rules/catalog/kinds";
 import { LEGEND, tintOf } from "../rules/levels/legend";
@@ -76,7 +75,7 @@ export function pictureFrames(
  * Returns every frame the scene's atlas bakes: the field's, as the art
  * draws them, then a picture of each kind of brick for the page.
  */
-export const atlasWithPictures: WallFrames<WallPalette> = (palette, scale) => {
+export const atlasWithPictures: AtlasFrames<WallPalette> = (palette, scale) => {
   const frames = wallAtlasFrames(palette, scale);
   return [...frames, ...pictureFrames(frames, scale)];
 };

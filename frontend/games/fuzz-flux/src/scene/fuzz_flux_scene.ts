@@ -2,6 +2,7 @@ import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type CssRect, type Viewport, roomInside } from "@fz/phaser/layout";
 import {
+  BakedAtlas,
   canvasChanged,
   onFirstFrame,
   picturesWhenAsked,
@@ -19,7 +20,7 @@ import type { Picking } from "../view/input/picking";
 import type { GridShown } from "../view/run_state";
 import { type Frame, frameFor, sampleAt } from "../view/timeline/sample";
 import type { SoundCue, Timeline } from "../view/timeline/timeline";
-import { ATLAS, BoardAtlas } from "./atlas";
+import { ATLAS, BOARD_ATLAS } from "./atlas";
 import { BoardInput } from "./board_input";
 import { BoardSounds } from "./board_sounds";
 import { DISC } from "./disc";
@@ -124,7 +125,7 @@ export class FuzzFluxScene extends Scene {
   /** A square's side, and the pixel ratio, as the board was last laid out, which the atlas bakes for. */
   private square!: ArtScale;
   /** Bakes the board's art, in its palette and for its square. */
-  private atlas!: BoardAtlas;
+  private atlas!: BakedAtlas<BoardPalette>;
 
   /** Draws the squares, their dust and the rim. */
   board!: BoardPainter;
@@ -172,7 +173,12 @@ export class FuzzFluxScene extends Scene {
     const { options } = this;
     const play = options.play();
     this.measure(play.grid);
-    this.atlas = new BoardAtlas(this, options.palette(), this.square);
+    this.atlas = new BakedAtlas(
+      this,
+      BOARD_ATLAS,
+      options.palette(),
+      this.square,
+    );
     softDisc(this, DISC.key, DISC.size);
     const layers = this.layers();
     this.board = new BoardPainter(this, layers);

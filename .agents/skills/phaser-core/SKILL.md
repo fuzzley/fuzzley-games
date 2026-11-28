@@ -275,7 +275,11 @@ scene without shutting it down first, so the end is whichever comes first.
   it, in layers and containers too. An object takes a frame's new size and
   origin only then (`setFrame()`, or `setTexture()` for a `NineSlice`), and
   one left on a frame the new bake dropped throws as it draws. A particle
-  emitter needs nothing.
+  emitter needs nothing. `BakedAtlas` keeps a game's one atlas so, made
+  from an `AtlasBaking`: its `key`, its frames in a palette at a scale
+  (`framesOf()`) and the scale a layout bakes at (`scaleOf()`). It bakes as
+  it is made, and again at `bakeFor(palette, layout)` only for a new
+  palette or scale, retaking every frame.
 - **A gradient is painted once, never drawn each frame.** `paintTexture()`
   paints paint commands, washes among them, into a canvas texture, and again
   after a lost context. `softDisc()` paints a white disc fading to nothing,
