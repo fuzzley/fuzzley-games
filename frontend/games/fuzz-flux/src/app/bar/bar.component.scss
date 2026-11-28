@@ -21,6 +21,14 @@
   --moves-size: var(--fz-font-lg);
 }
 
+// A compact bar lying across the window, crowded with the wind's figure
+// beside three goals, stands each goal's count under its picture, as the
+// wind's and the moves' figures stand theirs, so all five fit beside Hint
+// on the narrowest phone.
+:host(.compact:not(.rail)) app-level-figures.crowded {
+  --goal-direction: column;
+}
+
 // A rail, as narrow as a button, stands the figures one over the next.
 :host(.rail) app-level-figures {
   --figures-direction: column;

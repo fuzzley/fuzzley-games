@@ -493,8 +493,13 @@ function ended({ run, last }: Ending): {
   };
 }
 
+/** Returns how many goals a level has. */
+function goals({ data }: LevelEntry): number {
+  return data.goals.length;
+}
+
 describe("the levels the check ends", () => {
-  it("clears Clean sweep, taken up, by its last move", () => {
+  it("clears The big bunch, taken up, by its last move", () => {
     expect(ended(CLEARED)).toEqual({
       takenUp: true,
       outcome: "cleared",
@@ -511,7 +516,7 @@ describe("the levels the check ends", () => {
     });
   });
 
-  it("clears Clean sweep by its certificate on its deal", () => {
+  it("clears The big bunch by its certificate on its deal", () => {
     const { run, last } = CLEARED;
     const { set, data } = levelAt(LEVELS, run.level);
 
@@ -521,12 +526,11 @@ describe("the levels the check ends", () => {
   });
 
   // So the check meets the board whose squares are smallest, and the goals
-  // that take the most room in the bar and on the Out of moves card, as
-  // sets join the game.
+  // that take the most room in the bar and on the Out of moves card, of
+  // every level.
   it("ends the levels of the widest and tallest board and of the most goals", () => {
     const across = ({ data }: LevelEntry): number => data.board[0]?.length ?? 0;
     const down = ({ data }: LevelEntry): number => data.board.length;
-    const goals = ({ data }: LevelEntry): number => data.goals.length;
     const cleared = levelAt(LEVELS, CLEARED.run.level);
 
     expect({
@@ -536,6 +540,20 @@ describe("the levels the check ends", () => {
     }).toEqual({
       across: Math.max(...LEVELS.map(across)),
       down: Math.max(...LEVELS.map(down)),
+      goals: Math.max(...LEVELS.map(goals)),
+    });
+  });
+
+  // So the check meets the bar's figures at their widest: a turning wind's
+  // arrow over its count, wider than a steady wind's arrow alone, beside
+  // the most goals, each met.
+  it("clears a level of the most goals with a turning wind", () => {
+    const turning = ({ data }: LevelEntry): boolean =>
+      data.wind !== null && data.wind.turns !== null;
+    const cleared = levelAt(LEVELS, CLEARED.run.level);
+
+    expect({ turning: turning(cleared), goals: goals(cleared) }).toEqual({
+      turning: true,
       goals: Math.max(...LEVELS.map(goals)),
     });
   });

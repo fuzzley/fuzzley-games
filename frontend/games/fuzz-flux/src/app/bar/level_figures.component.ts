@@ -30,7 +30,9 @@ function shortWay(degrees: number): number {
  * Shows a level's figures, in the bar or in the panel beside the board: the
  * wind's arrow, the way it blows, and its moves to turn; each goal's
  * picture and what it still asks for, with a check once met; and the moves
- * left, in the warning color once they run low.
+ * left, in the warning color once they run low. It is marked `crowded`
+ * where the wind's stands beside three goals, for a compact bar to set
+ * closer.
  *
  * Not a live region: the announcer says each change that matters.
  */
@@ -39,6 +41,7 @@ function shortWay(degrees: number): number {
   imports: [IconComponent],
   templateUrl: "./level_figures.component.html",
   styleUrl: "./level_figures.component.scss",
+  host: { "[class.crowded]": "crowded()" },
 })
 export class LevelFiguresComponent {
   /** What the shell shows of the level in play. */
@@ -81,6 +84,16 @@ export class LevelFiguresComponent {
       left,
       met,
     }));
+  });
+
+  /**
+   * Whether the figures are five or more, the wind's, turning or not,
+   * beside three goals and the moves: more than a compact bar holds in a
+   * row on the narrowest phone.
+   */
+  protected readonly crowded = computed(() => {
+    const { wind, goals } = this.state();
+    return wind !== null && goals.length >= 3;
   });
 
   /** The moves left, whether they show low, and the word under them. */

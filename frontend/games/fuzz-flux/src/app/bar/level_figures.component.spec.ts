@@ -24,11 +24,25 @@ function stateOf(changed: Partial<RunState> = {}): RunState {
   return { ...runStateOf(inPlay, gridOf(game), beats), ...changed };
 }
 
+/** Returns a state whose level asks its first goal so many times over. */
+function withGoals(state: RunState, count: number): RunState {
+  const [shown] = state.goals;
+  return {
+    ...state,
+    goals: shown ? Array.from({ length: count }, () => shown) : [],
+  };
+}
+
 /** Returns the angle the wind's arrow is turned to, as its style says it. */
 function arrowTurn(): string | undefined {
   return document
     .querySelector<HTMLElement>(".way fz-icon")
     ?.style.getPropertyValue("rotate");
+}
+
+/** Returns the element the figures are rendered in, the component's host. */
+function figuresHost(): HTMLElement | null {
+  return document.querySelector(".figures")?.parentElement ?? null;
 }
 
 /** Renders a level's figures, with the pieces' pictures unless told none. */
@@ -134,6 +148,37 @@ describe("LevelFiguresComponent", () => {
       const figures = await renderFigures(stateOf());
 
       expect(figures.goalPictures()).toHaveLength(1);
+    });
+  });
+
+  describe("crowded", () => {
+    /** The wind as a level that turns it shows it. */
+    const turning = { wind: { blows: "down", turnsIn: 4 } } as const;
+
+    it("marks the figures crowded where the wind's stands beside three goals", async () => {
+      await renderFigures(withGoals(stateOf(turning), 3));
+
+      expect(figuresHost()).toHaveClass("crowded");
+    });
+
+    it("marks them crowded beside a wind that never turns too", async () => {
+      await renderFigures(
+        withGoals(stateOf({ wind: { blows: "up", turnsIn: null } }), 3),
+      );
+
+      expect(figuresHost()).toHaveClass("crowded");
+    });
+
+    it("leaves the wind beside two goals uncrowded", async () => {
+      await renderFigures(withGoals(stateOf(turning), 2));
+
+      expect(figuresHost()).not.toHaveClass("crowded");
+    });
+
+    it("leaves three goals with no wind uncrowded", async () => {
+      await renderFigures(withGoals(stateOf(), 3));
+
+      expect(figuresHost()).not.toHaveClass("crowded");
     });
   });
 

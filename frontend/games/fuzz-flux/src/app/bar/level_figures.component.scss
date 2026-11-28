@@ -11,7 +11,8 @@
 // the panel and a rail set them in a column (`--figures-direction`), and a
 // compact bar and a rail set them smaller: their gap (`--figures-gap`), the
 // goals' pictures (`--goal-picture`) and the counts (`--count-size`,
-// `--moves-size`).
+// `--moves-size`). A compact bar crowded with them stands each goal's count
+// under its picture (`--goal-direction`).
 .figures {
   display: flex;
   flex-direction: var(--figures-direction, row);
@@ -57,6 +58,13 @@
     font-size: var(--fz-font-2xs);
     white-space: nowrap;
   }
+}
+
+// A goal's count beside its picture, or under it, touching, where the bar
+// stands it so.
+.goal {
+  flex-direction: var(--goal-direction, row);
+  row-gap: 0;
 }
 
 // A goal's picture, a square kept for it before the board has baked it, so
