@@ -212,9 +212,11 @@ so one the change no longer replays is dropped.
   `firstWaveOf()` (`src/testing/played_parts.ts`) plays the fixture's first
   wave, the event's function writes its parts, `timelineOfParts()` makes
   the timeline a board plays of them, and `sampleAt()`
-  (`src/view/timeline/sample.ts`) or `pieceAt()` reads it at a moment. A
-  moment it plays at is written from the feel's numbers
-  (`FEEL.cageBitMs`), so the spec holds once they are retuned.
+  (`src/view/timeline/sample.ts`) reads it at a moment, or `pieceAt()` and
+  `spriteAt()` one piece or loose sprite of it, which read one gone too,
+  as `sampleAt()` samples none. A moment it plays at is written from the
+  feel's numbers (`FEEL.cageBitMs`), so the spec holds once they are
+  retuned.
 - **A whole move** is `timelineOf()` (`src/view/timeline/build.ts`) of a
   fixture's record from `moveStartOf()` (`src/testing/shown_board.ts`),
   in a `PlaySettings` of a speed and a motion. Less motion is a version of

@@ -273,8 +273,8 @@ export interface Timeline {
 export interface Sampled extends Record<Channel, number> {
   /**
    * Whether it shows at the moment. Nothing else of a record not shown is
-   * read: before its track shows it keeps whatever it last held, and once
-   * the track ends, the last of its look.
+   * read: before its track shows and once it has gone, the record keeps
+   * whatever it last held.
    */
   shown: boolean;
   face: FuzzballFace;

@@ -1,7 +1,15 @@
 import { SHAKE_RATES } from "@fz/core/motion";
+import { itemAt } from "@fz/core/records";
 import { FEEL } from "./feel";
 import { RAISED, lookAt } from "./looks";
-import { frameFor, sampleAt, sampleFlight } from "./sample";
+import {
+  type Frame,
+  frameFor,
+  sampleAt,
+  sampleFlight,
+  samplePiece,
+  sampleSprite,
+} from "./sample";
 import {
   EASINGS,
   type Easing,
@@ -72,6 +80,22 @@ function pieceAt(
   return sampled(timelineOf({ pieces: [track] }), ms).pieces[0];
 }
 
+/** Returns a loose sprite's track, a cage's bar at the board's corner, moved by keys from 0 until 200 ms. */
+function barOf(keys: Keys): SpriteTrack {
+  return {
+    drawn: { what: "frame", frame: "cage-bar" },
+    fromMs: 0,
+    untilMs: 200,
+    look: lookAt({ x: 0, y: 0 }),
+    keys,
+  };
+}
+
+/** Returns a frame of a piece's record and a loose sprite's, holding nothing sampled. */
+function blankFrame(): Frame {
+  return frameFor(timelineOf({ pieces: [trackOf({})], sprites: [barOf({})] }));
+}
+
 /** Returns a key that moves a number over 100 ms from a moment. */
 function keyAt(atMs: number, to: number, easing: Easing = "linear"): Key {
   return { atMs, ms: 100, to, easing };
@@ -111,6 +135,11 @@ describe("frameFor", () => {
       ],
       sprites: [expect.objectContaining({ shown: false, drawn: null })],
       board: { dim: 0, shake: { x: 0, y: 0 } },
+      heldPieces: [
+        { track: null, fromMs: 0, untilMs: 0 },
+        { track: null, fromMs: 0, untilMs: 0 },
+      ],
+      heldSprites: [{ track: null, fromMs: 0, untilMs: 0 }],
     });
   });
 });
@@ -122,6 +151,119 @@ describe("sampleAt", () => {
     expect(pieceAt(track, 200)).toEqual(
       expect.objectContaining({ ...lookAt({ x: 0, y: 0 }), shown: false }),
     );
+  });
+
+  it("leaves the record of a track gone as it stood, but for showing nothing", () => {
+    const timeline = timelineOf({
+      pieces: [trackOf({ x: [keyAt(100, 4)] }, { untilMs: 150 })],
+      sprites: [barOf({ y: [keyAt(100, 4)] })],
+    });
+    const frame = frameFor(timeline);
+    sampleAt(timeline, FEEL, 140, frame);
+
+    sampleAt(timeline, FEEL, 250, frame);
+
+    expect([
+      frame.pieces[0]?.x,
+      frame.pieces[0]?.shown,
+      frame.sprites[0]?.y,
+      frame.sprites[0]?.shown,
+    ]).toEqual([expect.closeTo(1.6, 9), false, expect.closeTo(1.6, 9), false]);
+  });
+
+  it("samples a look once it stands still, and none of it again at a later moment", () => {
+    const timeline = timelineOf({ pieces: [trackOf({ x: [keyAt(0, 4)] })] });
+    const frame = frameFor(timeline);
+    const record = itemAt(sampleAt(timeline, FEEL, 100, frame).pieces, 0);
+    // A mark sampling never writes, which a look sampled again takes off.
+    record.y = 9;
+
+    sampleAt(timeline, FEEL, 300, frame);
+
+    expect([record.x, record.y]).toEqual([4, 9]);
+  });
+
+  it("samples a look standing between its keys once, and none of it again before the next starts", () => {
+    const timeline = timelineOf({
+      pieces: [trackOf({ x: [keyAt(0, 4)], y: [keyAt(200, 2)] })],
+    });
+    const frame = frameFor(timeline);
+    const record = itemAt(sampleAt(timeline, FEEL, 100, frame).pieces, 0);
+    record.scaleX = 9;
+
+    sampleAt(timeline, FEEL, 150, frame);
+
+    expect(record.scaleX).toBe(9);
+  });
+
+  it("samples a look again while any of its numbers still moves, the others' keys ended", () => {
+    // Its numbers before and after the one that moves longest end sooner.
+    const timeline = timelineOf({
+      pieces: [
+        trackOf({
+          x: [keyAt(0, 4)],
+          y: [keyAt(50, 2)],
+          scaleY: [keyAt(0, 2)],
+        }),
+      ],
+    });
+    const frame = frameFor(timeline);
+    sampleAt(timeline, FEEL, 120, frame);
+
+    sampleAt(timeline, FEEL, 130, frame);
+
+    expect(frame.pieces[0]?.y).toBeCloseTo(1.6, 9);
+  });
+
+  it("samples a look standing between its keys again as the next starts", () => {
+    const timeline = timelineOf({
+      pieces: [trackOf({ x: [keyAt(0, 4)], y: [keyAt(200, 2)] })],
+    });
+    const frame = frameFor(timeline);
+    const record = itemAt(sampleAt(timeline, FEEL, 100, frame).pieces, 0);
+    record.scaleX = 9;
+
+    sampleAt(timeline, FEEL, 250, frame);
+
+    expect([record.scaleX, record.y]).toEqual([1, 1]);
+  });
+
+  it("samples a look standing still again at a moment before it stood", () => {
+    const timeline = timelineOf({ pieces: [trackOf({ x: [keyAt(0, 4)] })] });
+    const frame = frameFor(timeline);
+    sampleAt(timeline, FEEL, 300, frame);
+
+    sampleAt(timeline, FEEL, 50, frame);
+
+    expect(frame.pieces[0]?.x).toBe(2);
+  });
+
+  it("samples a look again each moment while a wobble sways it, its keys ended", () => {
+    const timeline = timelineOf({
+      pieces: [
+        trackOf({ wobble: [{ atMs: 0, ms: 0, to: 0.5, easing: "linear" }] }),
+      ],
+    });
+    const frame = frameFor(timeline);
+    sampleAt(timeline, FEEL, 100, frame);
+
+    sampleAt(timeline, FEEL, 140, frame);
+
+    expect(frame.pieces[0]?.leanX).toBeCloseTo(
+      Math.sin(140 / FEEL.wobbleRadianMs) * 0.5 * FEEL.wobbleSquares,
+      9,
+    );
+  });
+
+  it("samples the look of a track a record holds another's still look for", () => {
+    const first = timelineOf({ pieces: [trackOf({ x: [keyAt(0, 4)] })] });
+    const second = timelineOf({ pieces: [trackOf({ x: [keyAt(0, 6)] })] });
+    const frame = frameFor(first);
+    sampleAt(first, FEEL, 300, frame);
+
+    sampleAt(second, FEEL, 300, frame);
+
+    expect(frame.pieces[0]?.x).toBe(6);
   });
 
   it("stands a sprite at its look before its keys start", () => {
@@ -342,6 +484,51 @@ describe("sampleAt", () => {
       new RangeError(
         "A frame keeps a record for each of its timeline's tracks.",
       ),
+    );
+  });
+});
+
+describe("samplePiece", () => {
+  it("samples a piece's track at a moment it shows no more, as where it came to", () => {
+    const track = trackOf(
+      { x: [keyAt(0, 4)] },
+      { untilMs: 150, faces: [{ atMs: 120, face: "eep" }] },
+    );
+    const frame = blankFrame();
+
+    expect(
+      samplePiece(
+        track,
+        FEEL,
+        200,
+        itemAt(frame.pieces, 0),
+        itemAt(frame.heldPieces, 0),
+      ),
+    ).toEqual(
+      expect.objectContaining({ x: 4, shown: false, face: "eep", drawn: RED }),
+    );
+  });
+});
+
+describe("sampleSprite", () => {
+  it("samples a loose sprite's track at a moment it shows no more, as where it came to", () => {
+    const frame = blankFrame();
+
+    expect(
+      sampleSprite(
+        barOf({ y: [keyAt(0, 4)] }),
+        FEEL,
+        250,
+        itemAt(frame.sprites, 0),
+        itemAt(frame.heldSprites, 0),
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        y: 4,
+        shown: false,
+        face: "rest",
+        drawn: null,
+      }),
     );
   });
 });

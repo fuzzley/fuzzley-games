@@ -3,6 +3,7 @@ import { MOVE_FIXTURES } from "../../../testing/move_fixtures";
 import {
   firstWaveOf,
   pieceAt,
+  spriteAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
 import {
@@ -16,7 +17,6 @@ import { FRAMES } from "../../art/frame_names";
 import { FEEL } from "../feel";
 import type { HitOf } from "../hits";
 import { lookAt } from "../looks";
-import { frameFor, sampleAt } from "../sample";
 import type { Sampled, Timeline } from "../timeline";
 import type { WavePlay } from "../wave_play";
 import { broken, knocked } from "./brick";
@@ -90,19 +90,6 @@ function near(value: number): unknown {
 /** Returns how far down a sprite is drawn, in squares: its place and its lean down. */
 function downOf(sprite: Sampled): number {
   return sprite.y + sprite.leanY;
-}
-
-/**
- * Returns how a timeline's first loose sprite looks at a moment.
- *
- * @throws {Error} for a timeline with no loose sprite.
- */
-function spriteAt(timeline: Timeline, ms: number): Sampled {
-  const [sprite] = sampleAt(timeline, FEEL, ms, frameFor(timeline)).sprites;
-  if (sprite === undefined) {
-    throw new Error("The timeline has no loose sprite.");
-  }
-  return sprite;
 }
 
 describe("knocked", () => {

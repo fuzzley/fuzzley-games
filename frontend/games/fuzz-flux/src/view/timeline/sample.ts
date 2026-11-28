@@ -21,9 +21,11 @@ import {
   type Key,
   type Keys,
   type Look,
+  type PieceTrack,
   type Place,
   type Sampled,
   type SampledBoard,
+  type SpriteTrack,
   type Timeline,
 } from "./timeline";
 
@@ -34,6 +36,24 @@ export interface Frame {
   /** A record for each of its loose sprites' tracks, in its order. */
   readonly sprites: readonly Sampled[];
   readonly board: SampledBoard;
+  /** What each piece's record holds of its track's look while it stands still, in the same order. */
+  readonly heldPieces: readonly Held[];
+  /** What each loose sprite's record holds of its track's look while it stands still, in the same order. */
+  readonly heldSprites: readonly Held[];
+}
+
+/**
+ * Describes the look a record holds of a track standing still between its
+ * keys, every key started by then ended, the next yet to start, and no
+ * wobble swaying it, so a frame in that while samples none of it again.
+ */
+export interface Held {
+  /** The track whose look the record holds standing still, or null for none. */
+  track: PieceTrack | SpriteTrack | null;
+  /** When the look came to stand, the last of its keys started by then ended. */
+  fromMs: number;
+  /** When the next of its keys starts, or Infinity for none. */
+  untilMs: number;
 }
 
 /**
@@ -49,6 +69,8 @@ export function frameFor(timeline: Timeline): Frame {
     pieces: timeline.pieces.map(sampledRecord),
     sprites: timeline.sprites.map(sampledRecord),
     board: { dim: 0, shake: { x: 0, y: 0 } },
+    heldPieces: timeline.pieces.map(heldRecord),
+    heldSprites: timeline.sprites.map(heldRecord),
   };
 }
 
@@ -58,7 +80,8 @@ export function frameFor(timeline: Timeline): Frame {
  *
  * It takes the feel the timeline was built by, as `pacedFeel()` gives it
  * at the player's speed, since a head's shake sways at that feel's rate.
- * A track yet to show is left as it stood, but for showing nothing.
+ * A track that doesn't show, yet to or gone, is left as it stood, but for
+ * showing nothing, and a look standing still is sampled once.
  *
  * @throws {RangeError} for a frame with fewer records than the timeline
  *   has tracks.
@@ -80,29 +103,61 @@ export function sampleAt(
   for (let index = 0; index < timeline.pieces.length; index++) {
     const track = itemAt(timeline.pieces, index);
     const sampled = itemAt(into.pieces, index);
-    if (ms < track.fromMs) {
+    if (showsAt(track, ms)) {
+      samplePiece(track, feel, ms, sampled, itemAt(into.heldPieces, index));
+    } else {
       sampled.shown = false;
-      continue;
     }
-    sampled.shown = track.untilMs === null || ms < track.untilMs;
-    sampleLook(track.look, track.keys, feel, ms, sampled);
-    sampled.face = latestAt(track.faces, ms)?.face ?? track.face;
-    sampled.drawn = latestAt(track.becomes, ms)?.piece ?? track.drawn;
   }
   for (let index = 0; index < timeline.sprites.length; index++) {
     const track = itemAt(timeline.sprites, index);
     const sampled = itemAt(into.sprites, index);
-    if (ms < track.fromMs) {
+    if (showsAt(track, ms)) {
+      sampleSprite(track, feel, ms, sampled, itemAt(into.heldSprites, index));
+    } else {
       sampled.shown = false;
-      continue;
     }
-    sampled.shown = ms < track.untilMs;
-    sampleLook(track.look, track.keys, feel, ms, sampled);
-    sampled.face = track.drawn.what === "copy" ? track.drawn.face : REST;
-    sampled.drawn = null;
   }
   into.board.dim = numberAt(0, timeline.dim, ms);
   shakeAt(timeline.effects, feel, ms, into.board.shake);
+  return into;
+}
+
+/**
+ * Writes how a piece's track looks at a moment into a record, whether it
+ * shows then or not, and returns it, sampling none of a look the record
+ * holds standing still already.
+ */
+export function samplePiece(
+  track: PieceTrack,
+  feel: FeelTuning,
+  ms: number,
+  into: Sampled,
+  held: Held,
+): Sampled {
+  into.shown = showsAt(track, ms);
+  sampleTrackLook(track, feel, ms, into, held);
+  into.face = latestAt(track.faces, ms)?.face ?? track.face;
+  into.drawn = latestAt(track.becomes, ms)?.piece ?? track.drawn;
+  return into;
+}
+
+/**
+ * Writes how a loose sprite's track looks at a moment into a record,
+ * whether it shows then or not, and returns it, as `samplePiece()` does a
+ * piece's.
+ */
+export function sampleSprite(
+  track: SpriteTrack,
+  feel: FeelTuning,
+  ms: number,
+  into: Sampled,
+  held: Held,
+): Sampled {
+  into.shown = showsAt(track, ms);
+  sampleTrackLook(track, feel, ms, into, held);
+  into.face = track.drawn.what === "copy" ? track.drawn.face : REST;
+  into.drawn = null;
   return into;
 }
 
@@ -146,12 +201,72 @@ function bendOf(flight: Flight, feel: FeelTuning): number {
   return (share - 0.5) * feel.flightBendSpread;
 }
 
+/** The keys of a number no key moves. */
+const NO_KEYS: readonly Key[] = [];
+
 /** The face a loose frame's record holds, as it has no eyes. */
 const REST: FuzzballFace = "rest";
 
 /** Returns a record for a sprite's sampling to write into. */
 function sampledRecord(): Sampled {
   return { ...lookAt({ x: 0, y: 0 }), shown: false, face: REST, drawn: null };
+}
+
+/** Returns a record of a look held standing still, holding none yet. */
+function heldRecord(): Held {
+  return { track: null, fromMs: 0, untilMs: 0 };
+}
+
+/** Returns whether a track shows at a moment: from its start until its end, where it has one. */
+function showsAt(
+  { fromMs, untilMs }: PieceTrack | SpriteTrack,
+  ms: number,
+): boolean {
+  return fromMs <= ms && (untilMs === null || ms < untilMs);
+}
+
+/**
+ * Writes a track's look at a moment into its record, unless the record
+ * holds that look already, standing still, and keeps whether the look it
+ * now holds stands still, and for how long.
+ */
+function sampleTrackLook(
+  track: PieceTrack | SpriteTrack,
+  feel: FeelTuning,
+  ms: number,
+  into: Sampled,
+  held: Held,
+): void {
+  if (held.track === track && held.fromMs <= ms && ms < held.untilMs) {
+    return;
+  }
+  sampleLook(track.look, track.keys, feel, ms, into);
+  standingAt(track.keys, ms, held);
+  held.track = held.fromMs <= ms && into.wobble === 0 ? track : null;
+}
+
+/**
+ * Writes the while about a moment that a look's keys leave it standing
+ * into a record: from when the last key started by then of each of its
+ * numbers ends, as those before it stop where the next starts, until the
+ * next key of any of them starts.
+ */
+function standingAt(keys: Keys, ms: number, into: Held): void {
+  into.fromMs = 0;
+  into.untilMs = Number.POSITIVE_INFINITY;
+  for (let channel = 0; channel < CHANNELS.length; channel++) {
+    const moves = keys[itemAt(CHANNELS, channel)] ?? NO_KEYS;
+    let next = 0;
+    while (next < moves.length && itemAt(moves, next).atMs <= ms) next++;
+    const started = moves[next - 1];
+    if (started !== undefined) {
+      into.fromMs = Math.max(into.fromMs, started.atMs + started.ms);
+    }
+    const coming = moves[next];
+    if (coming !== undefined) {
+      into.untilMs = Math.min(into.untilMs, coming.atMs);
+    }
+  }
 }
 
 /** Writes each number of a sprite's look at a moment into its record, its wobble's sway folded into its lean across. */

@@ -4,6 +4,7 @@ import {
   HOPS_MS,
   blastTimeline,
   firstWaveOf,
+  spriteAt,
   timelineOfParts,
 } from "../../../testing/played_parts";
 import { moveStartOf } from "../../../testing/shown_board";
@@ -11,7 +12,6 @@ import { afterSwap } from "../board_after";
 import { FEEL } from "../feel";
 import { RAISED, lookAt } from "../looks";
 import { reachesOf } from "../reach";
-import { frameFor, sampleAt } from "../sample";
 import type { Timeline } from "../timeline";
 import { wispOff } from "./wisp";
 
@@ -20,14 +20,6 @@ const OFF_MS = HOPS_MS + FEEL.blastAfterMs;
 
 /** When its copy lands on square 7, the one fuzzball it takes. */
 const LANDS_MS = OFF_MS + FEEL.wispMs;
-
-/** Returns where a timeline's first loose sprite stands at a moment. */
-function copyAt(
-  timeline: Timeline,
-  ms: number,
-): ReturnType<typeof frameFor>["sprites"][number] | undefined {
-  return sampleAt(timeline, FEEL, ms, frameFor(timeline)).sprites[0];
-}
 
 /**
  * Returns the timeline of a wisp and a dasher swapped together going off,
@@ -80,7 +72,7 @@ describe("wispOff", () => {
         look: { ...lookAt({ x: 1, y: 0 }), raise: RAISED.top },
       },
     ]);
-    expect(copyAt(timeline, LANDS_MS)).toMatchObject({
+    expect(spriteAt(timeline, LANDS_MS)).toMatchObject({
       x: 1,
       y: 2,
       leanX: 0,
@@ -89,7 +81,7 @@ describe("wispOff", () => {
   });
 
   it("bows the copy's flight to one side and lifts it, most halfway", () => {
-    expect(copyAt(timeline, OFF_MS + FEEL.wispMs / 2)).toMatchObject({
+    expect(spriteAt(timeline, OFF_MS + FEEL.wispMs / 2)).toMatchObject({
       x: 1,
       y: 1,
       leanX: FEEL.wispBendSquares * FEEL.curveArc,
