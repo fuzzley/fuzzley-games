@@ -19,6 +19,13 @@
       [style.--line]="row.line"
     >
       @for (cell of row.cells; track cell.index) {
+        <!--
+          The click is the one assistive technology makes on a cell, as
+          every press goes through to the canvas. The lint rule asking for
+          a key does not know that the scene hears the board's keys, Space
+          and Enter playing the square in focus.
+        -->
+        <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
         <div
           #gridCell
           class="cell"
@@ -30,6 +37,7 @@
           [attr.data-index]="cell.index"
           [style.--column]="cell.column"
           (focus)="followFocus(cell.index)"
+          (click)="tap(cell.index)"
         ></div>
       }
     </div>

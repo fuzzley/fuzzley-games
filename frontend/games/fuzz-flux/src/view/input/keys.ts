@@ -1,12 +1,15 @@
 // The keys the board is played by: a ring the arrows move over its squares,
-// and the keys that play the square under it. Each is read by its place on
-// the keyboard, but H, read by the letter it types, as the layout labels it.
+// and the keys that play the square under it, the ring following the focus
+// a screen reader moves and playing the click it makes on a square. Each
+// key is read by its place on the keyboard, but H, read by the letter it
+// types, as the layout labels it.
 
 import { type ShortcutModifiers, isShortcut } from "@fz/core/keys";
 import { type Square, squareOf } from "../../rules/board/cells";
 import {
   type BoardShape,
   type Way,
+  areNeighbors,
   isOnBoard,
   isWithinEdges,
   neighborOf,
@@ -51,7 +54,9 @@ const KEYS: ReadonlyMap<string, BoardKey> = new Map<string, BoardKey>([
  * board answers on the picking: Space or Enter taps the square under the
  * ring, as a finger would; an arrow swaps the fuzzball held that way, or
  * moves the ring while none is held; Esc puts the fuzzball held down; and H
- * asks for a hint.
+ * asks for a hint. It also follows the focus a screen reader moves
+ * ({@link moveTo}), and plays the click it makes on a square
+ * ({@link tapAt}).
  */
 export class Ring {
   /** The square under the ring. */
@@ -85,7 +90,7 @@ export class Ring {
           ? this.moveRing(key.way)
           : this.picking.swapHeld(key.way);
       case "tap":
-        return [...this.picking.press(this.at), ...this.picking.tap()];
+        return this.tapRing();
       case "put-down":
         return this.picking.held === null ? null : this.picking.putDown();
       case "hint":
@@ -98,15 +103,38 @@ export class Ring {
    * and returns the commands that show it there; or none where the ring is
    * there already, or the square is a gap or off the board.
    *
-   * It puts the fuzzball held down, which an arrow would otherwise swap
-   * where the ring no longer is.
+   * It keeps the fuzzball held where the square is it or next to it, so a
+   * tap there plays it as a tap on the board would, and else puts it down,
+   * which an arrow would otherwise swap far from the ring.
    */
   moveTo(square: Square): readonly BoardCommand[] {
     if (sameSquare(square, this.at) || !isOnBoard(this.board, square)) {
       return [];
     }
     this.at = square;
-    return [...this.picking.putDown(), { what: "move-ring", square }];
+    const held = this.picking.held;
+    const keeps =
+      held !== null && (sameSquare(held, square) || areNeighbors(held, square));
+    return [
+      ...(keeps ? [] : this.picking.putDown()),
+      { what: "move-ring", square },
+    ];
+  }
+
+  /**
+   * Taps a square, as a click assistive technology makes on its cell does,
+   * and returns the commands it gives: the ring moved there, and the square
+   * played as Space plays the square under the ring; or none for a gap or
+   * a square off the board.
+   */
+  tapAt(square: Square): readonly BoardCommand[] {
+    if (!isOnBoard(this.board, square)) return [];
+    return [...this.moveTo(square), ...this.tapRing()];
+  }
+
+  /** Taps the square under the ring, as a finger would. */
+  private tapRing(): readonly BoardCommand[] {
+    return [...this.picking.press(this.at), ...this.picking.tap()];
   }
 
   /**

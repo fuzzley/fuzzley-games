@@ -6,6 +6,7 @@ import {
   BRICK,
   B_MATES,
   C,
+  D,
   E,
   F,
   GAP,
@@ -83,7 +84,7 @@ describe("Ring", () => {
       });
     });
 
-    it("puts the fuzzball held down as it moves the ring off it", () => {
+    it("puts the fuzzball held down as it moves the ring past its neighbors", () => {
       const { ring, hand } = ringOn(BOARD, SPACE);
 
       const commands = ring.moveTo(H);
@@ -91,6 +92,29 @@ describe("Ring", () => {
       expect({ commands, held: hand.held }).toEqual({
         commands: [{ what: "put-down", square: A }, ringAt(H)],
         held: null,
+      });
+    });
+
+    it("keeps the fuzzball held as it moves the ring onto it", () => {
+      const { ring, hand } = ringOn();
+      hand.press(H);
+
+      const commands = ring.moveTo(H);
+
+      expect({ commands, held: hand.held }).toEqual({
+        commands: [ringAt(H)],
+        held: H,
+      });
+    });
+
+    it("keeps the fuzzball held as it moves the ring next to it", () => {
+      const { ring, hand } = ringOn(BOARD, SPACE);
+
+      const commands = ring.moveTo(B);
+
+      expect({ commands, held: hand.held }).toEqual({
+        commands: [ringAt(B)],
+        held: A,
       });
     });
 
@@ -115,6 +139,41 @@ describe("Ring", () => {
         commands: [],
         square: A,
       });
+    });
+  });
+
+  describe("tapAt", () => {
+    it("moves the ring to a square and picks up the fuzzball there", () => {
+      const { ring } = ringOn();
+
+      const commands = ring.tapAt(B);
+
+      expect({ commands, square: ring.square }).toEqual({
+        commands: [ringAt(B), { what: "pick-up", square: B, mates: B_MATES }],
+        square: B,
+      });
+    });
+
+    it("swaps the fuzzball held with the one tapped next to it", () => {
+      const { ring } = ringOn(BOARD, SPACE);
+
+      expect(ring.tapAt(D)).toEqual([
+        ringAt(D),
+        { what: "put-down", square: A },
+        { what: "swap", from: A, to: D },
+      ]);
+    });
+
+    it("plays the square under the ring without moving it", () => {
+      const { ring } = ringOn(BOARD, SPACE);
+
+      expect(ring.tapAt(A)).toEqual([{ what: "put-down", square: A }]);
+    });
+
+    it("taps nothing on a gap", () => {
+      const { ring } = ringOn();
+
+      expect(ring.tapAt(GAP)).toEqual([]);
     });
   });
 

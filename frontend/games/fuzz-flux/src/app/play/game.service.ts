@@ -390,6 +390,13 @@ export class GameService extends RunLifecycle {
     }
   }
 
+  /** Taps a square, as a click assistive technology makes on its cell does, once the board has a ring. */
+  tapSquare(square: Square): void {
+    for (const command of this.board?.ring.tapAt(square) ?? []) {
+      this.boardCommand(command);
+    }
+  }
+
   /** Shows the hint at once, as Hint and H ask, putting down the fuzzball held first; never while a move plays. */
   hint(): void {
     const board = this.board;

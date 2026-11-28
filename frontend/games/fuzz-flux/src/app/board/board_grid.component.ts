@@ -49,12 +49,15 @@ interface RowView {
  * it and described by its keys, one tab stop, and a cell for each square,
  * a gap none, named for what it holds and the dust on it, and selected
  * while it holds the fuzzball the board shows held. It takes no press:
- * each goes through to the canvas beneath, which reads it.
+ * each goes through to the canvas beneath, which reads it. Only assistive
+ * technology clicks a cell, on the cell itself, and the click plays its
+ * square as a tap there would.
  *
  * The square with the focus is the ring the keys move (the view's `Ring`),
  * ringed while the focus is from the keyboard: the focus follows the ring
  * as the keys move it, and the ring the focus, where a screen reader moves
- * that, so a key always plays the square in focus.
+ * that, so Space and Enter play the square in focus, and an arrow swaps the
+ * fuzzball held, kept only while the focus is on it or next to it.
  *
  * Its roles are ARIA's own rather than Angular Aria's grid, which takes the
  * arrow keys to move the focus itself, and stops them there, cancelled: the
@@ -131,6 +134,11 @@ export class BoardGridComponent {
   /** Moves the ring to the square the focus moved to, as a screen reader may move it. */
   protected followFocus(index: number): void {
     this.game.moveRing(squareOf(index, this.grid().width));
+  }
+
+  /** Plays the square of a cell clicked, as a tap there would. */
+  protected tap(index: number): void {
+    this.game.tapSquare(squareOf(index, this.grid().width));
   }
 }
 

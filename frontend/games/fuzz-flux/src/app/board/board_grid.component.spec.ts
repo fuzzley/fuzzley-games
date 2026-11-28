@@ -205,6 +205,30 @@ describe("BoardGridComponent", () => {
     });
   });
 
+  describe("a click on a cell, as assistive technology makes it", () => {
+    it("picks up the fuzzball on its square", async () => {
+      const { detectChanges } = await renderOnBoard();
+
+      cellAt(BLUE_LINE.from).click();
+      detectChanges();
+
+      expect(screen.getAllByRole("gridcell", { selected: true })).toEqual([
+        cellAt(BLUE_LINE.from),
+      ]);
+    });
+
+    it("swaps the fuzzball held with the one next to it, the focus moved there first", async () => {
+      const { game } = await renderOnBoard();
+      cellAt(BLUE_LINE.from).focus();
+      cellAt(BLUE_LINE.from).click();
+
+      cellAt(BLUE_LINE.to).focus();
+      cellAt(BLUE_LINE.to).click();
+
+      expect(game.inPlay().moves).toEqual([BLUE_LINE]);
+    });
+  });
+
   describe("the fuzzball held", () => {
     it("is selected, and no other", async () => {
       const { frames, detectChanges } = await renderOnBoard();

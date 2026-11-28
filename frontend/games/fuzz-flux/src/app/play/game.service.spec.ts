@@ -162,6 +162,14 @@ describe("GameService", () => {
       expect(game.ringSquare()).toBeNull();
     });
 
+    it("taps nothing before the board hands over the view", () => {
+      const game = TestBed.inject(GameService);
+
+      game.tapSquare(at(7));
+
+      expect(game.heldSquare()).toBeNull();
+    });
+
     it("has no level on the board before the board hands over the view", () => {
       const game = TestBed.inject(GameService);
 
