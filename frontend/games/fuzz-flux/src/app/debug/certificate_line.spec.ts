@@ -3,6 +3,7 @@ import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import bedtime from "../../rules/levels/certificates/bedtime.json";
 import bricksAndBars from "../../rules/levels/certificates/bricks-and-bars.json";
 import warmUp from "../../rules/levels/certificates/warm-up.json";
+import windyDays from "../../rules/levels/certificates/windy-days.json";
 import type { LevelEntry } from "../../rules/levels/levels";
 import { BoardFrames } from "../../testing/board_frames";
 import {
@@ -253,11 +254,13 @@ describe("CERTIFICATE_FILES", () => {
       warmUp: await files["warm-up"]?.(),
       bricksAndBars: await files["bricks-and-bars"]?.(),
       bedtime: await files["bedtime"]?.(),
+      windyDays: await files["windy-days"]?.(),
     }).toEqual({
-      sets: ["bedtime", "bricks-and-bars", "warm-up"],
+      sets: ["bedtime", "bricks-and-bars", "warm-up", "windy-days"],
       warmUp,
       bricksAndBars,
       bedtime,
+      windyDays,
     });
   });
 });
