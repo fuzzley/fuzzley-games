@@ -1,23 +1,26 @@
 // What a move on the board has come to at a moment of its timeline, on the
 // scene's clock: each goal's count as its flights land, the board's rest,
 // and the card at the level's end, each star on which lights as the view's
-// `starsLitAt()` says. A beat falls in the first frame that stands past it,
-// as a cue at the same moment plays.
+// `starsLitAt()` says; and the wind, turned as the gust that turns it sets
+// in. A beat falls in the first frame that stands past it, as a cue at the
+// same moment plays.
 
-import type { Card } from "../../view/run_state";
+import type { Card, WindShown } from "../../view/run_state";
 import type { GoalCount, Timeline } from "../../view/timeline/timeline";
 
 /**
  * Describes what the play on the board has come to, which the bar and the
  * card show as it comes: what each goal still asks for as its flights have
  * landed, whether the moves left show in the warning color, the card once
- * the level's end has come to it, and how many of its stars are lit.
+ * the level's end has come to it, how many of its stars are lit, and the
+ * wind, or null for a level with none.
  */
 export interface Beats {
   readonly goalsLeft: readonly number[];
   readonly movesLow: boolean;
   readonly card: Card | null;
   readonly starsLit: number;
+  readonly wind: WindShown | null;
 }
 
 /** Returns whether a beat at a moment of a timeline has passed, the play standing at another. */
@@ -59,4 +62,21 @@ export function cardAt(
   playedMs: number,
 ): Card | null {
   return end !== null && hasPassed(end.cardMs, playedMs) ? card : null;
+}
+
+/**
+ * Returns the wind at a moment of a move's timeline: as it blew as the
+ * move started until the beat the wind turns, after a move that turns it,
+ * and as the move leaves it from then, or from the start after one that
+ * turns none.
+ */
+export function windAt(
+  { windTurnsMs }: Pick<Timeline, "windTurnsMs">,
+  from: WindShown | null,
+  to: WindShown | null,
+  playedMs: number,
+): WindShown | null {
+  return windTurnsMs === undefined || hasPassed(windTurnsMs, playedMs)
+    ? to
+    : from;
 }

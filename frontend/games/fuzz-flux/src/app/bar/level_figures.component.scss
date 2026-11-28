@@ -34,13 +34,22 @@
 }
 
 // The wind's arrow in the accent, its moves to turn under it in the muted
-// text.
+// text. The arrow turns as the wind does over the sketch's 380 ms, a little
+// past and back.
 .wind {
   flex-direction: column;
   gap: 2px;
 
   .way {
     color: var(--fz-accent);
+
+    fz-icon {
+      @include transition(
+        rotate,
+        $duration: 380ms,
+        $easing: cubic-bezier(0.3, 1.4, 0.5, 1)
+      );
+    }
   }
 
   .turns-in {

@@ -20,6 +20,7 @@ function stateOfLevel3(): RunState {
     movesLow: false,
     card: null,
     starsLit: 0,
+    wind: null,
   };
   return runStateOf(inPlay, gridOf(game), beats);
 }

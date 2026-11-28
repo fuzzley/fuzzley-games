@@ -3,6 +3,7 @@ import {
   type ElementRef,
   computed,
   input,
+  linkedSignal,
   viewChildren,
 } from "@angular/core";
 import { IconComponent } from "@fz/ui/icon";
@@ -12,13 +13,18 @@ import type { Pictures } from "../../scene/pictures";
 import type { RunState } from "../../view/run_state";
 import { goalPictureOf } from "./goal_pictures";
 
-/** How far the chevron, which points down, turns to point the way each wind blows. */
-const WIND_TURNS: Readonly<Record<Wind, string>> = {
-  down: "0deg",
-  right: "-90deg",
-  up: "180deg",
-  left: "90deg",
+/** How far the chevron, which points down, turns to point the way each wind blows, in degrees clockwise. */
+const WIND_TURNS: Readonly<Record<Wind, number>> = {
+  down: 0,
+  right: -90,
+  up: 180,
+  left: 90,
 };
+
+/** Returns a turn in degrees the short way round: a half turn either way at the most. */
+function shortWay(degrees: number): number {
+  return (((degrees % 360) + 540) % 360) - 180;
+}
 
 /**
  * Shows a level's figures, in the bar or in the panel beside the board: the
@@ -47,10 +53,23 @@ export class LevelFiguresComponent {
     if (wind === null) return null;
     return {
       blows: wind.blows,
-      turn: WIND_TURNS[wind.blows],
       turnsIn:
         wind.turnsIn === null ? null : `turns in ${String(wind.turnsIn)}`,
     };
+  });
+
+  /**
+   * How far the wind's arrow is turned, in degrees clockwise: from where it
+   * last pointed, the short way round to the way the wind blows, so a wind
+   * that turns a quarter turns it a quarter, as the sketch turns it, never
+   * three.
+   */
+  protected readonly turn = linkedSignal<Wind | null, number>({
+    source: () => this.state().wind?.blows ?? null,
+    computation: (blows, previous) => {
+      const from = previous?.value ?? 0;
+      return blows === null ? from : from + shortWay(WIND_TURNS[blows] - from);
+    },
   });
 
   /** Each goal, as its figure shows it: its name, its picture once the board has baked it, and what it still asks for. */

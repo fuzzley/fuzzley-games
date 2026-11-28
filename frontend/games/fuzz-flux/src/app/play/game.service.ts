@@ -32,7 +32,12 @@ import { lowMovesCue, movesLow } from "../../view/idle/low_moves";
 import type { BoardCommand } from "../../view/input/commands";
 import type { Ring } from "../../view/input/keys";
 import type { GameInPlay, Picking } from "../../view/input/picking";
-import type { Card, GridShown, RunState } from "../../view/run_state";
+import type {
+  Card,
+  GridShown,
+  RunState,
+  WindShown,
+} from "../../view/run_state";
 import type {
   HeldChange,
   MoveStart,
@@ -54,6 +59,7 @@ import {
   goalsLeftAt,
   hasPassed,
   sameCounts,
+  windAt,
 } from "./beats";
 import { goalsOf, gridOf, runStateOf, windOf } from "./shown";
 import type { ViewKit } from "./view_kit";
@@ -119,6 +125,10 @@ interface MoveOnBoard {
   readonly movesFrom: number;
   /** The card at the level's end it comes to, or null for a move after which the level plays on. */
   readonly card: Card | null;
+  /** The wind as it started, which the bar shows until the gust that turns it sets in, or null for a level with none. */
+  readonly windFrom: WindShown | null;
+  /** The wind as it leaves it, or null for a level with none. */
+  readonly windTo: WindShown | null;
 }
 
 /** Describes how a move leaves its level: the encore and the stars of one it cleared, and the card at the level's end; neither for a level that plays on. */
@@ -315,10 +325,11 @@ export class GameService extends RunLifecycle {
 
   /**
    * Keeps the beats of the board's play by the scene's clock as a frame
-   * starts: each goal's count as its flights land, the card at the level's
-   * end, and the board's rest after a move, at which it plays the swap kept
-   * meanwhile; makes the next move of the debug menu's line, if any, at
-   * rest; and shows the hint once the board has rested long enough.
+   * starts: each goal's count as its flights land, the wind as the gust
+   * that turns it sets in, the card at the level's end, and the board's
+   * rest after a move, at which it plays the swap kept meanwhile; makes
+   * the next move of the debug menu's line, if any, at rest; and shows the
+   * hint once the board has rested long enough.
    */
   tick(nowMs: number, playedMs: number): void {
     this.nowMs = nowMs;
@@ -552,6 +563,7 @@ export class GameService extends RunLifecycle {
       movesLow: movesLow(movesLeft, this.feel()),
       card,
       starsLit: card?.what === "cleared" ? card.stars : 0,
+      wind: windOf(inPlay.level, inPlay.game),
     };
   }
 
@@ -700,6 +712,8 @@ export class GameService extends RunLifecycle {
         goalsFrom: before.game.goalsLeft,
         movesFrom: before.game.movesLeft,
         card,
+        windFrom: this.beatsState().wind,
+        windTo: windOf(inPlay.level, inPlay.game),
       },
     });
     board.rested = false;
@@ -750,7 +764,7 @@ export class GameService extends RunLifecycle {
     }
   }
 
-  /** Keeps the bar's counts, the card and its stars lit to where a move on the board stands on its timeline, saying the card as it shows. */
+  /** Keeps the bar's counts and its wind, the card and its stars lit to where a move on the board stands on its timeline, saying the card as it shows. */
   private keepBeats(
     timeline: Timeline,
     move: MoveOnBoard,
@@ -761,14 +775,16 @@ export class GameService extends RunLifecycle {
     const card = cardAt(timeline, move.card, playedMs);
     const starsLit =
       timeline.end === null ? 0 : starsLitAt(timeline.end, playedMs);
+    const wind = windAt(timeline, move.windFrom, move.windTo, playedMs);
     if (
       sameCounts(goalsLeft, beats.goalsLeft) &&
       card === beats.card &&
-      starsLit === beats.starsLit
+      starsLit === beats.starsLit &&
+      wind === beats.wind
     ) {
       return;
     }
-    this.beatsState.set({ ...beats, goalsLeft, card, starsLit });
+    this.beatsState.set({ ...beats, goalsLeft, card, starsLit, wind });
     if (card !== null && beats.card === null) this.sayCard(card);
   }
 

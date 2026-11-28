@@ -220,6 +220,16 @@ describe("gustCrosses", () => {
   });
 
   it.each<Motion>(["full", "less"])(
+    "turns the wind as the gust sets in, in %s motion",
+    (motion) => {
+      expect(crossing(1, motion)).toContainEqual({
+        what: "wind-turns",
+        atMs: GUST_MS,
+      });
+    },
+  );
+
+  it.each<Motion>(["full", "less"])(
     "holds the board for the gust's time, in %s motion",
     (motion) => {
       expect(crossing(1, motion)).toContainEqual({

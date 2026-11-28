@@ -1,5 +1,5 @@
 import type { Timeline } from "../../view/timeline/timeline";
-import { cardAt, goalsLeftAt, hasPassed, sameCounts } from "./beats";
+import { cardAt, goalsLeftAt, hasPassed, sameCounts, windAt } from "./beats";
 
 /** Returns a timeline whose level's end shows its card at a moment, or one that ends nothing. */
 function endingAt(cardMs: number | null): Pick<Timeline, "end"> {
@@ -45,5 +45,18 @@ describe("cardAt", () => {
     const timeline = endingAt(cardMs);
 
     expect(cardAt(timeline, { what: "over" }, playedMs)).toEqual(shown);
+  });
+});
+
+describe("windAt", () => {
+  const FROM = { blows: "down", turnsIn: 1 } as const;
+  const TO = { blows: "right", turnsIn: 3 } as const;
+
+  it.each([
+    ["before the beat it turns", { windTurnsMs: 100 }, 50, FROM],
+    ["after the beat it turns", { windTurnsMs: 100 }, 150, TO],
+    ["at once after a move that turns none", {}, 0, TO],
+  ] as const)("shows the wind %s", (_, timeline, playedMs, shown) => {
+    expect(windAt(timeline, FROM, TO, playedMs)).toBe(shown);
   });
 });

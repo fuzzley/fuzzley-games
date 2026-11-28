@@ -3,7 +3,7 @@
     <div class="figure wind">
       <dt class="fz-visually-hidden">Wind</dt>
       <dd class="way">
-        <fz-icon name="chevron" [style.rotate]="wind.turn" />
+        <fz-icon name="chevron" [style.rotate.deg]="turn()" />
         <span class="fz-visually-hidden">{{ wind.blows }}</span>
       </dd>
       @if (wind.turnsIn; as turnsIn) {

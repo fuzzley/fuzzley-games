@@ -26,7 +26,7 @@ function stateAt({
 }: Ending): RunState {
   const rules = { elements: ELEMENT_RULES, wind: WIND_RULE };
   const inPlay = levelDealt(itemAt(SMALL_LEVELS, 2), 1, rules);
-  const beats = { goalsLeft, movesLow: false, card, starsLit };
+  const beats = { goalsLeft, movesLow: false, card, starsLit, wind: null };
   return runStateOf(inPlay, gridOf(inPlay.game), beats);
 }
 

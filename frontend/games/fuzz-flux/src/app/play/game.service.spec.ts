@@ -91,6 +91,21 @@ function aLegalMove(game: GameService): Move {
   return { from: onScreen(inPlay, move.from), to: onScreen(inPlay, move.to) };
 }
 
+/** Returns the small levels, the third's wind blowing down and turning a quarter once it has waited so many moves. */
+function windyLevels(every: number): readonly LevelEntry[] {
+  return SMALL_LEVELS.map((entry) =>
+    entry.number === 3
+      ? {
+          ...entry,
+          data: {
+            ...entry.data,
+            wind: { blows: "down", turns: { every, quarters: 1 } },
+          },
+        }
+      : entry,
+  );
+}
+
 /** Resolves once the game has done what a command started and left to finish. */
 async function settle(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve));
@@ -291,6 +306,36 @@ describe("GameService", () => {
       expect(played.game.inPlay().moves).toEqual([
         { from: PUFFER, to: PUFFER },
       ]);
+    });
+  });
+
+  describe("the wind on the bar", () => {
+    it("shows as it blew until the gust that turns it sets in", async () => {
+      const played = await startGame(3, windyLevels(1));
+      swap(played, BLUE_LINE);
+
+      played.frames.frame();
+
+      expect(played.game.state().wind).toEqual({ blows: "down", turnsIn: 1 });
+    });
+
+    it("turns, its wait begun again, as the gust sets in", async () => {
+      const played = await startGame(3, windyLevels(1));
+      swap(played, BLUE_LINE);
+      const { windTurnsMs } = played.game.play().timeline;
+
+      played.frames.playPast(windTurnsMs ?? Infinity);
+
+      expect(played.game.state().wind).toEqual({ blows: "right", turnsIn: 1 });
+    });
+
+    it("counts its wait down at once after a move that turns it none", async () => {
+      const played = await startGame(3, windyLevels(2));
+      swap(played, BLUE_LINE);
+
+      played.frames.frame();
+
+      expect(played.game.state().wind).toEqual({ blows: "down", turnsIn: 1 });
     });
   });
 

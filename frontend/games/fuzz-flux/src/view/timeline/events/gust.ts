@@ -4,7 +4,7 @@
 // with the gust as it reaches it, from the edge the wind blows from, its
 // fur lifting, then springs back. The board waits for the gust before the
 // waves its turn sets off. With Less motion the lines still cross, and
-// nothing leans.
+// nothing leans. The wind shows turned as the gust sets in.
 
 import { hashOf } from "@fz/core/random";
 import { itemAt } from "@fz/core/records";
@@ -29,13 +29,14 @@ const DRAWS = {
 
 /**
  * Returns the parts of a gust crossing the board, on the board as the wind
- * turns: its lines of wind, the lean of each fuzzball it reaches but with
- * Less motion, and the board held for it.
+ * turns: the wind turning as it sets in, its lines of wind, the lean of
+ * each fuzzball it reaches but with Less motion, and the board held for it.
  */
 export function gustCrosses(gust: Gust, play: AfterPlay): readonly Part[] {
   const { atMs, feel } = play;
   const blows = itemAt(WINDS, gust.turns);
   return [
+    { what: "wind-turns", atMs },
     ...linesOf(gust, blows, play),
     ...(play.motion === "less" ? [] : leansOf(blows, play)),
     { what: "hold", atMs: atMs + feel.gustMs },

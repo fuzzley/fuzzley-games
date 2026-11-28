@@ -19,8 +19,16 @@ function stateOf(changed: Partial<RunState> = {}): RunState {
     movesLow: false,
     card: null,
     starsLit: 0,
+    wind: null,
   };
   return { ...runStateOf(inPlay, gridOf(game), beats), ...changed };
+}
+
+/** Returns the angle the wind's arrow is turned to, as its style says it. */
+function arrowTurn(): string | undefined {
+  return document
+    .querySelector<HTMLElement>(".way fz-icon")
+    ?.style.getPropertyValue("rotate");
 }
 
 /** Renders a level's figures, with the pieces' pictures unless told none. */
@@ -52,6 +60,27 @@ describe("LevelFiguresComponent", () => {
       expect(document.querySelector(".way fz-icon")).toHaveStyle({
         rotate: "-90deg",
       });
+    });
+
+    it("turns its arrow the short way round as the wind turns, a quarter at a time", async () => {
+      const { fixture } = await render(LevelFiguresComponent, {
+        inputs: {
+          state: stateOf({ wind: { blows: "left", turnsIn: 1 } }),
+          pictures: PICTURES,
+        },
+      });
+      const turns: (string | undefined)[] = [];
+
+      for (const blows of ["down", "right", "up", "left"] as const) {
+        fixture.componentRef.setInput(
+          "state",
+          stateOf({ wind: { blows, turnsIn: 3 } }),
+        );
+        fixture.detectChanges();
+        turns.push(arrowTurn());
+      }
+
+      expect(turns).toEqual(["0deg", "-90deg", "-180deg", "-270deg"]);
     });
 
     it("shows no moves to turn for a wind that never does", async () => {

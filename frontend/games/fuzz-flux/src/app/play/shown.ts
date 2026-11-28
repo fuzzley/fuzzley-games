@@ -59,7 +59,7 @@ export function runStateOf(
     movesLeft: game.movesLeft,
     movesLow: beats.movesLow,
     goals: goalsOf(game.goals, beats.goalsLeft),
-    wind: windOf(level, game),
+    wind: beats.wind,
     newThing: level.data.brings,
     card: beats.card,
     starsLit: beats.starsLit,
